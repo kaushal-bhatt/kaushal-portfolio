@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import type { TechSection } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,7 @@ export async function GET() {
 
     // Get counts separately to avoid type issues
     const sectionsWithCounts = await Promise.all(
-      techSections.map(async (section) => {
+      techSections.map(async (section: TechSection) => {
         const postCount = await prisma.blogPost.count({
           where: {
             technology: section.slug,
