@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Portfolio Application
+  portfolio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=RoI7KVEzw1HPHXNMV5sTLbUpoN7evTZf
+    volumes:
+      - sqlite_data:/app/prisma
+    restart: unless-stopped
+    networks:
+      - portfolio_network
+
+  # Development service (for local development)
+  dev:
+    build:
+      context: .
+      target: deps
+    ports:
+      - "3000:3000" 
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=RoI7KVEzw1HPHXNMV5sTLbUpoN7evTZf
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - sqlite_data:/app/prisma
+    working_dir: /app
+    command: >
+      sh -c "npx prisma generate && 
+             npx prisma db push && 
+             npm run dev"
+    networks:
+      - portfolio_network
+    profiles:
+      - dev
+
+volumes:
+  sqlite_data:
+
+networks:
+  portfolio_network:
+    driver: bridge

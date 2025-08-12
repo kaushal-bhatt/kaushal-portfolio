@@ -1,19 +1,28 @@
-const path = require('path');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: process.env.NEXT_DIST_DIR || '.next',
-  output: process.env.NEXT_OUTPUT_MODE,
-  experimental: {
-    outputFileTracingRoot: path.join(__dirname, '../'),
-  },
+  // Remove problematic experimental config for Vercel
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: false,
   },
-  images: { unoptimized: true },
+  images: { 
+    unoptimized: true 
+  },
+  
+  // Better webpack config for production
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;
