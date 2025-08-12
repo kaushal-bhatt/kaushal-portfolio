@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Login</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 400px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        input, button { 
+            padding: 10px; 
+            margin: 10px 0; 
+            width: 100%; 
+            border: 1px solid #333;
+            background: #2a2a2a;
+            color: white;
+        }
+        button { 
+            background: #0066cc; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #0052a3; 
+        }
+        #result { 
+            margin-top: 20px; 
+            padding: 10px; 
+            border: 1px solid #333;
+            background: #2a2a2a;
+        }
+    </style>
+</head>
+<body>
+    <h2>Test Admin Login</h2>
+    <form id="loginForm">
+        <input type="email" id="email" placeholder="Email" value="kaushal8650@gmail.com" required>
+        <input type="password" id="password" placeholder="Password" value="admin123" required>
+        <button type="submit">Login</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Logging in...';
+            
+            try {
+                // First get CSRF token
+                const csrfResponse = await fetch('/api/auth/csrf');
+                const csrfData = await csrfResponse.json();
+                
+                // Then attempt login
+                const response = await fetch('/api/auth/callback/credentials', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        email,
+                        password,
+                        csrfToken: csrfData.csrfToken,
+                        callbackUrl: '/admin'
+                    }),
+                    redirect: 'manual'
+                });
+                
+                resultDiv.innerHTML = `Status: ${response.status}<br>Type: ${response.type}<br>`;
+                
+                // Check session after login attempt
+                const sessionResponse = await fetch('/api/auth/session');
+                const session = await sessionResponse.json();
+                
+                resultDiv.innerHTML += `<br>Session: ${JSON.stringify(session, null, 2)}`;
+                
+                if (session.user) {
+                    window.location.href = '/admin';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
