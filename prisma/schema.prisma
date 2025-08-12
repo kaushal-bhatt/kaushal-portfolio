@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
+    provider = "sqlite"
     url      = env("DATABASE_URL")
 }
 
@@ -69,9 +69,9 @@ model Portfolio {
   startDate     String
   endDate       String?
   current       Boolean  @default(false)
-  description   String   @db.Text
-  technologies  String[] @default([])
-  achievements  String[] @default([])
+  description   String
+  technologies  String @default("")
+  achievements  String @default("")
   order         Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -81,13 +81,13 @@ model BlogPost {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  excerpt     String   @db.Text
-  content     String   @db.Text
+  excerpt     String
+  content     String
   technology  String
   published   Boolean  @default(false)
   author      User     @relation(fields: [authorId], references: [id])
   authorId    String
-  tags        String[] @default([])
+  tags        String @default("")
   readTime    Int      @default(5)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -97,7 +97,7 @@ model TechSection {
   id          String @id @default(cuid())
   name        String @unique
   slug        String @unique
-  description String @db.Text
+  description String
   icon        String
   order       Int    @default(0)
   color       String @default("#3B82F6")
