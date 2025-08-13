@@ -1,23 +1,6 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/api/admin/profile/route": "app/api/admin/profile/route.js",
   "/api/tech-sections/[slug]/route": "app/api/tech-sections/[slug]/route.js",
-  "/auth/signin/page": "app/auth/signin/page.js",
-  "/api/blog-posts/[slug]/route": "app/api/blog-posts/[slug]/route.js",
-  "/blog/page": "app/blog/page.js",
-  "/blog/post/[slug]/page": "app/blog/post/[slug]/page.js",
-  "/page": "app/page.js",
   "/blog/technology/[slug]/page": "app/blog/technology/[slug]/page.js",
-  "/api/signup/route": "app/api/signup/route.js",
-  "/api/tech-sections/route": "app/api/tech-sections/route.js",
-  "/api/portfolio/route": "app/api/portfolio/route.js",
-  "/api/blog-posts/route": "app/api/blog-posts/route.js",
-  "/portfolio/page": "app/portfolio/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/admin/portfolio/page": "app/admin/portfolio/page.js",
-  "/admin/posts/new/page": "app/admin/posts/new/page.js",
-  "/admin/settings/page": "app/admin/settings/page.js",
-  "/admin/posts/page": "app/admin/posts/page.js",
-  "/admin/posts/[id]/page": "app/admin/posts/[id]/page.js"
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/blog-posts/route": "app/api/blog-posts/route.js"
 }

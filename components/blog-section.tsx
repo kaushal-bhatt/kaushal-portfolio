@@ -134,7 +134,7 @@ export function BlogSection() {
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
                 className="cursor-pointer"
-                onClick={() => window.open(`/blog/${tech.slug}`, '_blank')}
+                onClick={() => window.open(`/blog/technology/${tech.slug}`, '_blank')}
               >
                 <Card className="glass-effect border-slate-700 hover:border-blue-600/50 transition-all duration-300">
                   <CardContent className="p-3 sm:p-6 text-center">

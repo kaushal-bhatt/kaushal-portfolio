@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { transformBlogPostForAPI, transformBlogPostForDB } from '@/lib/sqlite-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      return NextResponse.json(post);
+      return NextResponse.json(transformBlogPostForAPI(post));
     }
 
     // Otherwise return list of posts
@@ -77,7 +78,8 @@ export async function GET(request: NextRequest) {
       ...(limit && { take: parseInt(limit) })
     });
 
-    return NextResponse.json(posts);
+    const transformedPosts = posts.map(transformBlogPostForAPI);
+    return NextResponse.json(transformedPosts);
   } catch (error) {
     console.error('Blog posts fetch error:', error);
     return NextResponse.json(
@@ -115,16 +117,12 @@ export async function POST(request: NextRequest) {
       .replace(/-+/g, '-')
       .trim();
 
+    const postData = transformBlogPostForDB({ title, excerpt, content, technology, tags, readTime, published });
+
     const post = await prisma.blogPost.create({
       data: {
-        title,
+        ...postData,
         slug,
-        excerpt,
-        content,
-        technology,
-        tags: tags || [],
-        readTime: readTime || 5,
-        published: published || false,
         authorId: session.user?.id || ''
       },
       include: {
@@ -136,7 +134,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(post, { status: 201 });
+    return NextResponse.json(transformBlogPostForAPI(post), { status: 201 });
   } catch (error) {
     console.error('Blog post creation error:', error);
     return NextResponse.json(
@@ -174,17 +172,13 @@ export async function PUT(request: NextRequest) {
       .replace(/-+/g, '-')
       .trim();
 
+    const postData = transformBlogPostForDB({ title, excerpt, content, technology, tags, readTime, published });
+
     const post = await prisma.blogPost.update({
       where: { id },
       data: {
-        title,
+        ...postData,
         slug,
-        excerpt: excerpt || '',
-        content,
-        technology,
-        tags: tags || [],
-        readTime: readTime || 5,
-        published: published || false,
         updatedAt: new Date()
       },
       include: {
@@ -196,7 +190,7 @@ export async function PUT(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(post);
+    return NextResponse.json(transformBlogPostForAPI(post));
   } catch (error) {
     console.error('Blog post update error:', error);
     return NextResponse.json(
@@ -241,7 +235,7 @@ export async function PATCH(request: NextRequest) {
       }
     });
 
-    return NextResponse.json(post);
+    return NextResponse.json(transformBlogPostForAPI(post));
   } catch (error) {
     console.error('Blog post patch error:', error);
     return NextResponse.json(

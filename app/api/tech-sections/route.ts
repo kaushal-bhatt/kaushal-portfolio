@@ -18,8 +18,10 @@ export async function GET() {
       techSections.map(async (section: TechSection) => {
         const postCount = await prisma.blogPost.count({
           where: {
-            technology: section.slug,
-            published: true
+            OR: [
+              { technology: section.name, published: true },
+              { technology: section.slug, published: true }
+            ]
           }
         });
         

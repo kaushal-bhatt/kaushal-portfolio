@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"app/admin/page.tsx -> next-auth/react":{"id":605,"files":[]}}';
+self.__REACT_LOADABLE_MANIFEST="{}"

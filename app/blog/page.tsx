@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { safeTags } from '@/lib/safe-arrays';
 
 interface BlogPost {
   id: string;
@@ -74,7 +75,7 @@ export default function BlogPage() {
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+                         safeTags(post.tags).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesTech = selectedTech === 'All' || post.technology === selectedTech;
     
@@ -246,7 +247,7 @@ export default function BlogPage() {
                     </p>
                     
                     <div className="flex flex-wrap gap-2">
-                      {post.tags?.slice(0, 3).map((tag) => (
+                      {safeTags(post.tags)?.slice(0, 3).map((tag) => (
                         <Badge 
                           key={tag}
                           variant="secondary"
@@ -256,12 +257,12 @@ export default function BlogPage() {
                           {tag}
                         </Badge>
                       ))}
-                      {post.tags?.length > 3 && (
+                      {safeTags(post.tags)?.length > 3 && (
                         <Badge 
                           variant="secondary"
                           className="bg-slate-700 text-gray-300 text-xs"
                         >
-                          +{post.tags.length - 3} more
+                          +{safeTags(post.tags).length - 3} more
                         </Badge>
                       )}
                     </div>

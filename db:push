@@ -1,0 +1,74 @@
+> prisma db push
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+The database is already in sync with the Prisma schema.
+
+Running generate... (Use --skip-generate to skip the generators)
+Warning: You did not specify an output path for your `generator` in schema.prisma. This behavior is deprecated and will no longer be supported in Prisma 7.0.0. To learn more visit https://pris.ly/cli/output-path
+
+✔ Generated Prisma Client (v6.7.0) to ./node_modules/@prisma/client in 58ms
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Warning: You did not specify an output path for your `generator` in schema.prisma. This behavior is deprecated and will no longer be supported in Prisma 7.0.0. To learn more visit https://pris.ly/cli/output-path
+
+✔ Installed the @prisma/client and prisma packages in your project
+
+✔ Generated Prisma Client (v6.7.0) to ./node_modules/@prisma/client in 70ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+
+
+> db:seed
+> tsx --require dotenv/config scripts/seed.ts
+
+Database seeded successfully!
+
+3️⃣ Verifying fix...
+🔍 Debugging Technology Routing...
+
+1️⃣ Checking Tech Sections:
+   Java -> /java
+   Spring Boot -> /spring-boot
+   MySQL -> /mysql
+   Kafka -> /kafka
+   DataDog -> /datadog
+   LLM -> /llm
+   Redis -> /redis
+   MongoDB -> /mongodb
+
+2️⃣ Checking Blog Posts:
+   "Advanced Java 17 Features Every Developer Should Know" -> technology: "java" -> published: true
+   "Building Microservices with Spring Boot: A Complete Guide" -> technology: "spring-boot" -> published: true
+   "MySQL Performance Optimization Techniques" -> technology: "mysql" -> published: true
+   "Real-time Data Processing with Apache Kafka" -> technology: "kafka" -> published: true
+
+3️⃣ Checking Technology Mapping:
+   Java (java): 1 posts
+     - Advanced Java 17 Features Every Developer Should Know (published: true)
+   Spring Boot (spring-boot): 1 posts
+     - Building Microservices with Spring Boot: A Complete Guide (published: true)
+   MySQL (mysql): 1 posts
+     - MySQL Performance Optimization Techniques (published: true)
+   Kafka (kafka): 1 posts
+     - Real-time Data Processing with Apache Kafka (published: true)
+   DataDog (datadog): 0 posts
+   LLM (llm): 0 posts
+   Redis (redis): 0 posts
+   MongoDB (mongodb): 0 posts
+
+✅ Debug complete!
+
+4️⃣ Testing technology routes manually...
+   Please test these URLs in your browser:
+   http://localhost:3000/blog/technology/java
+   http://localhost:3000/blog/technology/spring-boot
+   http://localhost:3000/blog/technology/mysql
+   http://localhost:3000/blog/technology/kafka
+
+✅ Fix complete! Your technology routing should now work.
