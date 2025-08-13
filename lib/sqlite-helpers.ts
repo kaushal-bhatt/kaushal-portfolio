@@ -3,12 +3,18 @@
  * Since SQLite doesn't support arrays, we store them as comma-separated strings
  */
 
-export const arrayToString = (arr: string[]): string => {
+export const arrayToString = (arr: string[] | string): string => {
+  // If it's already a string, return it
+  if (typeof arr === 'string') return arr;
+  // If it's an array, convert it
   if (!arr || arr.length === 0) return '';
   return arr.join(',');
 };
 
-export const stringToArray = (str: string): string[] => {
+export const stringToArray = (str: string | string[]): string[] => {
+  // If it's already an array, return it
+  if (Array.isArray(str)) return str;
+  // If it's a string, convert it
   if (!str || str.trim() === '') return [];
   return str.split(',').map(item => item.trim()).filter(Boolean);
 };

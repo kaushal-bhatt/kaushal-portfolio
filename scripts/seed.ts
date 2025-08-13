@@ -51,13 +51,8 @@ async function main() {
       endDate: null,
       current: true,
       description: 'Developed and architected end-to-end microservices for a crypto wallet platform, enabling secure currency transactions and comprehensive wallet functionalities. Led the backend development from scratch, including designing and implementing scalable microservices architecture. Currently spearheading blockchain integration to ensure seamless connectivity and robust transaction processing within the platform.',
-      technologies: ['Java', 'Spring Boot', 'Microservices', 'AWS', 'Blockchain', 'PostgreSQL', 'Docker', 'Kubernetes'],
-      achievements: [
-        'Architected scalable microservices for crypto wallet platform',
-        'Led backend development from scratch',
-        'Implemented blockchain integration for secure transactions',
-        'Designed comprehensive wallet functionality system'
-      ],
+      technologies: 'Java,Spring Boot,Microservices,AWS,Blockchain,PostgreSQL,Docker,Kubernetes',
+      achievements: 'Architected scalable microservices for crypto wallet platform,Led backend development from scratch,Implemented blockchain integration for secure transactions,Designed comprehensive wallet functionality system',
       order: 0,
     },
     {
@@ -67,13 +62,8 @@ async function main() {
       endDate: 'Dec 2024',
       current: false,
       description: 'Led design and implementation of highly parallelized cloud-native applications with comprehensive automated testing achieving 95%+ code coverage. Collaborated closely with domain experts to understand complex algorithms and translate them into scalable software implementations.',
-      technologies: ['Java', 'Spring Boot', 'AWS', 'Microservices', 'Algorithm Design', 'Automated Testing', 'CI/CD'],
-      achievements: [
-        'Achieved 95%+ code coverage through automated testing',
-        'Reduced manual processing time by 30% through automated workflows',
-        'Improved system uptime by 25% through robust architecture design',
-        'Mentored engineering team on complex software design patterns'
-      ],
+      technologies: 'Java,Spring Boot,AWS,Microservices,Algorithm Design,Automated Testing,CI/CD',
+      achievements: 'Achieved 95%+ code coverage through automated testing,Reduced manual processing time by 30% through automated workflows,Improved system uptime by 25% through robust architecture design,Mentored engineering team on complex software design patterns',
       order: 1,
     },
     {
@@ -83,13 +73,8 @@ async function main() {
       endDate: 'Dec 2023',
       current: false,
       description: 'Architected and delivered production-level systems migrating legacy monolithic applications to scalable microservices on AWS. Developed robust real-time applications using Kafka and AWS SageMaker, improving system accuracy by 38%.',
-      technologies: ['Java', 'Spring Boot', 'AWS', 'Kafka', 'SageMaker', 'MySQL', 'Microservices', 'Redis'],
-      achievements: [
-        'Migrated legacy monolithic applications to scalable microservices',
-        'Improved system accuracy by 38% using Kafka and AWS SageMaker',
-        'Handled 10,000+ daily transactions in order management systems',
-        'Achieved 57% reduction in processing time through optimization'
-      ],
+      technologies: 'Java,Spring Boot,AWS,Kafka,SageMaker,MySQL,Microservices,Redis',
+      achievements: 'Migrated legacy monolithic applications to scalable microservices,Improved system accuracy by 38% using Kafka and AWS SageMaker,Handled 10,000+ daily transactions in order management systems,Achieved 57% reduction in processing time through optimization',
       order: 2,
     },
     {
@@ -99,13 +84,8 @@ async function main() {
       endDate: 'Jul 2022',
       current: false,
       description: 'Designed and optimized production systems for end-to-end order processing, reducing delivery time from 7 to 3 days. Maintained and improved system reliability of backend services handling high-volume transactions.',
-      technologies: ['Java', 'Spring Boot', 'MySQL', 'REST APIs', 'System Integration', 'Backend Services'],
-      achievements: [
-        'Reduced delivery time from 7 to 3 days through system optimization',
-        'Maintained high-volume transaction processing systems',
-        'Integrated third-party systems for inventory management',
-        'Received multiple "Best Employee of the Month" awards'
-      ],
+      technologies: 'Java,Spring Boot,MySQL,REST APIs,System Integration,Backend Services',
+      achievements: 'Reduced delivery time from 7 to 3 days through system optimization,Maintained high-volume transaction processing systems,Integrated third-party systems for inventory management,Received multiple Best Employee of the Month awards',
       order: 3,
     },
   ];
@@ -140,7 +120,7 @@ Java 17 includes significant performance optimizations, including improvements t
 When adopting Java 17 in enterprise environments, consider the migration path and ensure compatibility with your existing frameworks and libraries.`,
       technology: 'java',
       published: true,
-      tags: ['Java', 'Programming', 'Enterprise', 'Performance'],
+      tags: 'Java,Programming,Enterprise,Performance',
       readTime: 8,
     },
     {
@@ -162,7 +142,7 @@ Implementing comprehensive testing strategies for microservices, including contr
 Best practices for deploying microservices in containerized environments using Docker and Kubernetes.`,
       technology: 'spring-boot',
       published: true,
-      tags: ['Spring Boot', 'Microservices', 'Architecture', 'Cloud'],
+      tags: 'Spring Boot,Microservices,Architecture,Cloud',
       readTime: 12,
     },
     {
@@ -184,7 +164,7 @@ Best practices for designing efficient database schemas that scale with your app
 Implementing monitoring solutions and maintenance routines to keep your database performing optimally.`,
       technology: 'mysql',
       published: true,
-      tags: ['MySQL', 'Database', 'Performance', 'Optimization'],
+      tags: 'MySQL,Database,Performance,Optimization',
       readTime: 10,
     },
     {
@@ -206,7 +186,7 @@ Building resilient systems that can handle failures and maintain data consistenc
 Techniques for scaling Kafka clusters and managing high-throughput workloads.`,
       technology: 'kafka',
       published: true,
-      tags: ['Kafka', 'Streaming', 'Architecture', 'Real-time'],
+      tags: 'Kafka,Streaming,Architecture,Real-time',
       readTime: 15,
     }
   ];

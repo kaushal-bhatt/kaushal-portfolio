@@ -1,6 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { transformBlogPostForAPI } from '@/lib/sqlite-helpers';
 
 const prisma = new PrismaClient();
 
@@ -27,7 +28,7 @@ export async function GET(
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    return NextResponse.json(post);
+    return NextResponse.json(transformBlogPostForAPI(post));
   } catch (error) {
     console.error('Error fetching blog post:', error);
     return NextResponse.json({ error: 'Failed to fetch post' }, { status: 500 });

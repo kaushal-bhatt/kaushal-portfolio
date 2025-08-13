@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
+import { safeTechnologies, safeAchievements } from '@/lib/safe-arrays';
 
 interface PortfolioEntry {
   id: string;
@@ -129,7 +130,7 @@ export function PortfolioSection() {
                   <div className="mb-6">
                     <h4 className="text-xs sm:text-sm font-semibold text-gray-400 mb-3">Technologies Used</h4>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {item.technologies?.map((tech) => (
+                      {safeTechnologies(item.technologies).map((tech) => (
                         <Badge 
                           key={tech} 
                           variant="outline" 
@@ -142,14 +143,14 @@ export function PortfolioSection() {
                   </div>
 
                   {/* Achievements */}
-                  {item.achievements && item.achievements.length > 0 && (
+                  {safeAchievements(item.achievements).length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold text-gray-400 mb-3 flex items-center">
                         <Award className="w-4 h-4 mr-2" />
                         Key Achievements
                       </h4>
                       <ul className="space-y-2">
-                        {item.achievements.map((achievement, idx) => (
+                        {safeAchievements(item.achievements).map((achievement, idx) => (
                           <li key={idx} className="text-gray-300 text-sm flex items-start">
                             <span className="text-blue-400 mr-2">•</span>
                             {achievement}

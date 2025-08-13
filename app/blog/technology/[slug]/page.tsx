@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { safeTags } from '@/lib/safe-arrays';
 
 interface BlogPost {
   id: string;
@@ -52,27 +53,43 @@ export default function TechnologyBlogPage() {
       setLoading(true);
       setError(null);
       
+      console.log('🔍 Technology page - fetching data for slug:', slug);
+      
       try {
         // Fetch tech section first
+        console.log('📡 Fetching tech section:', `/api/tech-sections/${slug}`);
         const techResponse = await fetch(`/api/tech-sections/${slug}`);
+        console.log('📊 Tech section response status:', techResponse.status);
+        
         if (techResponse.ok) {
           const techData = await techResponse.json();
+          console.log('✅ Tech section data:', techData);
           setTechSection(techData);
         } else {
+          const errorText = await techResponse.text();
+          console.log('❌ Tech section error:', errorText);
           throw new Error('Tech section not found');
         }
 
         // Then fetch posts
+        console.log('📡 Fetching posts:', `/api/blog-posts?technology=${encodeURIComponent(slug)}`);
         const postsResponse = await fetch(`/api/blog-posts?technology=${encodeURIComponent(slug)}`);
+        console.log('📊 Posts response status:', postsResponse.status);
+        
         if (postsResponse.ok) {
           const postsData = await postsResponse.json();
-          setPosts(postsData.filter((post: BlogPost) => post.published));
+          console.log('📝 Posts data:', postsData);
+          const publishedPosts = postsData.filter((post: BlogPost) => post.published);
+          console.log('✅ Published posts:', publishedPosts.length);
+          setPosts(publishedPosts);
         } else {
+          const errorText = await postsResponse.text();
+          console.log('❌ Posts error:', errorText);
           // Still set empty posts if posts fail but tech section succeeds
           setPosts([]);
         }
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        console.error('💥 Failed to fetch data:', error);
         setError('Failed to load content.');
       } finally {
         setLoading(false);
@@ -230,7 +247,7 @@ export default function TechnologyBlogPage() {
                     </p>
                     
                     <div className="flex flex-wrap gap-2">
-                      {post.tags?.slice(0, 3).map((tag) => (
+                      {safeTags(post.tags)?.slice(0, 3).map((tag) => (
                         <Badge 
                           key={tag}
                           variant="secondary"
@@ -240,12 +257,12 @@ export default function TechnologyBlogPage() {
                           {tag}
                         </Badge>
                       ))}
-                      {post.tags?.length > 3 && (
+                      {safeTags(post.tags)?.length > 3 && (
                         <Badge 
                           variant="secondary"
                           className="bg-slate-700 text-gray-300 text-xs"
                         >
-                          +{post.tags.length - 3} more
+                          +{safeTags(post.tags).length - 3} more
                         </Badge>
                       )}
                     </div>

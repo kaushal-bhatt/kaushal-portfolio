@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { safeTags } from '@/lib/safe-arrays';
 
 interface BlogPost {
   id: string;
@@ -187,11 +188,11 @@ export default function BlogPostPage() {
               </div>
               
               {/* Tags */}
-              {post.tags && post.tags.length > 0 && (
+              {safeTags(post.tags).length > 0 && (
                 <div className="mt-12 pt-8 border-t border-slate-700">
                   <h3 className="text-white font-semibold mb-4">Tags</h3>
                   <div className="flex flex-wrap gap-2">
-                    {post.tags.map((tag) => (
+                    {safeTags(post.tags).map((tag) => (
                       <Badge 
                         key={tag}
                         variant="secondary"

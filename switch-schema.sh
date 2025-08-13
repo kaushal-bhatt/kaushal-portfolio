@@ -1,6 +1,21 @@
+#!/bin/bash
+
+# Schema management script for dual database support
+# Switches between SQLite (local) and PostgreSQL (production)
+
+SQLITE_SCHEMA="prisma/schema.prisma"
+POSTGRES_SCHEMA="prisma/schema.production.prisma"
+
+# Function to switch to SQLite schema
+use_sqlite() {
+    echo "🔄 Switching to SQLite schema for local development..."
+    
+    # Ensure SQLite schema exists and has correct provider
+    cat > $SQLITE_SCHEMA << 'EOF'
 // SQLite schema for local development
 generator client {
     provider = "prisma-client-js"
+    output   = "./node_modules/@prisma/client"
 }
 
 datasource db {
@@ -100,3 +115,29 @@ model TechSection {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+EOF
+    echo "✅ SQLite schema active"
+}
+
+# Function to switch to PostgreSQL schema  
+use_postgres() {
+    echo "🔄 Switching to PostgreSQL schema for production..."
+    cp $POSTGRES_SCHEMA $SQLITE_SCHEMA
+    echo "✅ PostgreSQL schema active"
+}
+
+# Main logic
+case "$1" in
+    "sqlite")
+        use_sqlite
+        ;;
+    "postgres")  
+        use_postgres
+        ;;
+    *)
+        echo "Usage: $0 [sqlite|postgres]"
+        echo "  sqlite   - Switch to SQLite for local development"
+        echo "  postgres - Switch to PostgreSQL for production"
+        exit 1
+        ;;
+esac

@@ -4,13 +4,13 @@
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, User, Mail, Lock } from 'lucide-react';
+import { ArrowLeft, Save, User, Mail, Lock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 interface ProfileForm {
   name: string;
@@ -91,9 +91,21 @@ export default function AdminSettingsPage() {
       console.log('Response data:', data);
 
       if (response.ok && data.success) {
-        const successMessage = data.message || 'Profile updated successfully';
-        toast.success(successMessage);
-        console.log('Success:', successMessage);
+        const hasPasswordUpdate = form.newPassword && form.currentPassword;
+        
+        if (hasPasswordUpdate) {
+          toast.success('🔒 Profile updated successfully!', {
+            description: 'Your profile details and password have been updated.',
+            duration: 4000,
+          });
+        } else {
+          toast.success('✅ Profile updated successfully!', {
+            description: 'Your profile details have been saved.',
+            duration: 3000,
+          });
+        }
+        
+        console.log('Success:', data.message || 'Profile updated');
         
         // Clear password fields on successful update
         setForm(prev => ({

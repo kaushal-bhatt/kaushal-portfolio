@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { transformPortfolioForAPI } from '@/lib/sqlite-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +13,10 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json(portfolio);
+    // Transform data for API response (convert strings back to arrays)
+    const transformedPortfolio = portfolio.map(transformPortfolioForAPI);
+
+    return NextResponse.json(transformedPortfolio);
   } catch (error) {
     console.error('Portfolio fetch error:', error);
     return NextResponse.json(

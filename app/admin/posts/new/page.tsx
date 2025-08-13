@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Eye } from 'lucide-react';
+import { ArrowLeft, Save, Eye, CheckCircle, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 const TECHNOLOGIES = [
   'Java', 'Spring Boot', 'React', 'Next.js', 'TypeScript', 'JavaScript',
@@ -54,7 +55,7 @@ export default function NewPost() {
     e.preventDefault();
     
     if (!formData.title || !formData.content || !formData.technology) {
-      alert('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -71,14 +72,36 @@ export default function NewPost() {
 
       if (response.ok) {
         const newPost = await response.json();
-        router.push(`/admin/posts/${newPost.id}`);
+        
+        if (formData.published) {
+          toast.success('🎉 Post published successfully!', {
+            description: 'Your post is now live and visible to all visitors.',
+            action: {
+              label: 'View Post',
+              onClick: () => window.open(`/blog/post/${newPost.slug}`, '_blank')
+            }
+          });
+        } else {
+          toast.success('✅ Draft saved successfully!', {
+            description: 'Your post has been saved as a draft.',
+          });
+        }
+        
+        // Redirect to manage posts after a short delay
+        setTimeout(() => {
+          router.push('/admin/posts');
+        }, 2000);
       } else {
         const error = await response.text();
-        alert(`Failed to create post: ${error}`);
+        toast.error('Failed to create post', {
+          description: error
+        });
       }
     } catch (error) {
       console.error('Failed to create post:', error);
-      alert('Failed to create post');
+      toast.error('Failed to create post', {
+        description: 'Something went wrong. Please try again.'
+      });
     } finally {
       setLoading(false);
     }
@@ -89,7 +112,7 @@ export default function NewPost() {
     setFormData(draftData);
     
     if (!draftData.title) {
-      alert('Please provide at least a title to save as draft');
+      toast.error('Please provide at least a title to save as draft');
       return;
     }
 
@@ -106,13 +129,20 @@ export default function NewPost() {
 
       if (response.ok) {
         const newPost = await response.json();
-        router.push(`/admin/posts/${newPost.id}`);
+        toast.success('📝 Draft saved successfully!', {
+          description: 'You can continue editing or publish it later.',
+        });
+        
+        // Redirect to manage posts after a short delay
+        setTimeout(() => {
+          router.push('/admin/posts');
+        }, 1500);
       } else {
-        alert('Failed to save draft');
+        toast.error('Failed to save draft');
       }
     } catch (error) {
       console.error('Failed to save draft:', error);
-      alert('Failed to save draft');
+      toast.error('Failed to save draft');
     } finally {
       setLoading(false);
     }

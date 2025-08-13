@@ -1,10 +1,13 @@
-// SQLite schema for local development
+// This is your Prisma schema file for PRODUCTION (Vercel)
+// This file uses PostgreSQL and will be used when deploying to Vercel
+
 generator client {
     provider = "prisma-client-js"
+    output   = "./node_modules/@prisma/client"
 }
 
 datasource db {
-    provider = "sqlite"
+    provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
@@ -14,12 +17,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -65,9 +68,9 @@ model Portfolio {
   startDate     String
   endDate       String?
   current       Boolean  @default(false)
-  description   String
-  technologies  String @default("")
-  achievements  String @default("")
+  description   String   @db.Text
+  technologies  String[] @default([])
+  achievements  String[] @default([])
   order         Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -77,13 +80,13 @@ model BlogPost {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  excerpt     String
-  content     String
+  excerpt     String   @db.Text
+  content     String   @db.Text
   technology  String
   published   Boolean  @default(false)
   author      User     @relation(fields: [authorId], references: [id])
   authorId    String
-  tags        String @default("")
+  tags        String[] @default([])
   readTime    Int      @default(5)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -93,7 +96,7 @@ model TechSection {
   id          String @id @default(cuid())
   name        String @unique
   slug        String @unique
-  description String
+  description String @db.Text
   icon        String
   order       Int    @default(0)
   color       String @default("#3B82F6")
