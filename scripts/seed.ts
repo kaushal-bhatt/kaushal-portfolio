@@ -1,214 +1,175 @@
-
 import { PrismaClient } from '@prisma/client';
-import bcryptjs from 'bcryptjs';
+import { SecurityService } from '../lib/security';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create admin user
-  const hashedPassword = await bcryptjs.hash('admin123', 12);
-  
-  const admin = await prisma.user.upsert({
-    where: { email: 'kaushal8650@gmail.com' },
-    update: {},
+  console.log('🌱 Starting secure database seeding...');
+
+  // Create admin user with secure password
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@portfolio.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'SecureAdmin123!';
+
+  // Validate admin password strength
+  const passwordCheck = SecurityService.validatePasswordStrength(adminPassword);
+  if (!passwordCheck.isValid) {
+    console.error('❌ Admin password does not meet security requirements:', passwordCheck.message);
+    process.exit(1);
+  }
+
+  const hashedPassword = await SecurityService.hashPassword(adminPassword);
+
+  // Upsert admin user
+  const adminUser = await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      password: hashedPassword,
+      role: 'admin',
+    },
     create: {
-      email: 'kaushal8650@gmail.com',
-      name: 'Kaushal Bhatt',
+      email: adminEmail,
+      name: 'Portfolio Admin',
       password: hashedPassword,
       role: 'admin',
     },
   });
 
-  // Create technology sections
-  const techSections = [
-    { name: 'Java', slug: 'java', description: 'Enterprise-grade Java development and best practices', icon: 'Coffee', color: '#ED8936' },
-    { name: 'Spring Boot', slug: 'spring-boot', description: 'Building microservices and web applications with Spring Boot', icon: 'Leaf', color: '#68D391' },
-    { name: 'MySQL', slug: 'mysql', description: 'Database design, optimization, and advanced SQL techniques', icon: 'Database', color: '#4299E1' },
-    { name: 'Kafka', slug: 'kafka', description: 'Event-driven architectures and real-time data processing', icon: 'Workflow', color: '#9F7AEA' },
-    { name: 'DataDog', slug: 'datadog', description: 'Application monitoring, observability, and performance optimization', icon: 'Activity', color: '#F56565' },
-    { name: 'LLM', slug: 'llm', description: 'Large Language Models integration and AI-powered applications', icon: 'Brain', color: '#38B2AC' },
-    { name: 'Redis', slug: 'redis', description: 'Caching strategies and high-performance data structures', icon: 'Zap', color: '#FC8181' },
-    { name: 'MongoDB', slug: 'mongodb', description: 'NoSQL database design and document-oriented development', icon: 'FileText', color: '#48BB78' },
-  ];
+  console.log('✅ Admin user created/updated:', adminUser.email);
 
-  for (const [index, tech] of techSections.entries()) {
-    await prisma.techSection.upsert({
-      where: { slug: tech.slug },
-      update: {},
-      create: {
-        ...tech,
-        order: index,
-      },
-    });
-  }
+  // Clear existing portfolio data
+  await prisma.portfolio.deleteMany();
+  console.log('🗑️ Cleared existing portfolio data');
 
-  // Create portfolio entries based on resume
-  const portfolioEntries = [
+  // Seed sample portfolio data
+  const portfolioData = [
     {
-      company: 'Rockwallet',
-      role: 'Senior Software Engineer',
-      startDate: 'Dec 2024',
+      company: 'Tech Innovation Corp',
+      role: 'Senior Full Stack Developer',
+      startDate: 'Jan 2023',
       endDate: null,
       current: true,
-      description: 'Developed and architected end-to-end microservices for a crypto wallet platform, enabling secure currency transactions and comprehensive wallet functionalities. Led the backend development from scratch, including designing and implementing scalable microservices architecture. Currently spearheading blockchain integration to ensure seamless connectivity and robust transaction processing within the platform.',
-      technologies: 'Java,Spring Boot,Microservices,AWS,Blockchain,PostgreSQL,Docker,Kubernetes',
-      achievements: 'Architected scalable microservices for crypto wallet platform,Led backend development from scratch,Implemented blockchain integration for secure transactions,Designed comprehensive wallet functionality system',
-      order: 0,
-    },
-    {
-      company: 'EPAM Systems',
-      role: 'Senior Software Engineer',
-      startDate: 'Feb 2024',
-      endDate: 'Dec 2024',
-      current: false,
-      description: 'Led design and implementation of highly parallelized cloud-native applications with comprehensive automated testing achieving 95%+ code coverage. Collaborated closely with domain experts to understand complex algorithms and translate them into scalable software implementations.',
-      technologies: 'Java,Spring Boot,AWS,Microservices,Algorithm Design,Automated Testing,CI/CD',
-      achievements: 'Achieved 95%+ code coverage through automated testing,Reduced manual processing time by 30% through automated workflows,Improved system uptime by 25% through robust architecture design,Mentored engineering team on complex software design patterns',
+      description: 'Leading development of cutting-edge web applications using modern technologies. Responsible for architecture decisions, code reviews, and mentoring junior developers.',
+      technologies: 'React, Node.js, TypeScript, PostgreSQL, AWS, Docker',
+      achievements: 'Improved application performance by 40%, Led team of 5 developers, Implemented CI/CD pipeline reducing deployment time by 60%',
       order: 1,
     },
     {
-      company: 'Ibosstech Solutions',
-      role: 'Java Developer',
-      startDate: 'Jul 2022',
-      endDate: 'Dec 2023',
+      company: 'Digital Solutions Ltd',
+      role: 'Frontend Developer',
+      startDate: 'Jun 2021',
+      endDate: 'Dec 2022',
       current: false,
-      description: 'Architected and delivered production-level systems migrating legacy monolithic applications to scalable microservices on AWS. Developed robust real-time applications using Kafka and AWS SageMaker, improving system accuracy by 38%.',
-      technologies: 'Java,Spring Boot,AWS,Kafka,SageMaker,MySQL,Microservices,Redis',
-      achievements: 'Migrated legacy monolithic applications to scalable microservices,Improved system accuracy by 38% using Kafka and AWS SageMaker,Handled 10,000+ daily transactions in order management systems,Achieved 57% reduction in processing time through optimization',
+      description: 'Developed responsive web applications with focus on user experience and performance optimization. Collaborated with design teams to implement pixel-perfect interfaces.',
+      technologies: 'React, Vue.js, JavaScript, Sass, Webpack, Jest',
+      achievements: 'Reduced bundle size by 35%, Implemented design system used across 10+ projects, Achieved 98% test coverage',
       order: 2,
     },
     {
-      company: 'Lenskart',
-      role: 'Software Developer',
-      startDate: 'Nov 2019',
-      endDate: 'Jul 2022',
+      company: 'StartupXYZ',
+      role: 'Junior Web Developer',
+      startDate: 'Sep 2020',
+      endDate: 'May 2021',
       current: false,
-      description: 'Designed and optimized production systems for end-to-end order processing, reducing delivery time from 7 to 3 days. Maintained and improved system reliability of backend services handling high-volume transactions.',
-      technologies: 'Java,Spring Boot,MySQL,REST APIs,System Integration,Backend Services',
-      achievements: 'Reduced delivery time from 7 to 3 days through system optimization,Maintained high-volume transaction processing systems,Integrated third-party systems for inventory management,Received multiple Best Employee of the Month awards',
+      description: 'Built and maintained e-commerce platforms using modern web technologies. Gained experience in agile development methodologies and version control.',
+      technologies: 'HTML, CSS, JavaScript, PHP, MySQL, Bootstrap',
+      achievements: 'Developed 5+ e-commerce websites, Improved page load times by 25%, Learned modern development practices',
       order: 3,
     },
   ];
 
-  // Clear existing portfolio entries to prevent duplicates
-  await prisma.portfolio.deleteMany({});
-  
-  for (const entry of portfolioEntries) {
+  for (const item of portfolioData) {
     await prisma.portfolio.create({
-      data: entry,
+      data: item,
     });
   }
 
-  // Create sample blog posts for each technology
-  const samplePosts = [
+  console.log('✅ Sample portfolio data seeded');
+
+  // Clear existing tech sections
+  await prisma.techSection.deleteMany();
+  console.log('🗑️ Cleared existing tech sections');
+
+  // Seed tech sections
+  const techSections = [
     {
-      title: 'Advanced Java 17 Features Every Developer Should Know',
-      slug: 'advanced-java-17-features',
-      excerpt: 'Exploring the latest features in Java 17 including sealed classes, pattern matching, and performance improvements that can enhance your enterprise applications.',
-      content: `Java 17 brought significant improvements to the language and runtime. In this comprehensive guide, we'll explore the key features that every enterprise developer should understand and adopt.
+      name: 'Java & Spring Boot',
+      slug: 'java',
+      description: 'Enterprise Java development with Spring Boot framework',
+      icon: 'Coffee',
+      order: 1,
+      color: '#f89820',
+    },
+    {
+      name: 'React & Next.js',
+      slug: 'react',
+      description: 'Modern frontend development with React ecosystem',
+      icon: 'Leaf',
+      order: 2,
+      color: '#61dafb',
+    },
+    {
+      name: 'Database & Architecture',
+      slug: 'database',
+      description: 'Database design and system architecture',
+      icon: 'Database',
+      order: 3,
+      color: '#336791',
+    },
+  ];
 
-## Sealed Classes
-Sealed classes provide fine-grained control over inheritance hierarchies, making your code more maintainable and secure.
+  for (const section of techSections) {
+    await prisma.techSection.create({
+      data: section,
+    });
+  }
 
-## Pattern Matching Enhancements
-The enhanced pattern matching capabilities in Java 17 allow for more expressive and concise code, particularly in switch expressions.
+  console.log('✅ Tech sections seeded');
 
-## Performance Improvements
-Java 17 includes significant performance optimizations, including improvements to the garbage collector and startup time.
+  // Clear existing blog posts
+  await prisma.blogPost.deleteMany();
+  console.log('🗑️ Cleared existing blog posts');
 
-## Best Practices
-When adopting Java 17 in enterprise environments, consider the migration path and ensure compatibility with your existing frameworks and libraries.`,
-      technology: 'java',
+  // Seed sample blog posts
+  const blogPosts = [
+    {
+      title: 'Getting Started with Spring Boot Microservices',
+      slug: 'spring-boot-microservices-guide',
+      excerpt: 'Learn how to build scalable microservices using Spring Boot framework with best practices.',
+      content: '# Getting Started with Spring Boot Microservices\n\nSpring Boot makes it easy to create stand-alone, production-grade Spring based Applications...',
+      technology: 'Java',
       published: true,
-      tags: 'Java,Programming,Enterprise,Performance',
+      authorId: adminUser.id,
+      tags: 'spring-boot, microservices, java, backend',
       readTime: 8,
     },
     {
-      title: 'Building Microservices with Spring Boot: A Complete Guide',
-      slug: 'spring-boot-microservices-guide',
-      excerpt: 'Learn how to design and implement robust microservices using Spring Boot, including service discovery, load balancing, and distributed configuration.',
-      content: `Spring Boot has revolutionized how we build microservices. This guide covers the essential patterns and practices for creating production-ready microservices.
-
-## Service Architecture
-Understanding the principles of microservice architecture is crucial for building scalable and maintainable systems.
-
-## Spring Cloud Integration
-Leveraging Spring Cloud components for service discovery, configuration management, and circuit breakers.
-
-## Testing Strategies
-Implementing comprehensive testing strategies for microservices, including contract testing and integration testing.
-
-## Deployment Patterns
-Best practices for deploying microservices in containerized environments using Docker and Kubernetes.`,
-      technology: 'spring-boot',
+      title: 'Modern React Patterns and Best Practices',
+      slug: 'modern-react-patterns-2024',
+      excerpt: 'Explore the latest React patterns and best practices for building maintainable applications.',
+      content: '# Modern React Patterns and Best Practices\n\nReact has evolved significantly over the years...',
+      technology: 'React',
       published: true,
-      tags: 'Spring Boot,Microservices,Architecture,Cloud',
+      authorId: adminUser.id,
+      tags: 'react, patterns, best-practices, frontend',
       readTime: 12,
     },
-    {
-      title: 'MySQL Performance Optimization Techniques',
-      slug: 'mysql-performance-optimization',
-      excerpt: 'Deep dive into MySQL performance optimization strategies, including indexing, query optimization, and database design best practices.',
-      content: `Database performance is critical for application success. This article covers proven techniques for optimizing MySQL performance in production environments.
-
-## Index Optimization
-Understanding how to design and optimize indexes for maximum query performance.
-
-## Query Analysis
-Using EXPLAIN and other tools to analyze and optimize slow queries.
-
-## Schema Design
-Best practices for designing efficient database schemas that scale with your application.
-
-## Monitoring and Maintenance
-Implementing monitoring solutions and maintenance routines to keep your database performing optimally.`,
-      technology: 'mysql',
-      published: true,
-      tags: 'MySQL,Database,Performance,Optimization',
-      readTime: 10,
-    },
-    {
-      title: 'Real-time Data Processing with Apache Kafka',
-      slug: 'kafka-real-time-processing',
-      excerpt: 'Building robust event-driven architectures with Kafka, including stream processing, fault tolerance, and scalability patterns.',
-      content: `Apache Kafka has become the backbone of modern event-driven architectures. Learn how to leverage Kafka for building resilient, scalable data processing pipelines.
-
-## Event-Driven Architecture
-Understanding the principles and benefits of event-driven systems.
-
-## Stream Processing
-Implementing real-time stream processing with Kafka Streams and other processing frameworks.
-
-## Fault Tolerance
-Building resilient systems that can handle failures and maintain data consistency.
-
-## Scaling Strategies
-Techniques for scaling Kafka clusters and managing high-throughput workloads.`,
-      technology: 'kafka',
-      published: true,
-      tags: 'Kafka,Streaming,Architecture,Real-time',
-      readTime: 15,
-    }
   ];
 
-  // Clear existing blog posts to prevent duplicates
-  await prisma.blogPost.deleteMany({});
-  
-  for (const post of samplePosts) {
+  for (const post of blogPosts) {
     await prisma.blogPost.create({
-      data: {
-        ...post,
-        authorId: admin.id,
-      },
+      data: post,
     });
   }
 
-  console.log('Database seeded successfully!');
+  console.log('✅ Sample blog posts seeded');
+  console.log('🎉 Database seeding completed successfully!');
+  console.log(`📧 Admin login: ${adminEmail}`);
+  console.log('🔐 Admin password: [Check your environment variables]');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seeding failed:', e);
     process.exit(1);
   })
   .finally(async () => {

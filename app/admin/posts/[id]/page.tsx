@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSession } from 'next-auth/react';
@@ -23,6 +22,7 @@ const TECHNOLOGIES = [
 interface BlogPost {
   id: string;
   title: string;
+  slug: string;
   excerpt: string;
   content: string;
   technology: string;
@@ -38,6 +38,8 @@ export default function EditPost() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [post, setPost] = useState<BlogPost | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -59,11 +61,13 @@ export default function EditPost() {
         const data = await response.json();
         setPost(data);
       } else {
-        router.push('/admin/posts');
+        setError('Post not found');
+        setTimeout(() => router.push('/admin/posts'), 2000);
       }
     } catch (error) {
       console.error('Failed to fetch post:', error);
-      router.push('/admin/posts');
+      setError('Failed to fetch post');
+      setTimeout(() => router.push('/admin/posts'), 2000);
     } finally {
       setLoading(false);
     }
@@ -73,11 +77,13 @@ export default function EditPost() {
     e.preventDefault();
     
     if (!post || !post.title || !post.content || !post.technology) {
-      alert('Please fill in all required fields');
+      setError('Please fill in all required fields');
       return;
     }
 
     setSaving(true);
+    setError(null);
+    setSuccess(null);
     
     try {
       const response = await fetch('/api/blog-posts', {
@@ -91,14 +97,14 @@ export default function EditPost() {
       if (response.ok) {
         const updatedPost = await response.json();
         setPost(updatedPost);
-        alert('Post updated successfully!');
+        setSuccess('Post updated successfully!');
       } else {
-        const error = await response.text();
-        alert(`Failed to update post: ${error}`);
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to update post');
       }
     } catch (error) {
       console.error('Failed to update post:', error);
-      alert('Failed to update post');
+      setError('Failed to update post');
     } finally {
       setSaving(false);
     }
@@ -117,13 +123,33 @@ export default function EditPost() {
       });
       
       if (response.ok) {
-        router.push('/admin/posts');
+        setSuccess('Post deleted successfully!');
+        setTimeout(() => router.push('/admin/posts'), 1500);
       } else {
-        alert('Failed to delete post');
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to delete post');
       }
     } catch (error) {
       console.error('Failed to delete post:', error);
-      alert('Failed to delete post');
+      setError('Failed to delete post');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid Date';
     }
   };
 
@@ -135,7 +161,25 @@ export default function EditPost() {
     );
   }
 
-  if (!session?.user || session.user.role !== 'admin' || !post) {
+  if (!session?.user || session.user.role !== 'admin') {
+    return null;
+  }
+
+  if (error && !post) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <h1 className="text-2xl font-bold mb-4">Error</h1>
+          <p className="text-red-400 mb-4">{error}</p>
+          <Button onClick={() => router.push('/admin/posts')}>
+            Back to Posts
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!post) {
     return null;
   }
 
@@ -160,7 +204,7 @@ export default function EditPost() {
             <div className="flex items-center space-x-3">
               <Button
                 variant="outline"
-                onClick={() => window.open(`/blog/${post.id}`, '_blank')}
+                onClick={() => window.open(`/blog/post/${post.slug}`, '_blank')}
                 className="border-slate-600 text-slate-300 hover:bg-slate-800"
               >
                 <Eye className="w-4 h-4 mr-2" />
@@ -190,6 +234,18 @@ export default function EditPost() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Success/Error Messages */}
+        {success && (
+          <div className="bg-green-600/20 border border-green-600/30 text-green-400 px-4 py-3 rounded mb-6">
+            {success}
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-600/20 border border-red-600/30 text-red-400 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -291,9 +347,9 @@ export default function EditPost() {
                   </div>
                   
                   <div className="text-right text-sm text-gray-400">
-                    <div>Created: {new Date(post.createdAt).toLocaleDateString()}</div>
+                    <div>Created: {formatDate(post.createdAt)}</div>
                     {post.updatedAt !== post.createdAt && (
-                      <div>Updated: {new Date(post.updatedAt).toLocaleDateString()}</div>
+                      <div>Updated: {formatDate(post.updatedAt)}</div>
                     )}
                   </div>
                 </div>

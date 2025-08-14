@@ -1,165 +1,196 @@
-
 'use client';
 
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Eye, EyeOff, Lock, Mail, AlertCircle, CheckCircle } from 'lucide-react';
+
+interface PasswordStrength {
+  isValid: boolean;
+  message?: string;
+  checks: {
+    length: boolean;
+    lowercase: boolean;
+    uppercase: boolean;
+    number: boolean;
+    special: boolean;
+  };
+}
 
 export default function SignIn() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>({
+    isValid: false,
+    checks: {
+      length: false,
+      lowercase: false,
+      uppercase: false,
+      number: false,
+      special: false
+    }
+  });
+  
+  const router = useRouter();
+
+  const checkPasswordStrength = (pwd: string): PasswordStrength => {
+    const checks = {
+      length: pwd.length >= 8,
+      lowercase: /(?=.*[a-z])/.test(pwd),
+      uppercase: /(?=.*[A-Z])/.test(pwd),
+      number: /(?=.*\d)/.test(pwd),
+      special: /(?=.*[@$!%*?&])/.test(pwd)
+    };
+
+    const isValid = Object.values(checks).every(check => check);
+    
+    return {
+      isValid,
+      checks,
+      message: isValid ? 'Strong password' : 'Password requirements not met'
+    };
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    setPasswordStrength(checkPasswordStrength(value));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
     setError('');
 
     try {
-      console.log('Attempting signin with:', formData.email);
       const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false
+        email,
+        password,
+        redirect: false,
       });
 
-      console.log('Sign in result:', result);
-
       if (result?.error) {
-        console.error('Sign in error:', result.error);
-        setError('Invalid credentials. Please try again.');
-      } else if (result?.ok) {
-        console.log('Sign in successful, redirecting to admin');
-        router.push('/admin');
+        setError(result.error);
       } else {
-        setError('Something went wrong. Please try again.');
+        // Verify session was created
+        const session = await getSession();
+        if (session?.user?.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
       }
     } catch (error) {
-      console.error('Sign in exception:', error);
-      setError('Something went wrong. Please try again.');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
+  const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
+    <div className={`flex items-center text-sm ${met ? 'text-green-600' : 'text-gray-400'}`}>
+      {met ? <CheckCircle className="w-4 h-4 mr-2" /> : <AlertCircle className="w-4 h-4 mr-2" />}
+      {text}
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 w-full max-w-md"
-      >
-        <Card className="glass-effect border-slate-700">
-          <CardHeader className="space-y-1 pb-8">
-            <CardTitle className="text-2xl font-bold text-center gradient-text">
-              Admin Sign In
-            </CardTitle>
-            <p className="text-center text-gray-400">
-              Access the admin dashboard
-            </p>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-3 bg-red-500/20 border border-red-500/30 rounded-md text-red-400 text-sm"
-                >
-                  {error}
-                </motion.div>
-              )}
-
-              <div className="space-y-4">
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    type="email"
-                    name="email"
-                    placeholder="Email address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="pl-12 bg-slate-800/50 border-slate-700 text-white placeholder:text-gray-400 focus:border-blue-600"
-                  />
-                </div>
-
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="pl-12 pr-12 bg-slate-800/50 border-slate-700 text-white placeholder:text-gray-400 focus:border-blue-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
+          <CardDescription className="text-center">
+            Enter your credentials to access the admin panel
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                  autoComplete="email"
+                />
               </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
-              >
-                {isLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Signing in...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <span>Sign In</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </div>
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-8 text-center">
-              <Button
-                variant="link"
-                onClick={() => router.push('/')}
-                className="text-gray-400 hover:text-white"
-              >
-                ← Back to Portfolio
-              </Button>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
+                  className="pl-10 pr-10"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              
+              {password && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-md space-y-1">
+                  <p className="text-sm font-medium text-gray-700">Password Requirements:</p>
+                  <PasswordRequirement met={passwordStrength.checks.length} text="At least 8 characters" />
+                  <PasswordRequirement met={passwordStrength.checks.lowercase} text="One lowercase letter" />
+                  <PasswordRequirement met={passwordStrength.checks.uppercase} text="One uppercase letter" />
+                  <PasswordRequirement met={passwordStrength.checks.number} text="One number" />
+                  <PasswordRequirement met={passwordStrength.checks.special} text="One special character (@$!%*?&)" />
+                </div>
+              )}
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+          </form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Secure admin access with rate limiting and password strength validation
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
