@@ -1,6 +1,15 @@
 {
-  "/api/tech-sections/[slug]/route": "app/api/tech-sections/[slug]/route.js",
-  "/blog/technology/[slug]/page": "app/blog/technology/[slug]/page.js",
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/api/blog-posts/route": "app/api/blog-posts/route.js"
+  "/api/blog-posts/route": "app/api/blog-posts/route.js",
+  "/api/admin/portfolio/route": "app/api/admin/portfolio/route.js",
+  "/page": "app/page.js",
+  "/api/portfolio/route": "app/api/portfolio/route.js",
+  "/api/tech-sections/route": "app/api/tech-sections/route.js",
+  "/blog/technology/[slug]/page": "app/blog/technology/[slug]/page.js",
+  "/api/tech-sections/[slug]/route": "app/api/tech-sections/[slug]/route.js",
+  "/admin/portfolio/page": "app/admin/portfolio/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/admin/posts/new/page": "app/admin/posts/new/page.js",
+  "/admin/settings/page": "app/admin/settings/page.js",
+  "/admin/posts/page": "app/admin/posts/page.js"
 }

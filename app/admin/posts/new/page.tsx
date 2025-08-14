@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSession } from 'next-auth/react';
@@ -13,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
 
 const TECHNOLOGIES = [
   'Java', 'Spring Boot', 'React', 'Next.js', 'TypeScript', 'JavaScript',
@@ -33,6 +31,8 @@ export default function NewPost() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [formData, setFormData] = useState<BlogPostForm>({
     title: '',
     excerpt: '',
@@ -44,22 +44,23 @@ export default function NewPost() {
   useEffect(() => {
     if (status === 'loading') return;
     
-    // For testing purposes, comment out auth check
-    // if (!session?.user || session.user.role !== 'admin') {
-    //   router.push('/auth/signin');
-    //   return;
-    // }
+    if (!session?.user || session.user.role !== 'admin') {
+      router.push('/auth/signin');
+      return;
+    }
   }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title || !formData.content || !formData.technology) {
-      toast.error('Please fill in all required fields');
+      setError('Please fill in all required fields');
       return;
     }
 
     setLoading(true);
+    setError(null);
+    setSuccess(null);
     
     try {
       const response = await fetch('/api/blog-posts', {
@@ -74,17 +75,9 @@ export default function NewPost() {
         const newPost = await response.json();
         
         if (formData.published) {
-          toast.success('🎉 Post published successfully!', {
-            description: 'Your post is now live and visible to all visitors.',
-            action: {
-              label: 'View Post',
-              onClick: () => window.open(`/blog/post/${newPost.slug}`, '_blank')
-            }
-          });
+          setSuccess('Post published successfully!');
         } else {
-          toast.success('✅ Draft saved successfully!', {
-            description: 'Your post has been saved as a draft.',
-          });
+          setSuccess('Draft saved successfully!');
         }
         
         // Redirect to manage posts after a short delay
@@ -92,16 +85,12 @@ export default function NewPost() {
           router.push('/admin/posts');
         }, 2000);
       } else {
-        const error = await response.text();
-        toast.error('Failed to create post', {
-          description: error
-        });
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to create post');
       }
     } catch (error) {
       console.error('Failed to create post:', error);
-      toast.error('Failed to create post', {
-        description: 'Something went wrong. Please try again.'
-      });
+      setError('Failed to create post');
     } finally {
       setLoading(false);
     }
@@ -112,11 +101,13 @@ export default function NewPost() {
     setFormData(draftData);
     
     if (!draftData.title) {
-      toast.error('Please provide at least a title to save as draft');
+      setError('Please provide at least a title to save as draft');
       return;
     }
 
     setLoading(true);
+    setError(null);
+    setSuccess(null);
     
     try {
       const response = await fetch('/api/blog-posts', {
@@ -128,21 +119,19 @@ export default function NewPost() {
       });
 
       if (response.ok) {
-        const newPost = await response.json();
-        toast.success('📝 Draft saved successfully!', {
-          description: 'You can continue editing or publish it later.',
-        });
+        setSuccess('Draft saved successfully!');
         
         // Redirect to manage posts after a short delay
         setTimeout(() => {
           router.push('/admin/posts');
         }, 1500);
       } else {
-        toast.error('Failed to save draft');
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to save draft');
       }
     } catch (error) {
       console.error('Failed to save draft:', error);
-      toast.error('Failed to save draft');
+      setError('Failed to save draft');
     } finally {
       setLoading(false);
     }
@@ -156,10 +145,9 @@ export default function NewPost() {
     );
   }
 
-  // For testing purposes, comment out auth check
-  // if (!session?.user || session.user.role !== 'admin') {
-  //   return null;
-  // }
+  if (!session?.user || session.user.role !== 'admin') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
@@ -202,6 +190,18 @@ export default function NewPost() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Success/Error Messages */}
+        {success && (
+          <div className="bg-green-600/20 border border-green-600/30 text-green-400 px-4 py-3 rounded mb-6">
+            {success}
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-600/20 border border-red-600/30 text-red-400 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -228,7 +228,7 @@ export default function NewPost() {
 
                 <div>
                   <Label htmlFor="technology" className="text-white">Technology *</Label>
-                  <Select onValueChange={(value) => setFormData({ ...formData, technology: value })}>
+                  <Select onValueChange={(value) => setFormData({ ...formData, technology: value })} value={formData.technology}>
                     <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
                       <SelectValue placeholder="Select technology..." />
                     </SelectTrigger>

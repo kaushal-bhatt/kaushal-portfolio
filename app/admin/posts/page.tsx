@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useSession } from 'next-auth/react';
@@ -22,6 +21,7 @@ import { Input } from '@/components/ui/input';
 interface BlogPost {
   id: string;
   title: string;
+  slug: string;
   excerpt: string;
   technology: string;
   published: boolean;
@@ -72,8 +72,10 @@ export default function ManagePosts() {
       
       if (response.ok) {
         setPosts(posts.filter(p => p.id !== id));
+        alert('Post deleted successfully');
       } else {
-        alert('Failed to delete post');
+        const error = await response.json();
+        alert(`Failed to delete post: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Failed to delete post:', error);
@@ -98,12 +100,30 @@ export default function ManagePosts() {
         setPosts(posts.map(p => 
           p.id === id ? { ...p, published: !currentStatus } : p
         ));
+        alert(`Post ${!currentStatus ? 'published' : 'unpublished'} successfully`);
       } else {
-        alert('Failed to update post status');
+        const error = await response.json();
+        alert(`Failed to update post: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Failed to update post:', error);
       alert('Failed to update post status');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
     }
   };
 
@@ -231,10 +251,10 @@ export default function ManagePosts() {
                     <p className="text-gray-300 mb-4 line-clamp-2">{post.excerpt}</p>
                     
                     <div className="text-sm text-gray-400">
-                      Created: {new Date(post.createdAt).toLocaleDateString()}
+                      Created: {formatDate(post.createdAt)}
                       {post.updatedAt !== post.createdAt && (
                         <span className="ml-4">
-                          Updated: {new Date(post.updatedAt).toLocaleDateString()}
+                          Updated: {formatDate(post.updatedAt)}
                         </span>
                       )}
                     </div>
@@ -244,7 +264,7 @@ export default function ManagePosts() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => window.open(`/blog/${post.id}`, '_blank')}
+                      onClick={() => window.open(`/blog/post/${post.slug}`, '_blank')}
                       className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
                     >
                       <Eye className="w-4 h-4" />

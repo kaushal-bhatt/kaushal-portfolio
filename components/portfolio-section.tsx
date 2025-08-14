@@ -38,7 +38,13 @@ export function PortfolioSection() {
         const response = await fetch('/api/portfolio');
         if (response.ok) {
           const data = await response.json();
-          setPortfolio(data);
+          // Process the data to match expected format
+          const formattedData = data.map((item: any) => ({
+            ...item,
+            technologies: safeTechnologies(item.technologies),
+            achievements: safeAchievements(item.achievements)
+          }));
+          setPortfolio(formattedData);
         }
       } catch (error) {
         console.error('Failed to fetch portfolio data:', error);
@@ -130,7 +136,7 @@ export function PortfolioSection() {
                   <div className="mb-6">
                     <h4 className="text-xs sm:text-sm font-semibold text-gray-400 mb-3">Technologies Used</h4>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {safeTechnologies(item.technologies).map((tech) => (
+                      {item.technologies.map((tech) => (
                         <Badge 
                           key={tech} 
                           variant="outline" 
@@ -143,14 +149,14 @@ export function PortfolioSection() {
                   </div>
 
                   {/* Achievements */}
-                  {safeAchievements(item.achievements).length > 0 && (
+                  {item.achievements.length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold text-gray-400 mb-3 flex items-center">
                         <Award className="w-4 h-4 mr-2" />
                         Key Achievements
                       </h4>
                       <ul className="space-y-2">
-                        {safeAchievements(item.achievements).map((achievement, idx) => (
+                        {item.achievements.map((achievement, idx) => (
                           <li key={idx} className="text-gray-300 text-sm flex items-start">
                             <span className="text-blue-400 mr-2">•</span>
                             {achievement}
