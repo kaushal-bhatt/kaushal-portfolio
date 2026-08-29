@@ -40,6 +40,14 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid email or password');
           }
 
+          // No password on the account: it exists to own content, not to sign
+          // in. Password login is being replaced by auth-platform SSO. The
+          // message is deliberately identical to the "no such user" one so this
+          // does not become an account-enumeration oracle.
+          if (!user.password) {
+            throw new Error('Invalid email or password');
+          }
+
           const isPasswordValid = await SecurityService.verifyPassword(
             credentials.password,
             user.password

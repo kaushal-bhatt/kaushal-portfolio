@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { stringToArray } from '@/lib/sqlite-helpers';
 
 interface Portfolio {
   id: string;
@@ -17,8 +18,9 @@ interface Portfolio {
   endDate: string | null;
   current: boolean;
   description: string;
-  technologies: string;
-  achievements: string;
+  // `String[]` columns since the move to Postgres — the API returns real arrays.
+  technologies: string[];
+  achievements: string[];
   order: number;
 }
 
@@ -131,8 +133,8 @@ export default function PortfolioManagement() {
       endDate: '',
       current: false,
       description: '',
-      technologies: '',
-      achievements: '',
+      technologies: [],
+      achievements: [],
       order: portfolios.length + 1,
     });
     setError(null);
@@ -243,10 +245,17 @@ export default function PortfolioManagement() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Technologies</label>
+                {/* The field is an array now, but the input is still one line of
+                    comma-separated text, so it joins on display and splits on
+                    change. Typing a trailing comma therefore does not "stick"
+                    until the next word — acceptable for now; this page is due to
+                    be rewritten with the SSO work. */}
                 <Input
                   placeholder="Technologies (comma-separated)"
-                  value={formData.technologies || ''}
-                  onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
+                  value={(formData.technologies ?? []).join(', ')}
+                  onChange={(e) =>
+                    setFormData({ ...formData, technologies: stringToArray(e.target.value) })
+                  }
                 />
               </div>
 
@@ -254,8 +263,10 @@ export default function PortfolioManagement() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Achievements</label>
                 <Textarea
                   placeholder="Achievements (comma-separated)"
-                  value={formData.achievements || ''}
-                  onChange={(e) => setFormData({ ...formData, achievements: e.target.value })}
+                  value={(formData.achievements ?? []).join(', ')}
+                  onChange={(e) =>
+                    setFormData({ ...formData, achievements: stringToArray(e.target.value) })
+                  }
                   rows={2}
                 />
               </div>
@@ -297,22 +308,22 @@ export default function PortfolioManagement() {
                     </p>
                     <p className="mt-2 text-sm">{portfolio.description}</p>
                     
-                    {portfolio.technologies && (
+                    {portfolio.technologies?.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {portfolio.technologies.split(',').map((tech, index) => (
+                        {portfolio.technologies.map((tech, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
-                            {tech.trim()}
+                            {tech}
                           </Badge>
                         ))}
                       </div>
                     )}
                     
-                    {portfolio.achievements && (
+                    {portfolio.achievements?.length > 0 && (
                       <div className="mt-2">
                         <p className="text-xs font-medium text-gray-700">Achievements:</p>
                         <ul className="text-xs text-gray-600 list-disc list-inside">
-                          {portfolio.achievements.split(',').map((achievement, index) => (
-                            <li key={index}>{achievement.trim()}</li>
+                          {portfolio.achievements.map((achievement, index) => (
+                            <li key={index}>{achievement}</li>
                           ))}
                         </ul>
                       </div>

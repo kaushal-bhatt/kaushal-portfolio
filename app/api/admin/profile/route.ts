@@ -64,6 +64,16 @@ export async function PUT(request: NextRequest) {
         }, { status: 400 });
       }
 
+      // The account may have no password at all — the seed no longer creates
+      // one, because password login is being replaced by auth-platform SSO.
+      // There is nothing to verify against, so refuse here rather than letting
+      // a null reach bcrypt.compare.
+      if (!user.password) {
+        return NextResponse.json({
+          error: 'This account has no password. Sign-in is handled by auth-platform.'
+        }, { status: 400 });
+      }
+
       console.log('Verifying current password...');
       // Verify current password
       const isValidPassword = await bcrypt.compare(currentPassword, user.password);

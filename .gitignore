@@ -14,3 +14,7 @@ out
 .DS_Store
 *.tsbuildinfo
 npm-debug.log*
+
+# local database — content lives in prisma/seed-data.json, not in a binary blob
+prisma/*.db
+prisma/*.db-journal

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { stringToArray } from '@/lib/sqlite-helpers';
 
 export async function GET() {
   try {
@@ -49,8 +50,10 @@ export async function POST(request: NextRequest) {
         endDate: data.endDate || null,
         current: data.current || false,
         description: data.description,
-        technologies: data.technologies || '',
-        achievements: data.achievements || '',
+        // `String[]` columns since the move to Postgres. The admin form still
+        // submits comma-separated text, so normalise rather than assume.
+        technologies: stringToArray(data.technologies),
+        achievements: stringToArray(data.achievements),
         order: data.order || 0,
       },
     });

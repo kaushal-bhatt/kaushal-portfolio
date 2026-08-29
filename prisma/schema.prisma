@@ -1,12 +1,22 @@
-// SQLite schema for local development
+// Postgres — the same instance that runs auth-platform, in its own `portfolio`
+// database. There is no second schema file: this one is used everywhere, so
+// development and production cannot drift apart the way they did when a
+// switch-schema.sh script swapped a SQLite file in and out.
+
 generator client {
     provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "sqlite"
+    provider = "postgresql"
     url      = env("DATABASE_URL")
 }
+
+// ---------------------------------------------------------------------------
+// NextAuth adapter tables. These are on their way out — admin auth is moving to
+// auth-platform (see IdeaProjects/PORTFOLIO-SSO-PLAN.md, Phase 2). They stay for
+// now only because `PrismaAdapter` in lib/auth.ts still references them.
+// ---------------------------------------------------------------------------
 
 model Account {
   id                String  @id @default(cuid())
@@ -14,12 +24,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -36,18 +46,28 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String
+  id String @id @default(cuid())
+
+  name  String?
+  email String  @unique
+
+  // Nullable on purpose. The seed no longer creates a password, so this row
+  // exists only to own the blog posts — nobody can log in as it. Password login
+  // is being replaced by auth-platform SSO; until then a null here means
+  // "this account cannot authenticate", which is exactly what we want and is
+  // enforced in lib/auth.ts.
+  password String?
+
   emailVerified DateTime?
   image         String?
   role          String    @default("user")
-  accounts      Account[]
-  sessions      Session[]
-  blogPosts     BlogPost[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  blogPosts BlogPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model VerificationToken {
@@ -58,45 +78,52 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// ---------------------------------------------------------------------------
+// Content. `technologies`, `achievements` and `tags` are real Postgres text
+// arrays. They were comma-joined strings under SQLite purely because SQLite has
+// no array type — a limitation there is no reason to carry over. Splitting on a
+// comma also quietly corrupted any value that contained one.
+// ---------------------------------------------------------------------------
+
 model Portfolio {
-  id            String   @id @default(cuid())
-  company       String
-  role          String
-  startDate     String
-  endDate       String?
-  current       Boolean  @default(false)
-  description   String
-  technologies  String @default("")
-  achievements  String @default("")
-  order         Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(cuid())
+  company      String
+  role         String
+  startDate    String
+  endDate      String?
+  current      Boolean  @default(false)
+  description  String   @db.Text
+  technologies String[] @default([])
+  achievements String[] @default([])
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model BlogPost {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  excerpt     String
-  content     String
-  technology  String
-  published   Boolean  @default(false)
-  author      User     @relation(fields: [authorId], references: [id])
-  authorId    String
-  tags        String @default("")
-  readTime    Int      @default(5)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  excerpt    String   @db.Text
+  content    String   @db.Text
+  technology String
+  published  Boolean  @default(false)
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String
+  tags       String[] @default([])
+  readTime   Int      @default(5)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model TechSection {
-  id          String @id @default(cuid())
-  name        String @unique
-  slug        String @unique
-  description String
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String   @db.Text
   icon        String
-  order       Int    @default(0)
-  color       String @default("#3B82F6")
+  order       Int      @default(0)
+  color       String   @default("#3B82F6")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

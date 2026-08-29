@@ -1,51 +1,52 @@
-version: '3.8'
-
+# Local development stack. Production runs from auth-platform/deploy/, where this
+# app sits behind Caddy next to auth-service and shares that box's Postgres.
+#
+#   cp .env.example .env   # then fill it in
+#   docker compose up -d --build
+#
+# Nothing here carries a secret. An earlier version of this file hardcoded
+# NEXTAUTH_SECRET, which meant anyone reading this public repository could forge
+# an admin session cookie without ever seeing a password. Values come from .env,
+# which is gitignored, and the `:?` syntax below makes compose refuse to start
+# with a clear message rather than falling back to something guessable.
 services:
-  # Portfolio Application
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio}
+      POSTGRES_USER: ${POSTGRES_USER:-portfolio}
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}"
+    ports:
+      # 5433 on the host so this does not collide with a Postgres you may
+      # already have running locally on 5432.
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfolio} -d ${POSTGRES_DB:-portfolio}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   portfolio:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=file:./dev.db
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=RoI7KVEzw1HPHXNMV5sTLbUpoN7evTZf
-    volumes:
-      - sqlite_data:/app/prisma
-    restart: unless-stopped
-    networks:
-      - portfolio_network
-
-  # Development service (for local development)
-  dev:
-    build:
-      context: .
-      target: deps
-    ports:
-      - "3000:3000" 
-    environment:
-      - DATABASE_URL=file:./dev.db
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=RoI7KVEzw1HPHXNMV5sTLbUpoN7evTZf
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - sqlite_data:/app/prisma
-    working_dir: /app
-    command: >
-      sh -c "npx prisma generate && 
-             npx prisma db push && 
-             npm run dev"
-    networks:
-      - portfolio_network
-    profiles:
-      - dev
+      # `postgres` is the service name on the compose network, and 5432 is the
+      # container's own port — the 5433 mapping above is only for the host.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-portfolio}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-portfolio}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      # Quoted because the ":?" message contains characters YAML would otherwise
+      # read as structure.
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET in .env - generate one with openssl rand -base64 32}"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
-  sqlite_data:
-
-networks:
-  portfolio_network:
-    driver: bridge
+  pgdata:

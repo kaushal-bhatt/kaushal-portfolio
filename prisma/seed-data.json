@@ -1,0 +1,252 @@
+{
+  "portfolio": [
+    {
+      "company": "Rockwallet",
+      "role": "Senior Backend Engineer",
+      "startDate": "Dec 2024",
+      "endDate": null,
+      "current": true,
+      "description": "Own services inside a 17-microservice monorepo for a regulated crypto wallet and custody platform. Designed a custom annotation-based JWT authentication framework with passkey/WebAuthn and service-to-service auth, now adopted platform-wide. Designed and operate the Kafka/AWS MSK (TLS/SSL) event backbone powering wallet, KYC, payments and notification services, and integrated Fireblocks custody with CoinMarketCap market data.",
+      "technologies": [
+        "Java 21",
+        "Spring Boot",
+        "Kafka / MSK",
+        "WebAuthn",
+        "Fireblocks",
+        "AWS"
+      ],
+      "achievements": [
+        "Designed the platform-wide JWT + passkey authentication framework",
+        "Built a zero-downtime configuration server for runtime config changes",
+        "Own services across a 17-microservice monorepo backed by 10 shared internal libraries",
+        "Implemented KYC/AML onboarding and cross-chain transaction syncing",
+        "Sustained 99.9% uptime and improved reliability 25% via circuit breakers and proactive alerting"
+      ],
+      "order": 0
+    },
+    {
+      "company": "EPAM Systems (client: ACT / Thomson Reuters)",
+      "role": "Senior Software Engineer",
+      "startDate": "Feb 2024",
+      "endDate": "Dec 2024",
+      "current": false,
+      "description": "Built the backend for an LLM-integrated content-processing platform (GenAI in editorial tooling), including runtime Word-document generation with a summarization feature. Led a service-oriented architecture (SOAP/REST) effort and maintained 95%+ automated test coverage.",
+      "technologies": [
+        "Java",
+        "Spring",
+        "GenAI integration",
+        "SOAP/REST",
+        "JUnit",
+        "Mockito"
+      ],
+      "achievements": [
+        "Cut the operations team's manual load from 100% to 10% with a summarization feature",
+        "Improved uptime 25% through a SOAP/REST service-oriented architecture effort",
+        "Maintained 95%+ automated test coverage reducing production bugs 20%",
+        "Designed a mentorship program that cut junior onboarding time 40%"
+      ],
+      "order": 1
+    },
+    {
+      "company": "Ibosstech Solutions",
+      "role": "Java Kafka Developer",
+      "startDate": "Jul 2022",
+      "endDate": "Dec 2023",
+      "current": false,
+      "description": "Led a team of 6 migrating a monolith to microservices on AWS with Kafka-based async processing, enabling elastic scaling to 10,000+ daily transactions. Built a real-time ML fraud/risk pipeline (XGBoost on AWS SageMaker) consuming Kafka streams for sub-second decisioning.",
+      "technologies": [
+        "Java",
+        "Spring Boot",
+        "AWS",
+        "Kafka",
+        "AWS SageMaker",
+        "Redis",
+        "Microservices"
+      ],
+      "achievements": [
+        "Led a team of 6 on a monolith-to-microservices migration with elastic scaling to 10",
+        "000+ daily transactions",
+        "Cut manual inspection 70% and raised fraud detection 55% with an ML risk pipeline",
+        "Reduced system latency 57% via query optimization async processing and Redis caching",
+        "Price Centralisation (KSA): Kafka-based distributed pricing engine that lifted sales 15-38%",
+        "Claims Management & RISK: led claims microservice design and a SageMaker POC that increased fraud-case detection 38%"
+      ],
+      "order": 2
+    },
+    {
+      "company": "Boutiqaat",
+      "role": "Software Development Engineer",
+      "startDate": "Jan 2022",
+      "endDate": "Jul 2022",
+      "current": false,
+      "description": "Led migration of a Magento application to Java microservices. Built a Kafka event-driven architecture centralizing pricing across the KSA region, handling 1M+ transactions daily with accurate cross-region pricing and inventory.",
+      "technologies": [
+        "Java",
+        "Kafka",
+        "E-commerce",
+        "CI/CD"
+      ],
+      "achievements": [
+        "Handled 1M+ transactions daily with accurate cross-region pricing",
+        "CI/CD pipelines that cut deployment time 50%",
+        "Contributed to a 38% Middle East sales increase"
+      ],
+      "order": 3
+    },
+    {
+      "company": "Lenskart",
+      "role": "Software Developer",
+      "startDate": "Nov 2019",
+      "endDate": "Jan 2022",
+      "current": false,
+      "description": "Designed and optimized production systems for end-to-end order processing, reducing delivery time from 7 to 3 days. Maintained and improved system reliability of backend services handling high-volume transactions.",
+      "technologies": [
+        "Java",
+        "Spring Boot",
+        "MySQL",
+        "REST APIs",
+        "System Integration",
+        "Backend Services"
+      ],
+      "achievements": [
+        "Reduced delivery time from 7 to 3 days through system optimization",
+        "Maintained high-volume transaction processing systems",
+        "Integrated third-party systems for inventory management",
+        "Received multiple Best Employee of the Month awards"
+      ],
+      "order": 4
+    }
+  ],
+  "techSections": [
+    {
+      "name": "Java",
+      "slug": "java",
+      "description": "Enterprise-grade Java development and best practices",
+      "icon": "Coffee",
+      "order": 0,
+      "color": "#ED8936"
+    },
+    {
+      "name": "Spring Boot",
+      "slug": "spring-boot",
+      "description": "Building microservices and web applications with Spring Boot",
+      "icon": "Leaf",
+      "order": 1,
+      "color": "#68D391"
+    },
+    {
+      "name": "MySQL",
+      "slug": "mysql",
+      "description": "Database design, optimization, and advanced SQL techniques",
+      "icon": "Database",
+      "order": 2,
+      "color": "#4299E1"
+    },
+    {
+      "name": "Kafka",
+      "slug": "kafka",
+      "description": "Event-driven architectures and real-time data processing",
+      "icon": "Workflow",
+      "order": 3,
+      "color": "#9F7AEA"
+    },
+    {
+      "name": "DataDog",
+      "slug": "datadog",
+      "description": "Application monitoring, observability, and performance optimization",
+      "icon": "Activity",
+      "order": 4,
+      "color": "#F56565"
+    },
+    {
+      "name": "LLM",
+      "slug": "llm",
+      "description": "Large Language Models integration and AI-powered applications",
+      "icon": "Brain",
+      "order": 5,
+      "color": "#38B2AC"
+    },
+    {
+      "name": "Redis",
+      "slug": "redis",
+      "description": "Caching strategies and high-performance data structures",
+      "icon": "Zap",
+      "order": 6,
+      "color": "#FC8181"
+    },
+    {
+      "name": "MongoDB",
+      "slug": "mongodb",
+      "description": "NoSQL database design and document-oriented development",
+      "icon": "FileText",
+      "order": 7,
+      "color": "#48BB78"
+    }
+  ],
+  "blogPosts": [
+    {
+      "title": "Advanced Java 17 Features Every Developer Should Know",
+      "slug": "advanced-java-17-features",
+      "excerpt": "Exploring the latest features in Java 17 including sealed classes, pattern matching, and performance improvements that can enhance your enterprise applications.",
+      "content": "Java 17 brought significant improvements to the language and runtime. In this comprehensive guide, we'll explore the key features that every enterprise developer should understand and adopt.\n\n## Sealed Classes\nSealed classes provide fine-grained control over inheritance hierarchies, making your code more maintainable and secure.\n\n## Pattern Matching Enhancements\nThe enhanced pattern matching capabilities in Java 17 allow for more expressive and concise code, particularly in switch expressions.\n\n## Performance Improvements\nJava 17 includes significant performance optimizations, including improvements to the garbage collector and startup time.\n\n## Best Practices\nWhen adopting Java 17 in enterprise environments, consider the migration path and ensure compatibility with your existing frameworks and libraries.",
+      "technology": "java",
+      "published": true,
+      "tags": [
+        "Java",
+        "Programming",
+        "Enterprise",
+        "Performance"
+      ],
+      "readTime": 1,
+      "createdAt": "2025-08-13T05:07:37.848Z"
+    },
+    {
+      "title": "Building Microservices with Spring Boot: A Complete Guide",
+      "slug": "spring-boot-microservices-guide",
+      "excerpt": "Learn how to design and implement robust microservices using Spring Boot, including service discovery, load balancing, and distributed configuration.",
+      "content": "Spring Boot has revolutionized how we build microservices. This guide covers the essential patterns and practices for creating production-ready microservices.\n\n## Service Architecture\nUnderstanding the principles of microservice architecture is crucial for building scalable and maintainable systems.\n\n## Spring Cloud Integration\nLeveraging Spring Cloud components for service discovery, configuration management, and circuit breakers.\n\n## Testing Strategies\nImplementing comprehensive testing strategies for microservices, including contract testing and integration testing.\n\n## Deployment Patterns\nBest practices for deploying microservices in containerized environments using Docker and Kubernetes.",
+      "technology": "spring-boot",
+      "published": true,
+      "tags": [
+        "Spring Boot",
+        "Microservices",
+        "Architecture",
+        "Cloud"
+      ],
+      "readTime": 1,
+      "createdAt": "2025-08-13T05:07:37.848Z"
+    },
+    {
+      "title": "MySQL Performance Optimization Techniques",
+      "slug": "mysql-performance-optimization",
+      "excerpt": "Deep dive into MySQL performance optimization strategies, including indexing, query optimization, and database design best practices.",
+      "content": "Database performance is critical for application success. This article covers proven techniques for optimizing MySQL performance in production environments.\n\n## Index Optimization\nUnderstanding how to design and optimize indexes for maximum query performance.\n\n## Query Analysis\nUsing EXPLAIN and other tools to analyze and optimize slow queries.\n\n## Schema Design\nBest practices for designing efficient database schemas that scale with your application.\n\n## Monitoring and Maintenance\nImplementing monitoring solutions and maintenance routines to keep your database performing optimally.",
+      "technology": "mysql",
+      "published": true,
+      "tags": [
+        "MySQL",
+        "Database",
+        "Performance",
+        "Optimization"
+      ],
+      "readTime": 1,
+      "createdAt": "2025-08-13T05:07:37.849Z"
+    },
+    {
+      "title": "Real-time Data Processing with Apache Kafka",
+      "slug": "kafka-real-time-processing",
+      "excerpt": "Building robust event-driven architectures with Kafka, including stream processing, fault tolerance, and scalability patterns.",
+      "content": "Apache Kafka has become the backbone of modern event-driven architectures. Learn how to leverage Kafka for building resilient, scalable data processing pipelines.\n\n## Event-Driven Architecture\nUnderstanding the principles and benefits of event-driven systems.\n\n## Stream Processing\nImplementing real-time stream processing with Kafka Streams and other processing frameworks.\n\n## Fault Tolerance\nBuilding resilient systems that can handle failures and maintain data consistency.\n\n## Scaling Strategies\nTechniques for scaling Kafka clusters and managing high-throughput workloads.",
+      "technology": "kafka",
+      "published": true,
+      "tags": [
+        "Kafka",
+        "Streaming",
+        "Architecture",
+        "Real-time"
+      ],
+      "readTime": 1,
+      "createdAt": "2025-08-13T05:07:37.850Z"
+    }
+  ]
+}

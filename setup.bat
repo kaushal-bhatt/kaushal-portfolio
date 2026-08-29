@@ -1,36 +1,45 @@
 @echo off
-echo 🚀 Setting up Kaushal's Portfolio Application
+REM One-shot local setup. The database is Postgres now, not SQLite.
+
+echo Setting up Kaushal's Portfolio Application
 echo ==============================================
 
 if not exist "package.json" (
-    echo ❌ Error: package.json not found. Please run this script from the app directory.
+    echo ERROR: package.json not found. Run this from the project root.
     exit /b 1
 )
 
-echo 📦 Installing dependencies...
+if not exist ".env" (
+    echo ERROR: No .env file. Copy .env.example to .env and fill it in first:
+    echo     copy .env.example .env
+    echo   You need at least POSTGRES_PASSWORD, DATABASE_URL and NEXTAUTH_SECRET.
+    exit /b 1
+)
+
+echo Starting Postgres...
+call docker compose up -d postgres
+if %errorlevel% neq 0 ( echo ERROR: Could not start Postgres & exit /b 1 )
+
+echo Installing dependencies...
 call npm install
-if %errorlevel% neq 0 (
-    echo ❌ Failed to install dependencies
-    exit /b 1
-)
+if %errorlevel% neq 0 ( echo ERROR: Failed to install dependencies & exit /b 1 )
 
-echo 🗄️  Setting up SQLite database...
+echo Applying the schema...
 call npx prisma db push
-if %errorlevel% neq 0 (
-    echo ❌ Failed to setup database
-    exit /b 1
-)
+if %errorlevel% neq 0 ( echo ERROR: Failed to apply the schema - is DATABASE_URL right? & exit /b 1 )
 
-echo 🌱 Seeding database with sample data...
-call npm run db:seed 2>nul || echo ⚠️  No seed script found, skipping...
+REM Non-destructive: tables that already have rows are left alone unless
+REM SEED_FORCE=true. Content comes from prisma/seed-data.json.
+echo Seeding content...
+call npm run db:seed
+if %errorlevel% neq 0 ( echo ERROR: Seeding failed & exit /b 1 )
 
-echo ✅ Setup complete!
 echo.
-echo 📋 Available commands:
-echo   npm run dev          - Start development server
-echo   npm run docker:dev   - Start with Docker
-echo   npm run db:studio    - Open database viewer
-echo   npm run build        - Build for production
+echo Setup complete
 echo.
-echo 🌐 Your portfolio will be available at: http://localhost:3000
-echo 🔧 Admin panel will be at: http://localhost:3000/admin
+echo Commands:
+echo   npm run dev        - development server
+echo   npm run db:studio  - browse the database
+echo   npm run build      - production build
+echo.
+echo http://localhost:3000

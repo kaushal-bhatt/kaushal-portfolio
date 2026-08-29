@@ -1,53 +1,24 @@
 /**
- * Utility functions for handling array data in SQLite
- * Since SQLite doesn't support arrays, we store them as comma-separated strings
+ * Normalisation for the list-shaped content fields (`tags`, `technologies`,
+ * `achievements`).
+ *
+ * These used to be comma-joined strings because SQLite has no array type. They
+ * are real `String[]` columns in Postgres now, so the conversion this module
+ * originally existed for is gone — what remains is tolerance: the admin forms
+ * still submit a comma-separated text input, so anything heading for the
+ * database gets normalised to an array first.
+ *
+ * Six helpers here had no callers outside this file and were removed with the
+ * migration. `lib/safe-arrays.ts` covers the same ground on the read side; one
+ * of the two should go (see PORTFOLIO-SSO-PLAN.md, Phase 5).
  */
 
-export const arrayToString = (arr: string[] | string): string => {
-  // If it's already a string, return it
-  if (typeof arr === 'string') return arr;
-  // If it's an array, convert it
-  if (!arr || arr.length === 0) return '';
-  return arr.join(',');
+/** Accepts an array, a comma-separated string, null or undefined. Always returns an array. */
+export const stringToArray = (value: string | string[] | null | undefined): string[] => {
+  if (Array.isArray(value)) return value.map((v) => String(v).trim()).filter(Boolean);
+  if (!value || !value.trim()) return [];
+  return value.split(',').map((item) => item.trim()).filter(Boolean);
 };
-
-export const stringToArray = (str: string | string[]): string[] => {
-  // If it's already an array, return it
-  if (Array.isArray(str)) return str;
-  // If it's a string, convert it
-  if (!str || str.trim() === '') return [];
-  return str.split(',').map(item => item.trim()).filter(Boolean);
-};
-
-export const addToArray = (currentStr: string, newItem: string): string => {
-  const currentArray = stringToArray(currentStr);
-  if (!currentArray.includes(newItem)) {
-    currentArray.push(newItem);
-  }
-  return arrayToString(currentArray);
-};
-
-export const removeFromArray = (currentStr: string, itemToRemove: string): string => {
-  const currentArray = stringToArray(currentStr);
-  const filteredArray = currentArray.filter(item => item !== itemToRemove);
-  return arrayToString(filteredArray);
-};
-
-// Type definitions for better type safety
-export interface PortfolioWithArrays {
-  id: string;
-  company: string;
-  role: string;
-  startDate: string;
-  endDate?: string | null;
-  current: boolean;
-  description: string;
-  technologies: string[];
-  achievements: string[];
-  order: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export interface BlogPostWithArrays {
   id: string;
@@ -64,26 +35,14 @@ export interface BlogPostWithArrays {
   updatedAt: Date;
 }
 
-// Transform functions for API responses
-export const transformPortfolioForAPI = (portfolio: any): PortfolioWithArrays => ({
-  ...portfolio,
-  technologies: stringToArray(portfolio.technologies),
-  achievements: stringToArray(portfolio.achievements),
-});
-
+/** Read side. A no-op for rows that came from Postgres; kept so older callers stay safe. */
 export const transformBlogPostForAPI = (post: any): BlogPostWithArrays => ({
   ...post,
   tags: stringToArray(post.tags),
 });
 
-// Transform functions for database storage
-export const transformPortfolioForDB = (portfolio: Partial<PortfolioWithArrays>) => ({
-  ...portfolio,
-  technologies: portfolio.technologies ? arrayToString(portfolio.technologies) : '',
-  achievements: portfolio.achievements ? arrayToString(portfolio.achievements) : '',
-});
-
-export const transformBlogPostForDB = (post: Partial<BlogPostWithArrays>) => ({
+/** Write side. `tags` must reach Prisma as an array now that the column is `String[]`. */
+export const transformBlogPostForDB = (post: { tags?: string | string[] | null }) => ({
   ...post,
-  tags: post.tags ? arrayToString(post.tags) : '',
+  tags: stringToArray(post.tags),
 });
