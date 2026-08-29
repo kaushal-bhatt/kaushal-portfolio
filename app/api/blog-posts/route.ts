@@ -4,6 +4,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { transformBlogPostForAPI, transformBlogPostForDB } from '@/lib/sqlite-helpers';
 import { Prisma } from '@prisma/client';
+// Read live content, so this must never be evaluated at build time: the Docker
+// image is built with no database reachable, and a statically prerendered
+// handler would try to query one and fail the build.
+export const dynamic = 'force-dynamic';
 
 // Define the expected request body type
 interface CreateBlogPostRequest {

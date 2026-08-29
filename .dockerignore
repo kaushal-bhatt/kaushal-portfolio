@@ -42,3 +42,8 @@ Thumbs.db
 coverage
 .nyc_output
 .cache
+
+# .env was missing here, so `COPY . .` was pulling the local database password
+# into the build stage. Nothing environment-specific belongs in the image -
+# every value arrives at runtime.
+.env

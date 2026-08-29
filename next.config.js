@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove problematic experimental config for Vercel
+  // Produces .next/standalone — a self-contained server with only the
+  // dependencies actually traced. The Dockerfile has always copied this
+  // directory, but without this option Next never produced it, so the image
+  // build failed at that COPY and had never succeeded.
+  output: 'standalone',
+
   eslint: {
     ignoreDuringBuilds: true,
   },
