@@ -1,5 +1,5 @@
-// This is your Prisma schema file for PRODUCTION (Vercel)
-// This file uses PostgreSQL and will be used when deploying to Vercel
+// This is your Prisma schema file for PRODUCTION
+// This file uses PostgreSQL and is used for production deployments
 
 generator client {
     provider = "prisma-client-js"
