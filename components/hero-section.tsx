@@ -33,7 +33,7 @@ export function HeroSection() {
               <span className="gradient-text">Kaushal Bhatt</span>
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-4">
-              Senior Software Engineer
+              Senior Backend Engineer &middot; 7 years
             </p>
             <motion.div
               initial={{ opacity: 0 }}
@@ -42,7 +42,7 @@ export function HeroSection() {
               className="flex items-center justify-center space-x-2 text-gray-400 mb-8 px-4"
             >
               <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span className="text-sm sm:text-base text-center">Building scalable cloud-native solutions</span>
+              <span className="text-sm sm:text-base text-center">Dehradun, India &middot; Open to EU relocation (Blue Card eligible)</span>
             </motion.div>
           </motion.div>
 
@@ -53,11 +53,13 @@ export function HeroSection() {
             className="mb-12"
           >
             <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-4">
-              Experienced in designing and implementing highly distributed, scalable applications
-              using <span className="text-blue-400 font-semibold">Java</span>, 
-              <span className="text-green-400 font-semibold"> Spring Boot</span>, and 
-              <span className="text-yellow-400 font-semibold"> AWS</span>. 
-              Passionate about microservices architecture and performance optimization.
+              I design and operate high-throughput, event-driven microservices in regulated
+              fintech, crypto custody and e-commerce &mdash; <span className="text-blue-400 font-semibold">Java</span>,
+              <span className="text-green-400 font-semibold"> Spring Boot</span>,
+              <span className="text-purple-400 font-semibold"> Apache Kafka</span> and
+              <span className="text-yellow-400 font-semibold"> AWS</span>. Currently building the
+              wallet &amp; custody platform at RockWallet, where I authored the annotation-based
+              JWT + passkey auth framework used across every service.
             </p>
           </motion.div>
 

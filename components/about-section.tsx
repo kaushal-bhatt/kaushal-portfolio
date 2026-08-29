@@ -10,34 +10,58 @@ const skills = [
   {
     category: 'Programming',
     icon: Code2,
-    items: ['Java (8, 11, 17)', 'Python', 'SQL', 'Algorithm Design'],
+    items: ['Java (8, 11, 17, 21)', 'Python', 'SQL', 'JavaScript'],
     color: 'text-orange-400'
   },
   {
     category: 'Frameworks',
     icon: Zap,
-    items: ['Spring Boot', 'Spring Framework', 'Hibernate', 'Microservices'],
+    items: ['Spring Boot 3.5', 'Spring Security', 'Hibernate / JPA', 'Microservices'],
     color: 'text-green-400'
+  },
+  {
+    category: 'Messaging & Streaming',
+    icon: Zap,
+    items: ['Apache Kafka', 'AWS MSK (TLS/SSL)', 'SQS / SNS', 'RabbitMQ'],
+    color: 'text-teal-400'
   },
   {
     category: 'Cloud & DevOps',
     icon: Cloud,
-    items: ['AWS (extensive)', 'Docker', 'Kubernetes', 'CI/CD'],
+    items: ['AWS (EC2, S3, MSK, IAM)', 'Docker', 'Kubernetes', 'Terraform', 'GitHub Actions'],
     color: 'text-blue-400'
+  },
+  {
+    category: 'Security & Auth',
+    icon: Award,
+    items: ['JWT / OAuth2', 'WebAuthn / Passkeys', 'HashiCorp Vault', 'RS256 · JWKS'],
+    color: 'text-pink-400'
   },
   {
     category: 'Databases',
     icon: Database,
     items: ['PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'DynamoDB'],
     color: 'text-purple-400'
+  },
+  {
+    category: 'Observability',
+    icon: Users,
+    items: ['Datadog', 'CloudWatch', 'ELK Stack', 'Prometheus', 'Grafana'],
+    color: 'text-indigo-400'
+  },
+  {
+    category: 'Domain',
+    icon: Award,
+    items: ['Crypto custody', 'Fireblocks', 'KYC / AML', 'Payment flows', 'Fraud detection'],
+    color: 'text-yellow-400'
   }
 ];
 
 const achievements = [
-  { icon: Award, label: '5+ Years', description: 'Professional Experience' },
-  { icon: Users, label: '95%+', description: 'Code Coverage Achieved' },
-  { icon: Zap, label: '57%', description: 'Performance Improvement' },
-  { icon: Code2, label: '10,000+', description: 'Daily Transactions Handled' }
+  { icon: Award, label: '7 Years', description: 'Building Backends' },
+  { icon: Zap, label: '57%', description: 'Latency Reduction Delivered' },
+  { icon: Users, label: '99.9%', description: 'Uptime on Regulated Systems' },
+  { icon: Code2, label: '1M+', description: 'Daily Transactions Handled' }
 ];
 
 export function AboutSection() {
@@ -75,18 +99,25 @@ export function AboutSection() {
                 <h3 className="text-2xl font-bold mb-6 text-white">My Journey</h3>
                 <div className="space-y-4 text-gray-300 leading-relaxed">
                   <p>
-                    I'm a Senior Software Engineer with over 5 years of experience in designing and implementing 
-                    highly distributed, scalable cloud-based applications. My expertise spans from backend 
-                    microservices architecture to complex algorithm implementation.
+                    I'm a Senior Backend Engineer with 7 years designing and operating event-driven
+                    microservices where correctness is non-negotiable &mdash; crypto custody, KYC/AML
+                    pipelines, payment flows, and fraud detection processing millions of transactions
+                    a day.
                   </p>
                   <p>
-                    Throughout my career, I've worked with industry leaders like Rockwallet, EPAM Systems, 
-                    and Lenskart, consistently delivering high-performance solutions that drive business growth 
-                    and improve user experiences.
+                    My work sits at the intersection of distributed systems and security: Kafka/MSK
+                    event backbones, service-to-service authentication, secrets management, and the
+                    unglamorous cryptographic plumbing that keeps accounts safe. Throughout my career
+                    I've worked with RockWallet, EPAM Systems, Ibosstech Solutions, Boutiqaat and
+                    Lenskart, consistently delivering high-performance solutions that drive business
+                    growth.
                   </p>
                   <p>
-                    I'm passionate about continuous learning and staying current with emerging technologies, 
-                    particularly in areas like cloud-native development, AI/ML integration, and performance optimization.
+                    At RockWallet I own services inside a 17-microservice monorepo and wrote the
+                    platform-wide JWT + WebAuthn authentication framework &mdash; the same expertise
+                    behind my open-source <a href="https://github.com/kaushal-bhatt/auth-platform" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">auth-platform</a> project.
+                    Open to Senior Backend Engineer roles across the EU &mdash; Blue Card eligible,
+                    English B2, German A1&ndash;A2 (in progress).
                   </p>
                 </div>
               </CardContent>

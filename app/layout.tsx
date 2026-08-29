@@ -7,20 +7,20 @@ import { Providers } from '@/components/providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Kaushal Bhatt - Senior Software Engineer',
-  description: 'Experienced Senior Software Engineer with 5+ years of expertise in designing and implementing highly distributed, scalable cloud-based applications using Java, Spring Boot, and AWS.',
-  keywords: ['Kaushal Bhatt', 'Software Engineer', 'Java Developer', 'Spring Boot', 'AWS', 'Microservices'],
+  title: 'Kaushal Bhatt - Senior Backend Engineer',
+  description: 'Senior Backend Engineer with 7 years building high-throughput, event-driven microservices in fintech and crypto custody. Java, Spring Boot, Kafka, AWS. Open to EU relocation.',
+  keywords: ['Kaushal Bhatt', 'Backend Engineer', 'Java Developer', 'Spring Boot', 'Kafka', 'AWS', 'Microservices', 'WebAuthn', 'Passkeys'],
   authors: [{ name: 'Kaushal Bhatt' }],
   openGraph: {
-    title: 'Kaushal Bhatt - Senior Software Engineer',
-    description: 'Experienced Senior Software Engineer specializing in Java, Spring Boot, and cloud-native applications.',
+    title: 'Kaushal Bhatt - Senior Backend Engineer',
+    description: '7 years of Java, Spring Boot, Kafka and AWS in regulated fintech and crypto custody.',
     type: 'website',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Kaushal Bhatt - Senior Software Engineer',
-    description: 'Experienced Senior Software Engineer specializing in Java, Spring Boot, and cloud-native applications.',
+    title: 'Kaushal Bhatt - Senior Backend Engineer',
+    description: '7 years of Java, Spring Boot, Kafka and AWS in regulated fintech and crypto custody.',
   },
 };
 
