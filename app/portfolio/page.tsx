@@ -10,76 +10,47 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-// Mock portfolio data - in real app, this would come from API/database
+// Real projects, pulled from my own GitHub repos.
 const portfolioProjects = [
   {
     id: 1,
-    title: "E-Commerce Microservices Platform",
-    description: "A comprehensive e-commerce platform built with Spring Boot microservices, featuring user management, product catalog, order processing, and payment integration.",
-    technologies: ["Java", "Spring Boot", "Spring Cloud", "PostgreSQL", "Redis", "Docker", "Kubernetes", "Apache Kafka"],
-    image: "/api/placeholder/600/400",
-    demoUrl: "#",
-    githubUrl: "#",
-    status: "In Development",
+    title: "auth-platform",
+    description: "A standalone, vendor-neutral JWT + passkey (WebAuthn) authentication platform — the open-source expression of the auth framework I built at RockWallet. Two independent Spring Boot modules, proven to interoperate over nothing but a public JWKS HTTP contract, with RS256-only verification, refresh-token rotation guarded by real row locks, and keys encrypted at rest.",
+    technologies: ["Java 21", "Spring Boot", "WebAuthn", "PostgreSQL", "Docker", "AWS"],
+    demoUrl: null,
+    githubUrl: "https://github.com/kaushal-bhatt/auth-platform",
+    status: "Open Source",
     featured: true,
-    category: "Full Stack",
-    completionDate: "2024-08"
+    category: "Security",
+    completionDate: "2026-08"
   },
   {
     id: 2,
-    title: "Real-time Chat Application",
-    description: "A scalable real-time chat application with WebSocket support, message persistence, and user authentication using Spring Boot and React.",
-    technologies: ["Java", "Spring Boot", "WebSocket", "React", "PostgreSQL", "Docker"],
-    image: "/api/placeholder/600/400",
-    demoUrl: "#",
-    githubUrl: "#",
-    status: "Completed",
+    title: "kafka-wikimedia-stream-pipeline",
+    description: "A real-time streaming pipeline that consumes Wikipedia's live \"recent changes\" event feed (Server-Sent Events) and publishes each edit as a message to an Apache Kafka topic. Includes a companion module of core Kafka producer/consumer patterns — partitioning, callbacks, graceful shutdown, cooperative rebalancing.",
+    technologies: ["Java", "Apache Kafka", "OkHttp", "SSE"],
+    demoUrl: null,
+    githubUrl: "https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline",
+    status: "Open Source",
     featured: true,
-    category: "Backend",
-    completionDate: "2024-06"
+    category: "Data Engineering",
+    completionDate: "2026-08"
   },
   {
     id: 3,
-    title: "Event Streaming Analytics",
-    description: "A real-time data processing system using Apache Kafka for event streaming and analytics dashboard for business insights.",
-    technologies: ["Java", "Apache Kafka", "Spring Boot", "Elasticsearch", "Kibana", "Docker"],
-    image: "/api/placeholder/600/400",
-    demoUrl: "#",
-    githubUrl: "#",
-    status: "Completed",
+    title: "multichain-sync-poc",
+    description: "A pluggable block-sync engine for UTXO chains. Given a stream of block heights, it classifies transactions as incoming or outgoing for addresses you care about, and survives duplicate delivery, out-of-order delivery, unparseable blocks, and workers that die mid-block.",
+    technologies: ["Java 21", "Spring Boot"],
+    demoUrl: null,
+    githubUrl: "https://github.com/kaushal-bhatt/multichain-sync-poc",
+    status: "Open Source",
     featured: false,
-    category: "Data Engineering",
-    completionDate: "2024-04"
-  },
-  {
-    id: 4,
-    title: "Task Management API",
-    description: "RESTful API for task management with authentication, authorization, and comprehensive documentation using Spring Boot.",
-    technologies: ["Java", "Spring Boot", "Spring Security", "JPA", "PostgreSQL", "JWT", "Swagger"],
-    image: "/api/placeholder/600/400",
-    demoUrl: "#",
-    githubUrl: "#",
-    status: "Completed",
-    featured: false,
-    category: "Backend",
-    completionDate: "2024-03"
-  },
-  {
-    id: 5,
-    title: "Next.js Portfolio Website",
-    description: "A modern, responsive portfolio website built with Next.js, featuring a blog system and admin panel for content management.",
-    technologies: ["Next.js", "React", "TypeScript", "Tailwind CSS", "PostgreSQL", "NextAuth"],
-    image: "/api/placeholder/600/400",
-    demoUrl: "#",
-    githubUrl: "#",
-    status: "Completed",
-    featured: true,
-    category: "Frontend",
-    completionDate: "2024-08"
+    category: "Blockchain",
+    completionDate: "2026-08"
   }
 ];
 
-const categories = ["All", "Full Stack", "Backend", "Frontend", "Data Engineering"];
+const categories = ["All", "Security", "Data Engineering", "Blockchain"];
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -92,6 +63,7 @@ export default function PortfolioPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed': return 'bg-green-600/20 text-green-400 border-green-600/30';
+      case 'Open Source': return 'bg-blue-600/20 text-blue-400 border-blue-600/30';
       case 'In Development': return 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30';
       default: return 'bg-gray-600/20 text-gray-400 border-gray-600/30';
     }
@@ -212,15 +184,17 @@ export default function PortfolioPage() {
                       </div>
                       
                       <div className="flex gap-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => window.open(project.demoUrl, '_blank')}
-                          className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Live Demo
-                        </Button>
+                        {project.demoUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(project.demoUrl!, '_blank')}
+                            className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Live Demo
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -299,15 +273,17 @@ export default function PortfolioPage() {
                         </div>
                         
                         <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(project.demoUrl, '_blank')}
-                            className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white text-xs h-8"
-                          >
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            Demo
-                          </Button>
+                          {project.demoUrl && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(project.demoUrl!, '_blank')}
+                              className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white text-xs h-8"
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              Demo
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
