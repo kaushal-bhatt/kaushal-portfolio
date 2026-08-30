@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,8 +39,6 @@ export default function NewPost() {
     published: false
   });
 
-  useEffect(() => {
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,14 +126,6 @@ export default function NewPost() {
       setLoading(false);
     }
   };
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
