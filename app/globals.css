@@ -167,8 +167,14 @@
     line-height: 1.2 !important;
   }
   
-  /* Improve mobile text wrapping */
-  .gradient-text {
+  /*
+    Put "Kaushal Bhatt" on its own line under "Hi, I'm".
+    Scoped to the hero heading: `.gradient-text` is used by the navigation
+    brand and by every section heading too, and unscoped this turned the brand
+    into a block with a stray top margin inside a fixed 4rem bar, and split
+    "About Me" across two lines wherever it appeared.
+  */
+  #hero h1 .gradient-text {
     display: block;
     margin-top: 0.5rem;
   }

@@ -10,8 +10,16 @@ export function HeroSection() {
     document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // The section's padding is load-bearing, not decoration. The navigation is
+  // `fixed` and reserves no space, and the scroll indicator below is absolutely
+  // positioned — so `items-center` was centring this content in the whole
+  // viewport as though both were absent. On a phone the content is taller than
+  // what is actually free, and the overflow went underneath the nav: the hero
+  // heading rendered on top of the brand in the bar. The padding makes the free
+  // space real, and the section grows past one screen rather than overlapping
+  // when it has to.
   return (
-    <section id="hero" className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <section id="hero" className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pt-24 pb-24">
       {/* Background Effects */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
