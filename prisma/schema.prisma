@@ -47,6 +47,40 @@ model Portfolio {
   updatedAt    DateTime @updatedAt
 }
 
+/// Open-source projects — the /portfolio page.
+///
+/// Separate from `Portfolio`, which despite its name holds *work experience*
+/// (company, role, dates). That naming is confusing and predates this; the two
+/// really are different things, which is why this is its own table rather than
+/// a flag on that one.
+model Project {
+  id          String   @id @default(cuid())
+  title       String   @unique
+  description String   @db.Text
+
+  technologies String[] @default([])
+
+  /// Null when there is nothing to click. The page hides the button rather than
+  /// linking somewhere that does not exist.
+  demoUrl   String?
+  githubUrl String
+
+  status   String @default("Open Source")
+  category String
+
+  /// Featured projects render in the larger two-column grid above the rest.
+  featured Boolean @default(false)
+
+  /// Kept as text ("2026-08"). It is a label on a card, never sorted or compared
+  /// as a date, and storing it as one would invite a timezone question that has
+  /// no answer here.
+  completionDate String
+
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model BlogPost {
   id         String   @id @default(cuid())
   title      String

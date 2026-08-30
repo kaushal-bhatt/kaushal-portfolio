@@ -29,6 +29,18 @@ type SeedData = {
     achievements: string[];
     order: number;
   }>;
+  projects: Array<{
+    title: string;
+    description: string;
+    technologies: string[];
+    demoUrl: string | null;
+    githubUrl: string;
+    status: string;
+    category: string;
+    featured: boolean;
+    completionDate: string;
+    order: number;
+  }>;
   techSections: Array<{
     name: string;
     slug: string;
@@ -77,6 +89,26 @@ async function main() {
       await prisma.portfolio.create({ data: item });
     }
     console.log(`✅ Portfolio: ${data.portfolio.length} entries`);
+  }
+
+  if (await shouldSeed('Project', await prisma.project.count())) {
+    // Upsert by title, which is unique — so re-seeding updates a project's copy
+    // rather than creating a second one. Anything no longer in the fixture goes,
+    // for the same reason the other tables prune: removing a project here has to
+    // remove it from the site.
+    const removed = await prisma.project.deleteMany({
+      where: { title: { notIn: data.projects.map((p) => p.title) } },
+    });
+    for (const project of data.projects) {
+      await prisma.project.upsert({
+        where: { title: project.title },
+        update: project,
+        create: project,
+      });
+    }
+    console.log(
+      `✅ Project: ${data.projects.length} entries` + (removed.count ? `, ${removed.count} removed` : '')
+    );
   }
 
   if (await shouldSeed('TechSection', await prisma.techSection.count())) {

@@ -3,66 +3,49 @@
 
 import { motion } from 'framer-motion';
 import { ArrowLeft, ExternalLink, Github, Calendar } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
-// Real projects, pulled from my own GitHub repos.
-const portfolioProjects = [
-  {
-    id: 1,
-    title: "auth-platform",
-    description: "A standalone, vendor-neutral JWT + passkey (WebAuthn) authentication platform — the open-source expression of the auth framework I built at RockWallet. Two independent Spring Boot modules, proven to interoperate over nothing but a public JWKS HTTP contract, with RS256-only verification, refresh-token rotation guarded by real row locks, and keys encrypted at rest.",
-    // "AWS" was here from an earlier plan that never happened — the deploy kit
-    // targeted it, then didn't. It runs on a single VPS behind Caddy, and this
-    // list is the first thing a reader checks the claims against.
-    technologies: ["Java 21", "Spring Boot", "WebAuthn", "PostgreSQL", "Docker", "Caddy"],
-    // The passkey demo is live and interactive — register, sign in with a real
-    // passkey, watch every request and response. That is worth more than the
-    // README to anyone deciding whether to read the code.
-    demoUrl: "https://auth.wekt.in",
-    githubUrl: "https://github.com/kaushal-bhatt/auth-platform",
-    status: "Open Source",
-    featured: true,
-    category: "Security",
-    completionDate: "2026-08"
-  },
-  {
-    id: 2,
-    title: "kafka-wikimedia-stream-pipeline",
-    description: "A real-time streaming pipeline that consumes Wikipedia's live \"recent changes\" event feed (Server-Sent Events) and publishes each edit as a message to an Apache Kafka topic. Includes a companion module of core Kafka producer/consumer patterns — partitioning, callbacks, graceful shutdown, cooperative rebalancing.",
-    technologies: ["Java", "Apache Kafka", "OkHttp", "SSE"],
-    demoUrl: null,
-    githubUrl: "https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline",
-    status: "Open Source",
-    featured: true,
-    category: "Data Engineering",
-    completionDate: "2026-08"
-  },
-  {
-    id: 3,
-    title: "multichain-sync-poc",
-    description: "A pluggable block-sync engine for UTXO chains. Given a stream of block heights, it classifies transactions as incoming or outgoing for addresses you care about, and survives duplicate delivery, out-of-order delivery, unparseable blocks, and workers that die mid-block.",
-    technologies: ["Java 21", "Spring Boot"],
-    demoUrl: null,
-    githubUrl: "https://github.com/kaushal-bhatt/multichain-sync-poc",
-    status: "Open Source",
-    featured: false,
-    category: "Blockchain",
-    completionDate: "2026-08"
-  }
-];
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  technologies: string[];
+  demoUrl: string | null;
+  githubUrl: string;
+  status: string;
+  category: string;
+  featured: boolean;
+  completionDate: string;
+  order: number;
+}
 
-const categories = ["All", "Security", "Data Engineering", "Blockchain"];
 
 export default function PortfolioPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/projects')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: Project[]) => setProjects(data))
+      .catch(() => setProjects([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Derived from the projects themselves rather than a fixed list. A hardcoded
+  // one goes stale the moment a project is added under a new category — the
+  // filter button simply would not exist, and the project would be reachable
+  // only under "All".
+  const categories = ["All", ...Array.from(new Set(projects.map((p) => p.category)))];
 
   const filteredProjects = selectedCategory === "All" 
-    ? portfolioProjects 
-    : portfolioProjects.filter(project => project.category === selectedCategory);
+    ? projects 
+    : projects.filter(project => project.category === selectedCategory);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -72,6 +55,16 @@ export default function PortfolioPage() {
       default: return 'bg-gray-600/20 text-gray-400 border-gray-600/30';
     }
   };
+
+  // Without this the page renders its headings over an empty grid for the length
+  // of the fetch, which reads as "he has no projects" rather than "still loading".
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900">

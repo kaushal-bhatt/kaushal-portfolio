@@ -208,5 +208,58 @@
       "readTime": 3,
       "createdAt": null
     }
+  ],
+  "projects": [
+    {
+      "title": "auth-platform",
+      "description": "A standalone, vendor-neutral JWT + passkey (WebAuthn) authentication platform — the open-source expression of the auth framework I built at RockWallet. Two independent Spring Boot modules, proven to interoperate over nothing but a public JWKS HTTP contract, with RS256-only verification, refresh-token rotation guarded by real row locks, and keys encrypted at rest.",
+      "technologies": [
+        "Java 21",
+        "Spring Boot",
+        "WebAuthn",
+        "PostgreSQL",
+        "Docker",
+        "Caddy"
+      ],
+      "demoUrl": "https://auth.wekt.in",
+      "githubUrl": "https://github.com/kaushal-bhatt/auth-platform",
+      "status": "Open Source",
+      "category": "Security",
+      "featured": true,
+      "completionDate": "2026-08",
+      "order": 1
+    },
+    {
+      "title": "kafka-wikimedia-stream-pipeline",
+      "description": "A real-time streaming pipeline that consumes Wikipedia's live \"recent changes\" event feed (Server-Sent Events) and publishes each edit as a message to an Apache Kafka topic. Includes a companion module of core Kafka producer/consumer patterns — partitioning, callbacks, graceful shutdown, cooperative rebalancing.",
+      "technologies": [
+        "Java",
+        "Apache Kafka",
+        "OkHttp",
+        "SSE"
+      ],
+      "demoUrl": null,
+      "githubUrl": "https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline",
+      "status": "Open Source",
+      "category": "Data Engineering",
+      "featured": true,
+      "completionDate": "2026-08",
+      "order": 2
+    },
+    {
+      "title": "multichain-sync-poc",
+      "description": "A pluggable block-sync engine for UTXO chains. Given a stream of block heights, it classifies transactions as incoming or outgoing for addresses you care about, and survives duplicate delivery, out-of-order delivery, unparseable blocks, and workers that die mid-block.",
+      "technologies": [
+        "Java 21",
+        "Spring Boot"
+      ],
+      "demoUrl": null,
+      "githubUrl": "https://github.com/kaushal-bhatt/multichain-sync-poc",
+      "status": "Open Source",
+      "category": "Blockchain",
+      "featured": false,
+      "completionDate": "2026-08",
+      "order": 3
+    }
   ]
 }

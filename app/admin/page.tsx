@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase } from 'lucide-react';
+import { FileText, Briefcase, FolderGit2 } from 'lucide-react';
 
 export default function AdminDashboard() {
 
@@ -39,11 +39,28 @@ export default function AdminDashboard() {
                   Professional Experience
                 </CardTitle>
                 <CardDescription>
-                  Manage work experience and projects
+                  Manage roles, dates and achievements
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button className="w-full">Manage Experience</Button>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/projects">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FolderGit2 className="mr-2 h-5 w-5" />
+                  Projects
+                </CardTitle>
+                <CardDescription>
+                  Manage the open-source projects on /portfolio
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">Manage Projects</Button>
               </CardContent>
             </Card>
           </Link>
