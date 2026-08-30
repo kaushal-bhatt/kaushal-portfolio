@@ -99,7 +99,7 @@ export function AboutSection() {
                 <h3 className="text-2xl font-bold mb-6 text-white">My Journey</h3>
                 <div className="space-y-4 text-gray-300 leading-relaxed">
                   <p>
-                    I'm a Senior Backend Engineer with 7 years designing and operating event-driven
+                    I&apos;m a Senior Backend Engineer with 7 years designing and operating event-driven
                     microservices where correctness is non-negotiable &mdash; crypto custody, KYC/AML
                     pipelines, payment flows, and fraud detection processing millions of transactions
                     a day.
@@ -108,7 +108,7 @@ export function AboutSection() {
                     My work sits at the intersection of distributed systems and security: Kafka/MSK
                     event backbones, service-to-service authentication, secrets management, and the
                     unglamorous cryptographic plumbing that keeps accounts safe. Throughout my career
-                    I've worked with RockWallet, EPAM Systems, Ibosstech Solutions, Boutiqaat and
+                    I&apos;ve worked with RockWallet, EPAM Systems, Ibosstech Solutions, Boutiqaat and
                     Lenskart, consistently delivering high-performance solutions that drive business
                     growth.
                   </p>
@@ -132,7 +132,7 @@ export function AboutSection() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
           >
-            {skills.map((skill, index) => {
+            {skills.map((skill) => {
               const Icon = skill.icon;
               return (
                 <motion.div
@@ -164,7 +164,7 @@ export function AboutSection() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
         >
-          {achievements.map((achievement, index) => {
+          {achievements.map((achievement) => {
             const Icon = achievement.icon;
             return (
               <motion.div

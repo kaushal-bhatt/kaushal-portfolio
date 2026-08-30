@@ -2,12 +2,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Github, Code2, Star, Calendar } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Github, Calendar } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 // Real projects, pulled from my own GitHub repos.
@@ -59,7 +58,6 @@ const portfolioProjects = [
 const categories = ["All", "Security", "Data Engineering", "Blockchain"];
 
 export default function PortfolioPage() {
-  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const filteredProjects = selectedCategory === "All" 
@@ -320,7 +318,7 @@ export default function PortfolioPage() {
             Interested in working together?
           </h2>
           <p className="text-gray-300 mb-6">
-            Let's discuss how I can help bring your project to life
+            Let&apos;s discuss how I can help bring your project to life
           </p>
           <Button
             size="lg"

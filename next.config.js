@@ -6,8 +6,11 @@ const nextConfig = {
   // build failed at that COPY and had never succeeded.
   output: 'standalone',
 
+  // Lint failures fail the build again. This was `true`, which turned out to be
+  // hiding not a pile of errors but the absence of any ESLint configuration at
+  // all — `next lint` had never been run, so there was nothing to ignore.
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
     ignoreBuildErrors: false,

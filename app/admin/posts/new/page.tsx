@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Eye, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,7 +64,7 @@ export default function NewPost() {
       });
 
       if (response.ok) {
-        const newPost = await response.json();
+        await response.json();
         
         if (formData.published) {
           setSuccess('Post published successfully!');

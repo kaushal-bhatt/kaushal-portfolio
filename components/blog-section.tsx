@@ -3,7 +3,7 @@
 
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { BookOpen, Clock, Tag, ChevronRight } from 'lucide-react';
+import { BookOpen, Clock, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -87,7 +87,7 @@ export function BlogSection() {
 
   const getIconComponent = (iconName: string) => {
     // Mapping icon names to actual components for demo
-    const iconMap: { [key: string]: any } = {
+    const iconMap: { [key: string]: string } = {
       Coffee: '☕',
       Leaf: '🍃',
       Database: '🗄️',
@@ -126,7 +126,7 @@ export function BlogSection() {
         >
           <h3 className="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8 text-center px-4">Explore by Technology</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {techSections.map((tech, index) => (
+            {techSections.map((tech) => (
               <motion.div
                 key={tech.id}
                 whileHover={{ scale: 1.05, y: -5 }}
@@ -161,7 +161,7 @@ export function BlogSection() {
           >
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8 text-center px-4">Recent Articles</h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {recentPosts.map((post, index) => (
+              {recentPosts.map((post) => (
                 <motion.div
                   key={post.id}
                   whileHover={{ scale: 1.02, y: -5 }}

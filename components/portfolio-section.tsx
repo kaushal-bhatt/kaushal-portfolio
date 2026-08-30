@@ -10,6 +10,12 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { safeTechnologies, safeAchievements } from '@/lib/safe-arrays';
 
+/** What /api/portfolio actually returns: the list fields may arrive either way. */
+type RawPortfolioEntry = Omit<PortfolioEntry, 'technologies' | 'achievements'> & {
+  technologies: string | string[] | null;
+  achievements: string | string[] | null;
+};
+
 interface PortfolioEntry {
   id: string;
   company: string;
@@ -39,7 +45,7 @@ export function PortfolioSection() {
         if (response.ok) {
           const data = await response.json();
           // Process the data to match expected format
-          const formattedData = data.map((item: any) => ({
+          const formattedData = data.map((item: RawPortfolioEntry) => ({
             ...item,
             technologies: safeTechnologies(item.technologies),
             achievements: safeAchievements(item.achievements)
@@ -184,7 +190,7 @@ export function PortfolioSection() {
             className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300"
           >
             <ExternalLink className="w-5 h-5 mr-2" />
-            Let's Work Together
+            Let&apos;s Work Together
           </Button>
         </motion.div>
       </div>

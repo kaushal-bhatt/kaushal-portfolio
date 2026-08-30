@@ -29,7 +29,7 @@ export function HeroSection() {
             className="mb-8"
           >
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-white">Hi, I'm </span>
+              <span className="text-white">Hi, I&apos;m </span>
               <span className="gradient-text">Kaushal Bhatt</span>
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-4">

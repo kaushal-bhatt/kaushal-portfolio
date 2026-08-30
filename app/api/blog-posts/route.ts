@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(transformBlogPostForAPI(post));
     }
     
-    let whereClause: any = {};
+    let whereClause: Prisma.BlogPostWhereInput = {};
     
     if (technology) {
       // Exact, case-insensitive — callers pass the section's slug, which is what

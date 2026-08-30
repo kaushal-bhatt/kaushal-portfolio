@@ -28,7 +28,7 @@ export interface BlogPostWithArrays {
   content: string;
   technology: string;
   published: boolean;
-  authorId: string;
+  authorName: string;
   tags: string[];
   readTime: number;
   createdAt: Date;
@@ -36,7 +36,9 @@ export interface BlogPostWithArrays {
 }
 
 /** Read side. A no-op for rows that came from Postgres; kept so older callers stay safe. */
-export const transformBlogPostForAPI = (post: any): BlogPostWithArrays => ({
+type RawBlogPost = Omit<BlogPostWithArrays, 'tags'> & { tags: string | string[] | null };
+
+export const transformBlogPostForAPI = (post: RawBlogPost): BlogPostWithArrays => ({
   ...post,
   tags: stringToArray(post.tags),
 });
