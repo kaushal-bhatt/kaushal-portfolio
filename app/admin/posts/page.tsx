@@ -1,6 +1,5 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -30,7 +29,6 @@ interface BlogPost {
 }
 
 export default function ManagePosts() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,15 +36,9 @@ export default function ManagePosts() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
 
   useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session?.user || session.user.role !== 'admin') {
-      router.push('/auth/signin');
-      return;
-    }
 
     fetchPosts();
-  }, [session, status, router]);
+  }, [router]);
 
   const fetchPosts = async () => {
     try {
@@ -142,10 +134,6 @@ export default function ManagePosts() {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
-  }
-
-  if (!session?.user || session.user.role !== 'admin') {
-    return null;
   }
 
   return (

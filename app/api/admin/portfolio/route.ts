@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAdminSession } from '@/lib/session';
 import { prisma } from '@/lib/db';
 import { stringToArray } from '@/lib/sqlite-helpers';
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized access' },
-        { status: 401 }
-      );
+    // Verified server-side: signature, issuer, audience and the required role.
+    // The middleware ahead of this only chooses redirects - it verifies nothing.
+    if (!(await getAdminSession())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const portfolios = await prisma.portfolio.findMany({
@@ -31,13 +27,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || session.user?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized access' },
-        { status: 401 }
-      );
+    // Verified server-side: signature, issuer, audience and the required role.
+    // The middleware ahead of this only chooses redirects - it verifies nothing.
+    if (!(await getAdminSession())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const data = await request.json();

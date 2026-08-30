@@ -30,9 +30,7 @@ interface BlogPost {
   tags: string[];
   readTime: number;
   createdAt: string;
-  author: {
-    name: string;
-  };
+  authorName: string;
 }
 
 export function BlogSection() {

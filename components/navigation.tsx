@@ -3,9 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, Home, User, Briefcase, BookOpen, Shield } from 'lucide-react';
+import { Menu, X, Home, User, Briefcase, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSession } from 'next-auth/react';
 
 const navItems = [
   { name: 'Home', href: '#hero', icon: Home, isScroll: true },
@@ -18,7 +17,6 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
-  const { data: session } = useSession();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -100,19 +98,6 @@ export function Navigation() {
                   </motion.button>
                 );
               })}
-              {session?.user && (
-                <motion.div whileHover={{ scale: 1.05 }}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open('/admin', '_blank')}
-                    className="ml-4 border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Admin
-                  </Button>
-                </motion.div>
-              )}
             </div>
           </div>
 
@@ -154,17 +139,6 @@ export function Navigation() {
                 </button>
               );
             })}
-            {session?.user && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open('/admin', '_blank')}
-                className="w-full mt-2 border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Admin Panel
-              </Button>
-            )}
           </div>
         </motion.div>
       </div>

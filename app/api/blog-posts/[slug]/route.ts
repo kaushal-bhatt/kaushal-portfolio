@@ -17,15 +17,7 @@ export async function GET(
     const { slug } = params;
     
     const post = await prisma.blogPost.findFirst({
-      where: { slug },
-      include: {
-        author: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
-      }
+      where: { slug }
     });
 
     if (!post) {

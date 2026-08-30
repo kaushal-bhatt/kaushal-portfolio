@@ -68,24 +68,9 @@ async function main() {
     readFileSync(join(__dirname, '..', 'prisma', 'seed-data.json'), 'utf8')
   );
 
-  // This row exists only so blog posts have an owner. It has NO password:
-  // password login is being replaced by auth-platform SSO, and a null here means
-  // the account cannot authenticate at all. The old script defaulted to a
-  // password hardcoded in this file, which meant any deploy that forgot to set
-  // ADMIN_PASSWORD came up with a publicly known admin login.
-  const authorEmail = process.env.ADMIN_EMAIL || 'author@wekt.in';
-  const author = await prisma.user.upsert({
-    where: { email: authorEmail },
-    update: {},
-    create: {
-      email: authorEmail,
-      name: 'Kaushal Bhatt',
-      role: 'admin',
-      password: null,
-    },
-  });
-  console.log(`✅ Author: ${author.email} (no password — login is via auth-platform)`);
-
+  // No user row is created any more. Sign-in is auth-platform's job, and this
+  // database holds no accounts, no password hashes and no sessions — the blog's
+  // author is a byline on the post, not a login.
   if (await shouldSeed('Portfolio', await prisma.portfolio.count())) {
     await prisma.portfolio.deleteMany();
     for (const item of data.portfolio) {
@@ -110,7 +95,6 @@ async function main() {
       const { createdAt, ...rest } = post;
       const record = {
         ...rest,
-        authorId: author.id,
         ...(createdAt ? { createdAt: new Date(createdAt) } : {}),
       };
       await prisma.blogPost.upsert({

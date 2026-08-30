@@ -1,17 +1,9 @@
 import Link from 'next/link';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, FileText, Briefcase, Settings } from 'lucide-react';
+import { FileText, Briefcase } from 'lucide-react';
 
-export default async function AdminDashboard() {
-  const session = await getServerSession(authOptions);
-  
-  if (!session || session.user?.role !== 'admin') {
-    redirect('/auth/signin');
-  }
+export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -52,23 +44,6 @@ export default async function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <Button className="w-full">Manage Experience</Button>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/admin/settings">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Settings className="mr-2 h-5 w-5" />
-                  Settings
-                </CardTitle>
-                <CardDescription>
-                  Manage tech sections and settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full">Manage Settings</Button>
               </CardContent>
             </Card>
           </Link>

@@ -44,7 +44,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ghcr.io hands out transient timeouts, and one of them failing the whole
+      # deploy is not worth it. The action has no retry of its own, so a second
+      # attempt is a second step guarded on the first one's outcome.
       - name: Log in to GHCR
+        id: ghcr_login
+        continue-on-error: true
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to GHCR (retry)
+        if: steps.ghcr_login.outcome == 'failure'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -63,15 +76,27 @@ jobs:
             -t "${{ env.IMAGE }}:${{ github.sha }}" `
             -t "${{ env.IMAGE }}:latest" .
 
-      # $ErrorActionPreference does not apply to native executables, so each
-      # push needs its own check — otherwise a failed first push is masked by a
-      # successful second one and a broken deploy looks green.
+      # Each push is retried: a registry timeout here used to fail the deploy
+      # outright, and layers already uploaded are skipped on the retry so a
+      # second attempt is cheap. Every push still needs its own exit-code check
+      # because $ErrorActionPreference does not apply to native executables, so a
+      # failed first push would otherwise be masked by a successful second one.
       - name: Push image
         run: |
-          docker push "${{ env.IMAGE }}:${{ github.sha }}"
-          if ($LASTEXITCODE -ne 0) { throw "push of the sha tag failed ($LASTEXITCODE)" }
-          docker push "${{ env.IMAGE }}:latest"
-          if ($LASTEXITCODE -ne 0) { throw "push of the latest tag failed ($LASTEXITCODE)" }
+          function Push-WithRetry([string]$Tag) {
+            for ($i = 1; $i -le 3; $i++) {
+              docker push $Tag
+              if ($LASTEXITCODE -eq 0) { return }
+              if ($i -lt 3) {
+                Write-Host "push of $Tag failed (exit $LASTEXITCODE); attempt $i of 3, retrying in $($i * 10)s"
+                Start-Sleep -Seconds ($i * 10)
+              }
+            }
+            throw "push of $Tag failed after 3 attempts"
+          }
+
+          Push-WithRetry "${{ env.IMAGE }}:${{ github.sha }}"
+          Push-WithRetry "${{ env.IMAGE }}:latest"
 
       # The rollout script lives in the auth-platform checkout on the server,
       # because that is where docker-compose.yml and .env are — one stack, two

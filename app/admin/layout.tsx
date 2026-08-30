@@ -1,72 +1,52 @@
-'use client';
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { getAdminSession } from '@/lib/session';
 
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+export const dynamic = 'force-dynamic';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [showContent, setShowContent] = useState(false);
+/**
+ * Wraps every admin page.
+ *
+ * This is a server component and the check runs on the server. The previous version was
+ * `'use client'` and gated on `useSession()`, which meant the admin UI and all of its
+ * JavaScript were served to anyone who asked for /admin — the browser then decided whether to
+ * render it. The API routes underneath did check properly, so no data leaked, but the check
+ * belonged here too.
+ *
+ * Middleware has already redirected an expired or missing session before this runs; this is the
+ * check that actually verifies the token's signature, issuer, audience and role. The redirect
+ * here is the backstop for the case where middleware let something through.
+ */
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getAdminSession();
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    
-    console.log('Session:', session);
-    console.log('User role:', session?.user?.role);
-    
-    if (!session) {
-      console.log('No session, redirecting to signin');
-      router.push('/auth/signin');
-      return;
-    }
-    
-    if (session.user?.role !== 'admin') {
-      console.log('User is not admin, redirecting to signin');
-      router.push('/auth/signin');
-      return;
-    }
-    
-    console.log('User is admin, showing content');
-    setShowContent(true);
-  }, [session, status, router]);
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
+  if (!session) {
+    redirect('/api/auth/login?next=/admin');
   }
 
-  if (!session || session.user?.role !== 'admin') {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <h1 className="text-2xl mb-4">Access Denied</h1>
-          <p className="mb-4">Admin access required</p>
-          <button 
-            onClick={() => router.push('/auth/signin')}
-            className="bg-blue-600 px-4 py-2 rounded"
-          >
-            Sign In
-          </button>
+  return (
+    <div className="min-h-screen bg-slate-900">
+      <div className="border-b border-slate-700 bg-slate-800">
+        <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-4 text-sm sm:px-6 lg:px-8">
+          <Link href="/admin" className="font-medium text-slate-200 hover:text-white">
+            Admin
+          </Link>
+          <div className="flex items-center gap-4 text-slate-400">
+            <span>{session.email}</span>
+            {/*
+              A form, not a link: a GET logout can be triggered by any image or
+              prefetch on any page, so a visitor could be signed out by something
+              they only looked at.
+            */}
+            <form action="/api/auth/logout" method="post">
+              <button type="submit" className="hover:text-white">
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    );
-  }
-
-  if (!showContent) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+      {children}
+    </div>
+  );
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -28,7 +27,6 @@ interface BlogPostForm {
 }
 
 export default function NewPost() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,13 +40,7 @@ export default function NewPost() {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session?.user || session.user.role !== 'admin') {
-      router.push('/auth/signin');
-      return;
-    }
-  }, [session, status, router]);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,10 +135,6 @@ export default function NewPost() {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
-  }
-
-  if (!session?.user || session.user.role !== 'admin') {
-    return null;
   }
 
   return (

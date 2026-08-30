@@ -23,10 +23,7 @@ interface BlogPost {
   readTime: number;
   createdAt: string;
   updatedAt: string;
-  author: {
-    name: string;
-    email: string;
-  };
+  authorName: string;
 }
 
 export default function BlogPostPage() {
@@ -144,7 +141,7 @@ export default function BlogPostPage() {
             <div className="flex flex-wrap items-center gap-4 text-gray-300">
               <div className="flex items-center">
                 <User className="w-4 h-4 mr-2" />
-                <span>by {post.author.name}</span>
+                <span>by {post.authorName}</span>
               </div>
               <div className="flex items-center">
                 <Calendar className="w-4 h-4 mr-2" />

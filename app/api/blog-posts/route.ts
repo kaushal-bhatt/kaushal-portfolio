@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAdminSession } from '@/lib/session';
 import { transformBlogPostForAPI, transformBlogPostForDB } from '@/lib/sqlite-helpers';
 import { Prisma } from '@prisma/client';
 // Read live content, so this must never be evaluated at build time: the Docker
@@ -29,15 +28,7 @@ export async function GET(request: NextRequest) {
     if (id) {
       // Get single post by ID
       const post = await prisma.blogPost.findUnique({
-        where: { id },
-        include: {
-          author: {
-            select: {
-              name: true,
-              email: true
-            }
-          }
-        }
+        where: { id }
       });
 
       if (!post) {
@@ -60,14 +51,6 @@ export async function GET(request: NextRequest) {
 
     const posts = await prisma.blogPost.findMany({
       where: whereClause,
-      include: {
-        author: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
-      },
       orderBy: {
         createdAt: 'desc'
       }
@@ -86,13 +69,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Verified server-side: signature, issuer, audience and the required role.
+    // The middleware ahead of this only chooses redirects - it verifies nothing.
+    if (!(await getAdminSession())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -137,14 +117,6 @@ export async function POST(request: NextRequest) {
         readTime: postData.readTime,
         published: postData.published,
         slug,
-        authorId: session.user.id
-      },
-      include: {
-        author: {
-          select: {
-            name: true
-          }
-        }
       }
     });
 
@@ -160,13 +132,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Verified server-side: signature, issuer, audience and the required role.
+    // The middleware ahead of this only chooses redirects - it verifies nothing.
+    if (!(await getAdminSession())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -197,14 +166,7 @@ export async function PUT(request: NextRequest) {
 
     const post = await prisma.blogPost.update({
       where: { id },
-      data: updateData,
-      include: {
-        author: {
-          select: {
-            name: true
-          }
-        }
-      }
+      data: updateData
     });
 
     return NextResponse.json(transformBlogPostForAPI(post));
@@ -219,13 +181,10 @@ export async function PUT(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Verified server-side: signature, issuer, audience and the required role.
+    // The middleware ahead of this only chooses redirects - it verifies nothing.
+    if (!(await getAdminSession())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -246,14 +205,7 @@ export async function PATCH(request: NextRequest) {
 
     const post = await prisma.blogPost.update({
       where: { id },
-      data: updateData,
-      include: {
-        author: {
-          select: {
-            name: true
-          }
-        }
-      }
+      data: updateData
     });
 
     return NextResponse.json(transformBlogPostForAPI(post));
@@ -268,13 +220,10 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    // Verified server-side: signature, issuer, audience and the required role.
+    // The middleware ahead of this only chooses redirects - it verifies nothing.
+    if (!(await getAdminSession())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);

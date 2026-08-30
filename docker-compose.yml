@@ -6,9 +6,11 @@
 #
 # Nothing here carries a secret. An earlier version of this file hardcoded
 # NEXTAUTH_SECRET, which meant anyone reading this public repository could forge
-# an admin session cookie without ever seeing a password. Values come from .env,
-# which is gitignored, and the `:?` syntax below makes compose refuse to start
-# with a clear message rather than falling back to something guessable.
+# an admin session cookie without ever seeing a password. That variable is gone
+# entirely now — the app verifies auth-platform's tokens and signs nothing of its
+# own. Values come from .env, which is gitignored, and the `:?` syntax below
+# makes compose refuse to start with a clear message rather than falling back to
+# something guessable.
 services:
   postgres:
     image: postgres:16-alpine
@@ -40,10 +42,15 @@ services:
       # `postgres` is the service name on the compose network, and 5432 is the
       # container's own port — the 5433 mapping above is only for the host.
       DATABASE_URL: postgresql://${POSTGRES_USER:-portfolio}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-portfolio}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      # Quoted because the ":?" message contains characters YAML would otherwise
-      # read as structure.
-      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET:?set NEXTAUTH_SECRET in .env - generate one with openssl rand -base64 32}"
+      # Admin sign-in goes through auth-platform; this app verifies the JWT it
+      # gets back and signs nothing itself, so there is no session secret here.
+      AUTH_PLATFORM_URL: ${AUTH_PLATFORM_URL:-https://auth.wekt.in}
+      PORTFOLIO_BASE_URL: ${PORTFOLIO_BASE_URL:-http://localhost:3000}
+      AUTH_PLATFORM_SSO_CLIENT_ID: ${AUTH_PLATFORM_SSO_CLIENT_ID:-portfolio}
+      # Server-to-server only — a browser never sees it. Left empty for local
+      # work: /admin then fails at sign-in, which is correct, rather than the
+      # whole stack refusing to start.
+      AUTH_PLATFORM_SSO_CLIENT_SECRET: ${AUTH_PLATFORM_SSO_CLIENT_SECRET:-}
     depends_on:
       postgres:
         condition: service_healthy

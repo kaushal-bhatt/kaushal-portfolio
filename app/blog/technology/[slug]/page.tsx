@@ -20,9 +20,7 @@ interface BlogPost {
   tags: string[];
   readTime: number;
   createdAt: string;
-  author: {
-    name: string;
-  };
+  authorName: string;
 }
 
 interface TechSection {
@@ -220,7 +218,7 @@ export default function TechnologyBlogPage() {
                       <Calendar className="w-4 h-4 mr-1" />
                       {new Date(post.createdAt).toLocaleDateString()}
                       <span className="mx-2">•</span>
-                      <span>by {post.author.name}</span>
+                      <span>by {post.authorName}</span>
                     </div>
                   </CardHeader>
                   
