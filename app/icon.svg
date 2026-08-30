@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!--
+    Site favicon. Next's App Router picks this up from app/icon.svg and emits the
+    <link rel="icon"> itself — there was none before, which is why every page load
+    logged a 404 for /favicon.ico.
+
+    The K is drawn as paths rather than a <text> element: a favicon is rendered
+    outside the page, where the site's font is not loaded, so text would fall back
+    to whatever the browser had and the mark would differ per machine.
+
+    Colours are the site's own accent gradient over its background.
+  -->
+  <defs>
+    <linearGradient id="k" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6d8bff"/>
+      <stop offset="1" stop-color="#35d0ba"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="#0b0d17"/>
+
+  <g fill="url(#k)">
+    <!-- upright -->
+    <rect x="15" y="15" width="9" height="34" rx="1.5"/>
+    <!-- upper arm -->
+    <path d="M27 32 L41 15 H51 L34 34 Z"/>
+    <!-- lower leg -->
+    <path d="M27 32 L41 49 H51 L34 30 Z"/>
+  </g>
+</svg>
