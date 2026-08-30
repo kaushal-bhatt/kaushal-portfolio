@@ -155,15 +155,19 @@ export async function PUT(request: NextRequest) {
       updateData.tags = transformedData.tags;
     }
 
-    // Generate new slug if title changed
-    if (updateData.title) {
-      updateData.slug = updateData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9 -]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim();
-    }
+    // The slug is deliberately NOT regenerated here.
+    //
+    // This used to rebuild it from the title on every update. The comment said
+    // "if title changed", but the condition only checked that a title was
+    // *present* — and the edit page sends the whole post on every save. So every
+    // save silently changed the post's URL, breaking any link to it and leaving
+    // the editor's own Preview button pointing at an address that no longer
+    // existed.
+    //
+    // A slug is a published address. It should change when someone decides to
+    // change it, not as a side effect of fixing a typo. The client already sends
+    // the existing slug back, so it is carried through unchanged; sending a
+    // different one is how you rename a post on purpose.
 
     const post = await prisma.blogPost.update({
       where: { id },
