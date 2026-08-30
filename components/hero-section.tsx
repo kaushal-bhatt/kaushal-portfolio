@@ -2,7 +2,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ChevronDown, Mail, Phone, Linkedin, Github, MapPin, Briefcase } from 'lucide-react';
+import { ChevronDown, Mail, Phone, Linkedin, Github, MapPin, Briefcase, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function HeroSection() {
@@ -78,6 +78,23 @@ export function HeroSection() {
               View My Work
             </Button>
             
+            {/*
+              Second, not third: of the three, this is the only one a visitor can
+              act on immediately — register a passkey, sign in with it, and watch
+              every request and response. Green rather than the muted slate of
+              "Get In Touch" so it reads as a live thing to use, without
+              competing with the primary call to action.
+            */}
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-emerald-500/60 text-emerald-300 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 shadow-xl hover:shadow-2xl transition-all duration-300"
+              onClick={() => window.open('https://auth.wekt.in', '_blank', 'noopener,noreferrer')}
+            >
+              <Fingerprint className="w-5 h-5 mr-2" />
+              Try the Passkey Demo
+            </Button>
+
             <Button
               variant="outline"
               size="lg"

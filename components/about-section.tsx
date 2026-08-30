@@ -115,7 +115,8 @@ export function AboutSection() {
                   <p>
                     At RockWallet I own services inside a 17-microservice monorepo and wrote the
                     platform-wide JWT + WebAuthn authentication framework &mdash; the same expertise
-                    behind my open-source <a href="https://github.com/kaushal-bhatt/auth-platform" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">auth-platform</a> project.
+                    behind my open-source <a href="https://github.com/kaushal-bhatt/auth-platform" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">auth-platform</a> project,
+                    which you can <a href="https://auth.wekt.in" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">try with a real passkey</a>.
                     Open to Senior Backend Engineer roles across the EU &mdash; Blue Card eligible,
                     English B2, German A1&ndash;A2 (in progress).
                   </p>

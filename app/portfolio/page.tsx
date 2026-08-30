@@ -16,8 +16,14 @@ const portfolioProjects = [
     id: 1,
     title: "auth-platform",
     description: "A standalone, vendor-neutral JWT + passkey (WebAuthn) authentication platform — the open-source expression of the auth framework I built at RockWallet. Two independent Spring Boot modules, proven to interoperate over nothing but a public JWKS HTTP contract, with RS256-only verification, refresh-token rotation guarded by real row locks, and keys encrypted at rest.",
-    technologies: ["Java 21", "Spring Boot", "WebAuthn", "PostgreSQL", "Docker", "AWS"],
-    demoUrl: null,
+    // "AWS" was here from an earlier plan that never happened — the deploy kit
+    // targeted it, then didn't. It runs on a single VPS behind Caddy, and this
+    // list is the first thing a reader checks the claims against.
+    technologies: ["Java 21", "Spring Boot", "WebAuthn", "PostgreSQL", "Docker", "Caddy"],
+    // The passkey demo is live and interactive — register, sign in with a real
+    // passkey, watch every request and response. That is worth more than the
+    // README to anyone deciding whether to read the code.
+    demoUrl: "https://auth.wekt.in",
     githubUrl: "https://github.com/kaushal-bhatt/auth-platform",
     status: "Open Source",
     featured: true,
