@@ -58,8 +58,10 @@ export default function TechnologyBlogPage() {
           const techData = await techResponse.json();
           setTechSection(techData);
           
-          // Then fetch posts using the tech section name for better matching
-          const postsResponse = await fetch(`/api/blog-posts?technology=${encodeURIComponent(techData.name)}`);
+          // By slug, not display name: BlogPost.technology stores the slug, so
+          // asking for "Spring Boot" returned nothing while the section header
+          // still claimed one article. The slug is already in the URL.
+          const postsResponse = await fetch(`/api/blog-posts?technology=${encodeURIComponent(slug)}`);
           
           if (postsResponse.ok) {
             const postsData = await postsResponse.json();

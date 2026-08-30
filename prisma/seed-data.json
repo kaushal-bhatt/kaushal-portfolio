@@ -135,118 +135,78 @@
       "color": "#68D391"
     },
     {
-      "name": "MySQL",
-      "slug": "mysql",
-      "description": "Database design, optimization, and advanced SQL techniques",
-      "icon": "Database",
-      "order": 2,
-      "color": "#4299E1"
-    },
-    {
       "name": "Kafka",
       "slug": "kafka",
       "description": "Event-driven architectures and real-time data processing",
       "icon": "Workflow",
       "order": 3,
       "color": "#9F7AEA"
-    },
-    {
-      "name": "DataDog",
-      "slug": "datadog",
-      "description": "Application monitoring, observability, and performance optimization",
-      "icon": "Activity",
-      "order": 4,
-      "color": "#F56565"
-    },
-    {
-      "name": "LLM",
-      "slug": "llm",
-      "description": "Large Language Models integration and AI-powered applications",
-      "icon": "Brain",
-      "order": 5,
-      "color": "#38B2AC"
-    },
-    {
-      "name": "Redis",
-      "slug": "redis",
-      "description": "Caching strategies and high-performance data structures",
-      "icon": "Zap",
-      "order": 6,
-      "color": "#FC8181"
-    },
-    {
-      "name": "MongoDB",
-      "slug": "mongodb",
-      "description": "NoSQL database design and document-oriented development",
-      "icon": "FileText",
-      "order": 7,
-      "color": "#48BB78"
     }
   ],
   "blogPosts": [
     {
-      "title": "Advanced Java 17 Features Every Developer Should Know",
-      "slug": "advanced-java-17-features",
-      "excerpt": "Exploring the latest features in Java 17 including sealed classes, pattern matching, and performance improvements that can enhance your enterprise applications.",
-      "content": "Java 17 brought significant improvements to the language and runtime. In this comprehensive guide, we'll explore the key features that every enterprise developer should understand and adopt.\n\n## Sealed Classes\nSealed classes provide fine-grained control over inheritance hierarchies, making your code more maintainable and secure.\n\n## Pattern Matching Enhancements\nThe enhanced pattern matching capabilities in Java 17 allow for more expressive and concise code, particularly in switch expressions.\n\n## Performance Improvements\nJava 17 includes significant performance optimizations, including improvements to the garbage collector and startup time.\n\n## Best Practices\nWhen adopting Java 17 in enterprise environments, consider the migration path and ensure compatibility with your existing frameworks and libraries.",
-      "technology": "java",
-      "published": true,
-      "tags": [
-        "Java",
-        "Programming",
-        "Enterprise",
-        "Performance"
-      ],
-      "readTime": 1,
-      "createdAt": "2025-08-13T05:07:37.848Z"
-    },
-    {
-      "title": "Building Microservices with Spring Boot: A Complete Guide",
-      "slug": "spring-boot-microservices-guide",
-      "excerpt": "Learn how to design and implement robust microservices using Spring Boot, including service discovery, load balancing, and distributed configuration.",
-      "content": "Spring Boot has revolutionized how we build microservices. This guide covers the essential patterns and practices for creating production-ready microservices.\n\n## Service Architecture\nUnderstanding the principles of microservice architecture is crucial for building scalable and maintainable systems.\n\n## Spring Cloud Integration\nLeveraging Spring Cloud components for service discovery, configuration management, and circuit breakers.\n\n## Testing Strategies\nImplementing comprehensive testing strategies for microservices, including contract testing and integration testing.\n\n## Deployment Patterns\nBest practices for deploying microservices in containerized environments using Docker and Kubernetes.",
+      "title": "The environment variable that was set, and wasn’t",
+      "slug": "spring-relaxed-binding-silent-failures",
+      "excerpt": "A Spring Boot service came up healthy in production with its CORS origins still pointing at localhost, its WebAuthn relying party still localhost, and its rate limiter switched off — with every one of those variables present in the environment.",
+      "content": "I deployed a Spring Boot authentication service to a real domain for the first time. It started cleanly, the health endpoint returned `UP`, and the logs were quiet. Then every browser request failed with **403 Invalid CORS request**, the passkey registration reported that the relying party ID was not a registrable suffix of the origin, and the rate limiter turned out to be doing nothing at all.\n\nAll three variables were in the environment. I checked. They were spelled correctly, they were in the container, `printenv` showed them.\n\n## Relaxed binding is stricter than it looks\n\nSpring Boot maps environment variables onto properties by a set of rules usually described as forgiving. They are forgiving in one direction only. For a property named:\n\n```\nauth-platform.cors.allowed-origins\n```\n\nthe environment variable is formed by uppercasing and turning **every** dash and dot into an underscore:\n\n```\nAUTH_PLATFORM_CORS_ALLOWED_ORIGINS\n```\n\nWhat I had written was `AUTH_PLATFORM_CORS_ALLOWEDORIGINS` — dashes removed in one segment, converted in another. It is the kind of name that looks right, and it matches nothing.\n\nHere is the part that cost me the afternoon: **a name that matches nothing does not fail.** The property simply keeps whatever default `application.yml` gave it. My default was `http://localhost:3000`, because that is what you develop against. So the service started, reported healthy, and rejected every real request — while presenting as a browser problem.\n\n## The same trap, one level deeper\n\nLater, configuring an SSO client, I wrote this:\n\n```java\n@ConfigurationProperties(prefix = \"auth-platform.sso\")\npublic class SsoProperties {\n    private Map<String, Client> clients = new LinkedHashMap<>();\n}\n```\n\nand set `AUTH_PLATFORM_SSO_CLIENTS_PORTFOLIO_SECRET`. Every request came back **unknown client**.\n\nBinding a named property works because the binder already knows the name it is looking for — it can generate the candidate environment variable and check whether it exists. A **map** is the opposite problem: the keys are not known in advance, so the binder has to work backwards from `AUTH_PLATFORM_SSO_CLIENTS_PORTFOLIO_SECRET` to a property path. It cannot. It has no way to tell which underscores were dots and which were dashes, so it cannot know that the key is `portfolio`.\n\nMaps do not bind from environment variables when the prefix contains a dash. They bind from YAML perfectly well, which is exactly why this survives development.\n\nI flattened it:\n\n```java\nprivate String clientId = \"portfolio\";\nprivate String clientSecret;\nprivate List<String> redirectUris = new ArrayList<>();\n```\n\nThere was one relying party. The map had been generality I did not need, and it happened to also be unbindable.\n\n## What actually helps\n\nThe fix is not to be more careful with names. It is to make a missing value impossible to ignore.\n\n```java\n@Validated\n@ConfigurationProperties(prefix = \"auth-platform.issuer\")\npublic class JwtIssuerProperties {\n    @NotBlank private String issuer;\n    @Positive private long accessTokenExpiryMinutes;\n}\n```\n\nThat `@Validated` is load-bearing. Without it, a missing `access-token-expiry-minutes` binds to `0`, and the service returns HTTP 200 with an access token every consumer rejects as already expired — a total outage that presents as a client bug. With it, the application refuses to start and names the property.\n\nFor anything that cannot be validated into existence, a startup check that throws beats a default. And where a default is genuinely appropriate, make it the **safe** one: a rate limiter that defaults to off is a rate limiter that will one day be off in production without anybody deciding that.\n\n## The general shape\n\nEvery one of these failures had the same form: a value was missing, something reasonable happened instead, and the system reported success. That is worse than crashing. A service that will not start gets fixed in minutes. A service that starts with the wrong configuration gets debugged from the browser, from the proxy, from CORS documentation — anywhere except the one line where the name was wrong.\n\nIf a configuration value matters, make its absence fatal.",
       "technology": "spring-boot",
       "published": true,
       "tags": [
         "Spring Boot",
-        "Microservices",
-        "Architecture",
-        "Cloud"
+        "Configuration",
+        "Debugging",
+        "Production"
       ],
-      "readTime": 1,
-      "createdAt": "2025-08-13T05:07:37.848Z"
+      "readTime": 3,
+      "createdAt": null
     },
     {
-      "title": "MySQL Performance Optimization Techniques",
-      "slug": "mysql-performance-optimization",
-      "excerpt": "Deep dive into MySQL performance optimization strategies, including indexing, query optimization, and database design best practices.",
-      "content": "Database performance is critical for application success. This article covers proven techniques for optimizing MySQL performance in production environments.\n\n## Index Optimization\nUnderstanding how to design and optimize indexes for maximum query performance.\n\n## Query Analysis\nUsing EXPLAIN and other tools to analyze and optimize slow queries.\n\n## Schema Design\nBest practices for designing efficient database schemas that scale with your application.\n\n## Monitoring and Maintenance\nImplementing monitoring solutions and maintenance routines to keep your database performing optimally.",
-      "technology": "mysql",
+      "title": "Six requests and a limit of five",
+      "slug": "rate-limit-that-let-nobody-through",
+      "excerpt": "A rate limiter set to five requests per day sounded generous for a demo nobody would use twice. It meant no visitor could finish the demo even once — and it was trivially bypassable at the same time.",
+      "content": "I put a fixed-window rate limiter in front of a public authentication demo. Five requests per IP per day. It seemed conservative-but-fine: the demo is a walkthrough, nobody runs it twice.\n\nThen a visitor reported being blocked partway through. So did I, from my phone, on a different network, as a different user.\n\n## Two bugs wearing the same coat\n\n**The first was arithmetic.** The limiter counts *requests*. A complete run of the demo is:\n\n```\nPOST /auth/register\nPOST /auth/login\nPOST /passkey/register/init\nPOST /passkey/register/complete\nPOST /passkey/login/init\nPOST /passkey/login/complete\n```\n\nSix. The limit was five. The last request of the passkey login — the one that proves the whole thing works — was the one refused. The demo was not rate limited; it was **impossible**, and had been since the day the limiter was switched on.\n\nThe number was not too small. It was **measured in the wrong unit**. I now express it in the unit the operator actually thinks in:\n\n```\n# MAX_REQUESTS counts REQUESTS, not visitors. One full run of the demo costs\n# SIX of them, so set it in units of runs:\n#\n#     30 requests / 6 per run  =  5 complete demo runs per IP per 24h\nAUTH_PLATFORM_RATE_LIMIT_MAX_REQUESTS=30\n```\n\nA value below six is not a strict setting. It is a trap: it lets nobody finish, while looking like a policy decision.\n\n**The second bug was the key.** Two different people, on two different networks, shared a bucket. The limiter was keying on this:\n\n```java\nString forwarded = request.getHeader(\"X-Forwarded-For\");\n```\n\nBehind a reverse proxy, `X-Forwarded-For` is a **list that the proxy appends to**. Its left-most entry is whatever the caller sent. So the header is partly caller-controlled: vary it per request and every attempt lands in a fresh bucket, which makes the limiter decorative. And when nobody sends one, everyone collapses into a single shared key, which is what my visitor and I hit.\n\nWorse, the framework had already eaten it. Spring's `ForwardedHeaderFilter` — which you want, because it is what stops same-origin requests looking cross-origin behind a proxy — **consumes and removes** the `X-Forwarded-*` headers. By the time the rate-limit filter ran, there was nothing to read.\n\n## Getting the key from something the caller cannot set\n\nThe proxy knows the real peer address. It just has to state it in a header it **overwrites** rather than appends to:\n\n```\nreverse_proxy auth-service:8080 {\n\t# The rate limiter keys on this. X-Forwarded-For cannot be used: Caddy\n\t# APPENDS to it, so its left-most entry is whatever the caller sent, and\n\t# ForwardedHeaderFilter strips the X-Forwarded-* headers before the limiter\n\t# runs anyway. header_up OVERWRITES, and {remote_host} is the real TCP peer.\n\theader_up X-Real-IP {remote_host}\n}\n```\n\nand the filter prefers it:\n\n```java\nString realIp = request.getHeader(\"X-Real-IP\");\nif (realIp != null && !realIp.isBlank()) {\n    return realIp.trim();\n}\n```\n\n`{remote_host}` is the TCP peer as the proxy sees it. A client cannot forge it, because it is not something the client sends.\n\n## What I took from it\n\nNeither bug was visible in development. Locally there is no proxy, so the header behaves; and I never ran the demo end to end against a limiter that was actually switched on — in development it defaulted to off.\n\nTwo habits came out of this. **Express a limit in the unit of the thing being limited**: five visitors is a policy, five requests is an implementation detail, and confusing them silently broke the feature. And **never derive a security decision from a header the caller can write** — either take it from the transport, or have infrastructure you trust overwrite it before it reaches you.",
+      "technology": "java",
       "published": true,
       "tags": [
-        "MySQL",
-        "Database",
-        "Performance",
-        "Optimization"
+        "Java",
+        "Rate Limiting",
+        "Security",
+        "Reverse Proxy"
       ],
-      "readTime": 1,
-      "createdAt": "2025-08-13T05:07:37.849Z"
+      "readTime": 3,
+      "createdAt": null
     },
     {
-      "title": "Real-time Data Processing with Apache Kafka",
-      "slug": "kafka-real-time-processing",
-      "excerpt": "Building robust event-driven architectures with Kafka, including stream processing, fault tolerance, and scalability patterns.",
-      "content": "Apache Kafka has become the backbone of modern event-driven architectures. Learn how to leverage Kafka for building resilient, scalable data processing pipelines.\n\n## Event-Driven Architecture\nUnderstanding the principles and benefits of event-driven systems.\n\n## Stream Processing\nImplementing real-time stream processing with Kafka Streams and other processing frameworks.\n\n## Fault Tolerance\nBuilding resilient systems that can handle failures and maintain data consistency.\n\n## Scaling Strategies\nTechniques for scaling Kafka clusters and managing high-throughput workloads.",
+      "title": "Why the browser carries a code, not a token",
+      "slug": "authorization-code-flow-from-scratch",
+      "excerpt": "Wiring my own site into my own auth service, the shortest path was to hand the browser a JWT and be done. Here is what a redirect URL actually does with whatever you put in it, and what the code exchange buys instead.",
+      "content": "I had an authentication service with working passkeys, and a separate site whose admin panel needed a login. Both mine, both on the same box. The obvious shortcut: authenticate on the auth service, redirect back with the token in the query string, done in an afternoon.\n\nI built the longer version instead, and the reason is worth writing down.\n\n## A redirect URL is not a private channel\n\nWhen you send a browser to `https://example.com/callback?token=eyJhbGciOi...`, that string does not travel from A to B and disappear. It is written to **browser history**. It is sent as the `Referer` header on the next outbound request from that page. It is recorded in the **access log of every proxy** on the path, and in the destination server's own logs, which are usually the least-protected copy of anything you own.\n\nAn access token in that position is a live credential sitting in four places you were not thinking about. The fix is not to protect the URL. It is to put something in it that is **not worth stealing**.\n\n## What a code is\n\nThe redirect carries a one-time authorisation code with three properties:\n\n- it can be redeemed **exactly once**\n- it expires in about **a minute**\n- it is worthless without a **client secret** that never leaves the relying party's server\n\nSo the flow gains a step. The browser comes back with a code; the relying party's *backend* exchanges it for tokens, server to server, authenticating with its secret. Nothing sensitive was ever in the URL, and a code copied out of a proxy log is an expired, spent, useless string.\n\n```\n1. /admin, no session      -> redirect to the auth service\n2. passkey login           -> one-time code, in the redirect back\n3. server-side exchange    -> code + client secret -> tokens\n```\n\n## The three checks that carry the weight\n\n**Exact redirect URI matching.** The most exploited bug in this shape of flow is an open redirect: get the authorisation server to send the code somewhere the operator never registered. A prefix comparison feels safe and is not — `https://example.com/` is a prefix of `https://example.com/@attacker.test`, which browsers resolve to a completely different host. A host comparison ignores the path. Full string equality, or nothing:\n\n```java\nif (redirectUri == null || !properties.getRedirectUris().contains(redirectUri)) {\n    throw new CustomException(400, \"redirect_uri is not registered for this client\");\n}\n```\n\n**Single use, enforced by the database.** \"Single use\" is a claim about concurrency, so a boolean check does not establish it. Redemption is read-then-write: select where `consumed = false`, then update by primary key. Under PostgreSQL's default READ COMMITTED, two requests presenting the same code can both read it as unconsumed and both mint a session. The row lock is what makes that impossible:\n\n```java\n@Lock(LockModeType.PESSIMISTIC_WRITE)\nOptional<SsoAuthCodeEntity> findByCodeHashAndConsumedFalse(String codeHash);\n```\n\nThe second request blocks; when the first commits, Postgres re-evaluates the predicate against the new row version, so the loser sees no row and gets the same rejection as an unknown code. And the table stores a **SHA-256 of the code**, never the code — a database dump should not come with usable credentials attached.\n\n**`state`, and it is not optional.** The relying party generates a random value, stores it in an httpOnly cookie, sends it along, and refuses the callback unless what comes back matches. Without it, an attacker starts their own login and hands the victim the resulting callback URL — the victim ends up signed into the **attacker's** account, and everything they then write goes there. I made it a required parameter rather than a recommended one, because an optional security parameter is one that eventually gets left out.\n\n## The check that made the whole thing worth building\n\nMy auth service has open registration — it is a public demo. So a signature-valid token proves exactly one thing: **somebody signed up**. That is not a reason to let them into a CMS.\n\nWhat the relying party actually needs is a claim about authorisation, so the token carries one:\n\n```java\n.claim(\"roles\", List.copyOf(roles))\n```\n\nand the client declares what it requires. The claim is always present, even when empty, so a consumer reads one shape instead of treating \"no roles\" as a different case from \"no claim\" — and the branch that handles a missing claim is invariably the one that defaults to letting someone in.\n\n## Was it worth it over an afternoon's shortcut\n\nThe short version would have worked, in the sense that I could have logged in. It would also have written a live credential into my own access logs, offered no way to revoke a session, and made \"who is allowed in\" a property of who happened to know the URL.\n\nThe long version is perhaps three hundred lines and it is now the thing I would point at in an interview.",
+      "technology": "spring-boot",
+      "published": true,
+      "tags": [
+        "Spring Boot",
+        "OAuth2",
+        "Security",
+        "WebAuthn"
+      ],
+      "readTime": 4,
+      "createdAt": null
+    },
+    {
+      "title": "Bridging a live SSE feed into Kafka",
+      "slug": "sse-to-kafka-wikimedia-pipeline",
+      "excerpt": "Wikipedia publishes every edit as a public Server-Sent Events stream. Turning that into a Kafka topic takes about forty lines — and the interesting part is everything those forty lines quietly decide on your behalf.",
+      "content": "Wikimedia publishes a live feed of every edit across all its wikis as a public Server-Sent Events stream. It is a genuinely useful thing to point a pipeline at: real volume, real bursts, no credentials, and it never stops.\n\nI built a small producer that consumes that stream and republishes each event onto a Kafka topic. The bridge itself is short.\n\n## The shape\n\n```\nWikimedia EventStreams (SSE)  -->  handler  -->  Kafka topic\n     persistent HTTP              OkHttp/SSE      producer API\n```\n\nAn SSE client holds one long-lived HTTP connection; the server pushes events down it. Each event arrives in a callback, and the callback hands it to a Kafka producer:\n\n```java\n@Override\npublic void onMessage(String event, MessageEvent messageEvent) {\n    producer.send(new ProducerRecord<>(topic, messageEvent.getData()));\n}\n```\n\nThat is the whole bridge. What makes it worth studying is that this line makes four decisions without appearing to.\n\n## What `send` with no callback decides\n\n`producer.send()` is asynchronous. It writes the record into an in-memory accumulator and returns immediately; a background thread batches records and ships them. Discarding the returned `Future` and passing no callback means **delivery failures are invisible**. A broker rejecting the record, a serialization error, retries exhausted — all of it lands in a future nobody reads.\n\nFor a demo pipeline that is a fine trade. For anything that matters it is the first thing to change:\n\n```java\nproducer.send(record, (metadata, exception) -> {\n    if (exception != null) {\n        LOGGER.error(\"delivery failed for topic {}\", topic, exception);\n    }\n});\n```\n\nThe asymmetry is worth internalising: **the producer will tell you about failures, but only if you ask.**\n\n## What a null key decides\n\n`new ProducerRecord<>(topic, value)` has no key. Kafka's partitioner therefore spreads records across partitions on its own, and Kafka only guarantees ordering **within a partition**.\n\nFor a feed of independent edits that is exactly right — it maximises parallelism and nothing depends on order. The moment you want all edits to a given page, or from a given user, to arrive in order at one consumer, you need that value as the key:\n\n```java\nnew ProducerRecord<>(topic, wiki, messageEvent.getData());\n```\n\nThe choice of key is really a choice about **what your consumers are allowed to assume**, made at write time and difficult to change afterwards.\n\n## What the lifecycle decides\n\nThe producer is closed in the SSE client's `onClosed` callback. `close()` flushes what is still buffered, so an orderly shutdown loses nothing. A `kill -9`, or a JVM that exits without the stream closing cleanly, drops whatever was still in the accumulator — a window of milliseconds, but a real one. A shutdown hook is the usual answer, and if you cannot afford that window at all, then you have decided you need `acks=all` and synchronous confirmation, which is a different pipeline with different throughput.\n\n## Why I would still start here\n\nThere is a version of this with retries, idempotent producers, a schema registry, a dead-letter topic and exactly-once semantics. It is also a version where you cannot see what any single moving part does.\n\nForty lines that visibly make four wrong-for-production decisions taught me more about Kafka's defaults than a correct configuration would have, precisely because each one had to be found by asking \"what happens if this fails?\" and following the answer. That is the value of building the small version first: the production version is mostly a list of answers to questions the small version forces you to ask.\n\nThe pipeline and a companion module of producer/consumer patterns — partitioning, callbacks, graceful shutdown, cooperative rebalancing — are on [GitHub](https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline).",
       "technology": "kafka",
       "published": true,
       "tags": [
         "Kafka",
         "Streaming",
-        "Architecture",
-        "Real-time"
+        "Java",
+        "Architecture"
       ],
-      "readTime": 1,
-      "createdAt": "2025-08-13T05:07:37.850Z"
+      "readTime": 3,
+      "createdAt": null
     }
   ]
 }

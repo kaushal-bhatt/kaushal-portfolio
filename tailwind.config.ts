@@ -6,6 +6,12 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    // lib/ too: lib/markdown.ts builds HTML with Tailwind classes in it. Without
+    // this Tailwind never sees them and generates no rules, so they silently do
+    // nothing — and only for the classes not already used somewhere under app/
+    // or components/, which is why it looked like partial styling rather than
+    // none.
+    './lib/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {

@@ -75,8 +75,15 @@ export default function BlogPage() {
                          post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          safeTags(post.tags).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesTech = selectedTech === 'All' || post.technology === selectedTech;
-    
+    // Compared against the section's SLUG, which is what BlogPost.technology
+    // actually stores ("spring-boot"). This used to compare against the display
+    // name ("Spring Boot"), so no post ever matched: the badge said "1 articles"
+    // and clicking it produced "No articles found". Case-insensitive because
+    // nothing enforces the casing of `technology` on the way in.
+    const matchesTech =
+      selectedTech === 'All' ||
+      post.technology.toLowerCase() === selectedTech.toLowerCase();
+
     return matchesSearch && matchesTech && post.published;
   });
 
@@ -172,10 +179,10 @@ export default function BlogPage() {
               {techSections.map((tech) => (
                 <Button
                   key={tech.id}
-                  variant={selectedTech === tech.name ? "default" : "outline"}
-                  onClick={() => setSelectedTech(tech.name)}
+                  variant={selectedTech === tech.slug ? "default" : "outline"}
+                  onClick={() => setSelectedTech(tech.slug)}
                   className={`${
-                    selectedTech === tech.name
+                    selectedTech === tech.slug
                       ? "bg-blue-600 hover:bg-blue-700"
                       : "border-slate-600 text-slate-300 hover:bg-slate-800"
                   }`}

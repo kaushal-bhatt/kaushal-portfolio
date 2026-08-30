@@ -80,6 +80,13 @@ async function main() {
   }
 
   if (await shouldSeed('TechSection', await prisma.techSection.count())) {
+    // Upsert alone would only ever add. Removing a section from the fixture has
+    // to remove it from the database too, or a topic dropped here lingers in
+    // production showing "0 articles" — which is exactly the state this was
+    // written to clear up.
+    const removed = await prisma.techSection.deleteMany({
+      where: { slug: { notIn: data.techSections.map((s) => s.slug) } },
+    });
     for (const section of data.techSections) {
       await prisma.techSection.upsert({
         where: { slug: section.slug },
@@ -87,10 +94,21 @@ async function main() {
         create: section,
       });
     }
-    console.log(`✅ TechSection: ${data.techSections.length} entries`);
+    console.log(
+      `✅ TechSection: ${data.techSections.length} entries` +
+        (removed.count ? `, ${removed.count} removed` : '')
+    );
   }
 
   if (await shouldSeed('BlogPost', await prisma.blogPost.count())) {
+    // Same reasoning as above: a post replaced in the fixture gets a new slug,
+    // so without this the old one stays published alongside it.
+    const removedPosts = await prisma.blogPost.deleteMany({
+      where: { slug: { notIn: data.blogPosts.map((p) => p.slug) } },
+    });
+    if (removedPosts.count) {
+      console.log(`🗑️  BlogPost: ${removedPosts.count} no longer in the fixture, removed`);
+    }
     for (const post of data.blogPosts) {
       const { createdAt, ...rest } = post;
       const record = {

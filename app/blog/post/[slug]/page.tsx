@@ -10,6 +10,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { safeTags } from '@/lib/safe-arrays';
+import { renderMarkdown } from '@/lib/markdown';
 
 interface BlogPost {
   id: string;
@@ -175,12 +176,22 @@ export default function BlogPostPage() {
           <Card className="bg-slate-800 border-slate-700">
             <CardContent className="p-8 md:p-12">
               {/* Article Content */}
-              <div className="prose prose-slate prose-invert max-w-none">
-                <div 
-                  className="text-gray-300 leading-relaxed space-y-6"
-                  dangerouslySetInnerHTML={{ 
-                    __html: post.content.replace(/\n/g, '<br />').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                  }}
+              {/*
+                No `prose` classes here: @tailwindcss/typography is not
+                installed, so they generated nothing and only suggested that
+                typography styling was in play. renderMarkdown emits its own.
+              */}
+              <div className="max-w-none">
+                {/*
+                  Still dangerouslySetInnerHTML, but renderMarkdown escapes the
+                  content before it formats anything — so a post body cannot
+                  inject markup. It also understands headings, code blocks and
+                  lists, which the previous two-rule replace turned into literal
+                  `#` and backticks.
+                */}
+                <div
+                  className="text-gray-300 leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
                 />
               </div>
               

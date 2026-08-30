@@ -41,12 +41,13 @@ export async function GET(request: NextRequest) {
     let whereClause: any = {};
     
     if (technology) {
-      whereClause = {
-        OR: [
-          { technology: technology },
-          { technology: { contains: technology, mode: 'insensitive' } }
-        ]
-      };
+      // Exact, case-insensitive — callers pass the section's slug, which is what
+      // BlogPost.technology stores. This was a `contains` match, which is why
+      // "Java" happened to find "java" while "Spring Boot" never found
+      // "spring-boot": a space is not a hyphen. A substring match also quietly
+      // widens the filter, so a section named "Go" would collect every post
+      // about MongoDB.
+      whereClause = { technology: { equals: technology, mode: 'insensitive' } };
     }
 
     const posts = await prisma.blogPost.findMany({
