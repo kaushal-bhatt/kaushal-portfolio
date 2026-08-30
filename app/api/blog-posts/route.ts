@@ -25,21 +25,30 @@ export async function GET(request: NextRequest) {
     const technology = searchParams.get('technology');
     const id = searchParams.get('id');
     
+    // Drafts are for the author only. Established once here because the `id`
+    // branch below returns early — it used to hand back any post by id, to
+    // anyone, which was a third way to the same unpublished text.
+    const isAdmin = (await getAdminSession()) !== null;
+
     if (id) {
-      // Get single post by ID
       const post = await prisma.blogPost.findUnique({
         where: { id }
       });
 
-      if (!post) {
+      // 404 rather than 403 for a draft: the response must not confirm that one
+      // exists at that id.
+      if (!post || (!post.published && !isAdmin)) {
         return NextResponse.json({ error: 'Post not found' }, { status: 404 });
       }
 
       return NextResponse.json(transformBlogPostForAPI(post));
     }
     
-    let whereClause: Prisma.BlogPostWhereInput = {};
-    
+    // The blog page filtered drafts out in the browser, which hid them from a
+    // reader and from nobody else. The admin post list uses this same route, so
+    // the filter lifts for a verified admin session rather than unconditionally.
+    let whereClause: Prisma.BlogPostWhereInput = isAdmin ? {} : { published: true };
+
     if (technology) {
       // Exact, case-insensitive — callers pass the section's slug, which is what
       // BlogPost.technology stores. This was a `contains` match, which is why
@@ -47,7 +56,10 @@ export async function GET(request: NextRequest) {
       // "spring-boot": a space is not a hyphen. A substring match also quietly
       // widens the filter, so a section named "Go" would collect every post
       // about MongoDB.
-      whereClause = { technology: { equals: technology, mode: 'insensitive' } };
+      // Spread, not replace: assigning a fresh object here would drop the
+      // published filter above, so filtering by technology would have handed
+      // out drafts again.
+      whereClause = { ...whereClause, technology: { equals: technology, mode: 'insensitive' } };
     }
 
     const posts = await prisma.blogPost.findMany({

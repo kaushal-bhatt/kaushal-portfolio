@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   ACCESS_COOKIE, REFRESH_COOKIE, STATE_COOKIE,
-  cookieOptions, authPlatformInternalUrl, ssoClientId, ssoClientSecret, callbackUrl, siteUrl,
+  cookieOptions, authPlatformInternalUrl, ssoClientId, ssoClientSecret, callbackUrl, siteUrl, safeNext,
 } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +30,14 @@ export async function GET(request: NextRequest) {
   // match, this callback was not started by this browser and must not be honoured.
   const separator = cookie.indexOf(':');
   const expectedState = cookie.slice(0, separator);
-  const next = cookie.slice(separator + 1) || '/admin';
+  // Re-validated, even though /api/auth/login already ran it through safeNext
+  // before writing this cookie. The cookie is httpOnly but not signed, so the
+  // value is only as trustworthy as the browser storing it — and
+  // `new URL('https://evil.example', siteUrl())` resolves to that absolute URL,
+  // which would turn the end of a real sign-in into an open redirect. Validating
+  // at the point of use costs one call and does not depend on the write path
+  // staying correct.
+  const next = safeNext(cookie.slice(separator + 1));
   if (returnedState !== expectedState) {
     return fail('Sign-in could not be verified. Please try again.');
   }
