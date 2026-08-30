@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,11 +12,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const TECHNOLOGIES = [
-  'Java', 'Spring Boot', 'React', 'Next.js', 'TypeScript', 'JavaScript',
-  'Python', 'Node.js', 'AWS', 'Docker', 'Kubernetes', 'PostgreSQL',
-  'MongoDB', 'Redis', 'Kafka', 'Microservices', 'GraphQL', 'REST API'
-];
+// Fetched, not hardcoded — see the note in app/admin/posts/[id]/page.tsx. The
+// list that was here stored display names while posts store slugs, so a post
+// created through this form landed in a category the blog could never match.
+interface TechOption {
+  name: string;
+  slug: string;
+}
 
 interface BlogPostForm {
   title: string;
@@ -31,6 +33,7 @@ export default function NewPost() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [technologies, setTechnologies] = useState<TechOption[]>([]);
   const [formData, setFormData] = useState<BlogPostForm>({
     title: '',
     excerpt: '',
@@ -39,6 +42,13 @@ export default function NewPost() {
     published: false
   });
 
+
+  useEffect(() => {
+    fetch('/api/tech-sections')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: TechOption[]) => setTechnologies(data))
+      .catch(() => setTechnologies([]));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,9 +221,9 @@ export default function NewPost() {
                       <SelectValue placeholder="Select technology..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {TECHNOLOGIES.map((tech) => (
-                        <SelectItem key={tech} value={tech}>
-                          {tech}
+                      {technologies.map((tech) => (
+                        <SelectItem key={tech.slug} value={tech.slug}>
+                          {tech.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

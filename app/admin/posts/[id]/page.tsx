@@ -3,7 +3,7 @@
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Eye, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Pencil, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +11,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { renderMarkdown } from '@/lib/markdown';
 
-const TECHNOLOGIES = [
-  'Java', 'Spring Boot', 'React', 'Next.js', 'TypeScript', 'JavaScript',
-  'Python', 'Node.js', 'AWS', 'Docker', 'Kubernetes', 'PostgreSQL',
-  'MongoDB', 'Redis', 'Kafka', 'Microservices', 'GraphQL', 'REST API'
-];
+// The technology list is fetched, not hardcoded.
+//
+// The list that used to sit here held display names ('Spring Boot') while posts
+// store slugs ('spring-boot'), so saving from this editor silently moved a post
+// into a category the blog filters could never match. It also offered topics
+// that are not sections at all — React, Python, GraphQL — and choosing one filed
+// the post somewhere nothing links to.
+interface TechOption {
+  name: string;
+  slug: string;
+}
 
 interface BlogPost {
   id: string;
@@ -38,6 +45,12 @@ export default function EditPost() {
   const [post, setPost] = useState<BlogPost | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [technologies, setTechnologies] = useState<TechOption[]>([]);
+  // Preview replaces the form in place rather than opening the public URL: that
+  // page refuses to show an unpublished post, which is exactly the state a
+  // preview is for. The content is already here in state, so nothing needs
+  // saving first.
+  const [previewing, setPreviewing] = useState(false);
 
   useEffect(() => {
 
@@ -64,6 +77,13 @@ export default function EditPost() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetch('/api/tech-sections')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: TechOption[]) => setTechnologies(data))
+      .catch(() => setTechnologies([]));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,11 +212,11 @@ export default function EditPost() {
             <div className="flex items-center space-x-3">
               <Button
                 variant="outline"
-                onClick={() => window.open(`/blog/post/${post.slug}`, '_blank')}
+                onClick={() => setPreviewing((on) => !on)}
                 className="border-slate-600 text-slate-300 hover:bg-slate-800"
               >
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
+                {previewing ? <Pencil className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+                {previewing ? 'Edit' : 'Preview'}
               </Button>
               
               <Button
@@ -265,9 +285,9 @@ export default function EditPost() {
                       <SelectValue placeholder="Select technology..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {TECHNOLOGIES.map((tech) => (
-                        <SelectItem key={tech} value={tech}>
-                          {tech}
+                      {technologies.map((tech) => (
+                        <SelectItem key={tech.slug} value={tech.slug}>
+                          {tech.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -291,9 +311,21 @@ export default function EditPost() {
             {/* Content */}
             <Card className="glass-effect border-slate-700">
               <CardHeader>
-                <CardTitle className="text-white">Content *</CardTitle>
+                <CardTitle className="text-white">{previewing ? 'Preview' : 'Content *'}</CardTitle>
               </CardHeader>
               <CardContent>
+                {previewing ? (
+                  <div>
+                    <h1 className="text-3xl font-bold text-white mb-6">{post.title}</h1>
+                    {/* The same renderer the public page uses, so what is shown
+                        here is what gets published — not an approximation. */}
+                    <div
+                      className="text-gray-300 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+                    />
+                  </div>
+                ) : (
+                <>
                 <Textarea
                   value={post.content}
                   onChange={(e) => setPost({ ...post, content: e.target.value })}
@@ -305,6 +337,8 @@ export default function EditPost() {
                 <p className="text-sm text-gray-400 mt-2">
                   Tip: You can use Markdown formatting for rich text content.
                 </p>
+                </>
+                )}
               </CardContent>
             </Card>
 
