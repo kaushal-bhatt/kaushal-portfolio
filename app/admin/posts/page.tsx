@@ -248,10 +248,24 @@ export default function ManagePosts() {
                   </div>
                   
                   <div className="flex items-center space-x-2 ml-4">
+                    {/*
+                      Where this goes depends on whether the post is live.
+
+                      It always opened the public URL, which for a draft lands on
+                      "Article Not Found" — the public page refuses unpublished
+                      posts, and rightly so. A draft has no public address to
+                      show, so the eye goes to the editor instead, where the
+                      Preview toggle renders it.
+                    */}
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => window.open(`/blog/post/${post.slug}`, '_blank')}
+                      title={post.published
+                        ? 'View the published post'
+                        : 'Draft — opens the editor, where Preview lives'}
+                      onClick={() => post.published
+                        ? window.open(`/blog/post/${post.slug}`, '_blank')
+                        : router.push(`/admin/posts/${post.id}`)}
                       className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
                     >
                       <Eye className="w-4 h-4" />
