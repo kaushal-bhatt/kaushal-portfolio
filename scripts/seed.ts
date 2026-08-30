@@ -11,7 +11,7 @@
  * real work history with sample data. Tables that already have rows are now
  * left alone unless SEED_FORCE=true is set.
  */
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -19,6 +19,10 @@ const prisma = new PrismaClient();
 
 type SeedData = {
   portfolio: Array<{
+    /// Explicit, unlike every other table here. `Portfolio` has no unique column
+    /// other than the primary key, so an id in the fixture is the only way a
+    /// re-seed and a hand-run UPDATE can be talking about the same row.
+    id: string;
     company: string;
     role: string;
     startDate: string;
@@ -81,6 +85,30 @@ type SeedData = {
       icon: string;
       order: number;
     }>;
+  };
+  /**
+   * The /resume record. Typed loosely on purpose: `skills`, `experience`,
+   * `projects` and `education` are Json columns, and repeating their shape here
+   * would put a second definition of it next to the one in lib/resume.ts that
+   * the page actually reads through. That file narrows at the point of use,
+   * which is where a wrong shape needs catching.
+   */
+  resume: {
+    fullName: string;
+    headline: string;
+    location: string;
+    email: string;
+    phone: string | null;
+    linkedin: string;
+    github: string;
+    website: string;
+    summary: string;
+    skills: unknown;
+    experience: unknown;
+    projects: unknown;
+    education: unknown;
+    certifications: string;
+    languages: string;
   };
 };
 
@@ -224,6 +252,25 @@ async function main() {
       `✅ AboutStat: ${data.about.stats.length} entries` +
         (removed.count ? `, ${removed.count} removed` : '')
     );
+  }
+
+  // The résumé, upserted on its fixed id like AboutContent — the row may not
+  // exist yet on a fresh database, and there must never be a second one.
+  if (await shouldSeed('Resume', await prisma.resume.count())) {
+    const { skills, experience, projects, education, ...scalars } = data.resume;
+    const record = {
+      ...scalars,
+      skills: skills as Prisma.InputJsonValue,
+      experience: experience as Prisma.InputJsonValue,
+      projects: projects as Prisma.InputJsonValue,
+      education: education as Prisma.InputJsonValue,
+    };
+    await prisma.resume.upsert({
+      where: { id: 'main' },
+      update: record,
+      create: { id: 'main', ...record },
+    });
+    console.log('✅ Resume: 1 entry');
   }
 
   console.log('🎉 Seeding complete');

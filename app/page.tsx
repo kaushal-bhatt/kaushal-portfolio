@@ -22,20 +22,23 @@ export default function Home() {
               © {new Date().getFullYear()} Kaushal Bhatt. Built with Next.js and passion for great software.
             </p>
             <div className="flex justify-center space-x-6 mt-4">
-              <a 
-                href="mailto:kaushal8650@gmail.com" 
+              <a
+                href="mailto:kaushalbhatt28650@gmail.com"
                 className="text-gray-400 hover:text-blue-400 transition-colors"
               >
                 Email
               </a>
-              <a 
-                href="tel:+918126270902" 
+              {/* The phone number lives on the résumé PDF only — see hero-section.tsx. */}
+              <a
+                href="/resume"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-green-400 transition-colors"
               >
-                Phone
+                Résumé
               </a>
-              <a 
-                href="https://www.linkedin.com/in/kaushal-bhatt-5aa73511b/" 
+              <a
+                href="https://www.linkedin.com/in/kaushal-bhatt-5aa73511b/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-blue-600 transition-colors"

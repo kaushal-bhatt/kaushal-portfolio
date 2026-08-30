@@ -186,7 +186,7 @@ export function PortfolioSection() {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => window.open('mailto:kaushal8650@gmail.com?subject=Let\'s Discuss Opportunities')}
+            onClick={() => window.open('mailto:kaushalbhatt28650@gmail.com?subject=Let\'s Discuss Opportunities')}
             className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300"
           >
             <ExternalLink className="w-5 h-5 mr-2" />

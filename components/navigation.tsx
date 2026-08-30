@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, Home, User, Briefcase, BookOpen } from 'lucide-react';
+import { Menu, X, Home, User, Briefcase, BookOpen, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { name: 'About', href: '#about', icon: User, isScroll: true },
   { name: 'Portfolio', href: '/portfolio', icon: Briefcase, isScroll: false },
   { name: 'Blog', href: '/blog', icon: BookOpen, isScroll: false },
+  { name: 'Resume', href: '/resume', icon: FileText, isScroll: false },
 ];
 
 export function Navigation() {

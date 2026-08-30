@@ -315,7 +315,7 @@ export default function PortfolioPage() {
           </p>
           <Button
             size="lg"
-            onClick={() => window.open('mailto:kaushal8650@gmail.com', '_blank')}
+            onClick={() => window.open('mailto:kaushalbhatt28650@gmail.com', '_blank')}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             Get In Touch

@@ -2,7 +2,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ChevronDown, Mail, Phone, Linkedin, Github, MapPin, Briefcase, Fingerprint } from 'lucide-react';
+import { ChevronDown, Mail, FileText, Linkedin, Github, MapPin, Briefcase, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function HeroSection() {
@@ -107,7 +107,7 @@ export function HeroSection() {
               variant="outline"
               size="lg"
               className="border-slate-600 text-slate-300 hover:bg-slate-800 shadow-xl hover:shadow-2xl transition-all duration-300"
-              onClick={() => window.open('mailto:kaushal8650@gmail.com')}
+              onClick={() => window.open('mailto:kaushalbhatt28650@gmail.com')}
             >
               <Mail className="w-5 h-5 mr-2" />
               Get In Touch
@@ -121,7 +121,7 @@ export function HeroSection() {
             className="flex justify-center space-x-4 sm:space-x-6 px-4"
           >
             <motion.a
-              href="mailto:kaushal8650@gmail.com"
+              href="mailto:kaushalbhatt28650@gmail.com"
               whileHover={{ scale: 1.1, y: -2 }}
               whileTap={{ scale: 0.95 }}
               className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-blue-400 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
@@ -129,13 +129,22 @@ export function HeroSection() {
               <Mail className="w-6 h-6" />
             </motion.a>
             
+            {/*
+              The phone number used to be here. It is on the résumé PDF instead:
+              this page is public and a tel: link on a public page is a scraper
+              target, whereas a recruiter who downloads the PDF has the number.
+              The slot is more useful pointing at the résumé anyway.
+            */}
             <motion.a
-              href="tel:+918126270902"
+              href="/resume"
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.1, y: -2 }}
               whileTap={{ scale: 0.95 }}
               className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-green-400 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
+              aria-label="Résumé"
             >
-              <Phone className="w-6 h-6" />
+              <FileText className="w-6 h-6" />
             </motion.a>
             
             <motion.a

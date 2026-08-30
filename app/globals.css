@@ -179,3 +179,65 @@
     margin-top: 0.5rem;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Printing /resume.
+   
+   "Download PDF" on that page is window.print(); these rules are what make the
+   output a document rather than a screenshot of a web page. Nothing here
+   affects any other page — the classes are only used there.
+   --------------------------------------------------------------------------- */
+
+/* Shown only on paper: the phone number, which the public page leaves out. */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    /* The sheet's own padding is removed below, so this margin is the only one
+       and it is the printer's, which means it is honoured on every page rather
+       than only the first. */
+    margin: 14mm 15mm;
+  }
+
+  /* The site's body is dark. Browsers do not print background colours by
+     default, so text would print near-black on white anyway — but only by
+     accident, and "print backgrounds" is a checkbox the reader may have on. */
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: inline !important;
+  }
+
+  /* On screen this is a sheet floating on a dark page: fixed width, padding,
+     drop shadow. On paper the page *is* the sheet, so all three go. */
+  .resume-sheet {
+    max-width: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Keep a job or a project whole rather than orphaning its last bullet. */
+  .resume-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Underlined blue links look like a web page. The URL text is printed
+     alongside anyway, so the styling carries no information. */
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}

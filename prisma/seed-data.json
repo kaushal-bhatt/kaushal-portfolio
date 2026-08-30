@@ -1,118 +1,128 @@
 {
   "portfolio": [
     {
-      "company": "Rockwallet",
+      "id": "cmtfntgjk0000p17ifkq4i5tp",
+      "company": "RockWallet (Bayes Fintech Inc.)",
       "role": "Senior Backend Engineer",
       "startDate": "Dec 2024",
       "endDate": null,
       "current": true,
-      "description": "Own services inside a 17-microservice monorepo for a regulated crypto wallet and custody platform. Designed a custom annotation-based JWT authentication framework with passkey/WebAuthn and service-to-service auth, now adopted platform-wide. Designed and operate the Kafka/AWS MSK (TLS/SSL) event backbone powering wallet, KYC, payments and notification services, and integrated Fireblocks custody with CoinMarketCap market data.",
+      "description": "Own services inside a 17-microservice monorepo behind a regulated crypto wallet and custody platform. Authored the annotation-based JWT authentication framework — WebAuthn passkeys and service-to-service auth — now adopted platform-wide, and designed the Kafka/AWS MSK event backbone that carries wallet, KYC/AML, payments and notification traffic. Regulated product, 24/7 on-call, strict consistency requirements.",
       "technologies": [
         "Java 21",
         "Spring Boot",
-        "Kafka / MSK",
+        "Kafka / AWS MSK",
         "WebAuthn",
+        "PostgreSQL",
         "Fireblocks",
-        "AWS"
+        "AWS",
+        "Docker"
       ],
       "achievements": [
-        "Designed the platform-wide JWT + passkey authentication framework",
-        "Built a zero-downtime configuration server for runtime config changes",
-        "Own services across a 17-microservice monorepo backed by 10 shared internal libraries",
-        "Implemented KYC/AML onboarding and cross-chain transaction syncing",
-        "Sustained 99.9% uptime and improved reliability 25% via circuit breakers and proactive alerting"
+        "Authored the platform-wide JWT + WebAuthn authentication framework adopted by all 17 services",
+        "Designed and operate the Kafka/MSK (TLS) event backbone across wallet, KYC, payments and notifications",
+        "Built a zero-downtime configuration server, removing redeploys for runtime configuration changes",
+        "Integrated Fireblocks custody and CoinMarketCap market data; shipped cross-chain sync and fiat payment flows",
+        "Raised reliability 25% with circuit breakers, failover and Datadog alerting; sustained 99.9% uptime"
       ],
       "order": 0
     },
     {
-      "company": "EPAM Systems (client: ACT / Thomson Reuters)",
+      "id": "cmtfntgjp0001p17imsskut9p",
+      "company": "EPAM Systems (client: Thomson Reuters)",
       "role": "Senior Software Engineer",
       "startDate": "Feb 2024",
       "endDate": "Dec 2024",
       "current": false,
-      "description": "Built the backend for an LLM-integrated content-processing platform (GenAI in editorial tooling), including runtime Word-document generation with a summarization feature. Led a service-oriented architecture (SOAP/REST) effort and maintained 95%+ automated test coverage.",
+      "description": "Built the backend for an LLM-integrated content-processing platform — GenAI inside editorial tooling — including runtime Word-document generation with a summarisation feature. Led a service-oriented integration effort across SOAP and REST, and ran the mentorship track for junior engineers on the account.",
       "technologies": [
         "Java",
         "Spring",
         "GenAI integration",
-        "SOAP/REST",
+        "SOAP / REST",
         "JUnit",
         "Mockito"
       ],
       "achievements": [
-        "Cut the operations team's manual load from 100% to 10% with a summarization feature",
-        "Improved uptime 25% through a SOAP/REST service-oriented architecture effort",
-        "Maintained 95%+ automated test coverage reducing production bugs 20%",
-        "Designed a mentorship program that cut junior onboarding time 40%"
+        "Cut the operations team's manual workload from 100% to 10% with a runtime summarisation feature",
+        "Improved system uptime 25% through a SOAP/REST service-oriented redesign",
+        "Held 95%+ automated test coverage, reducing production defects 20%",
+        "Designed a structured mentorship programme that cut junior onboarding time 40%"
       ],
       "order": 1
     },
     {
-      "company": "Ibosstech Solutions",
+      "id": "cmtfntgjt0002p17i7gsjv5tx",
+      "company": "Ibosstech Solutions (SCALONG)",
       "role": "Java Kafka Developer",
       "startDate": "Jul 2022",
       "endDate": "Dec 2023",
       "current": false,
-      "description": "Led a team of 6 migrating a monolith to microservices on AWS with Kafka-based async processing, enabling elastic scaling to 10,000+ daily transactions. Built a real-time ML fraud/risk pipeline (XGBoost on AWS SageMaker) consuming Kafka streams for sub-second decisioning.",
+      "description": "Led a team of six migrating a monolith to microservices on AWS with Kafka-based asynchronous processing, enabling elastic scaling past 10,000 daily transactions. Built a real-time ML fraud and risk pipeline — XGBoost served on AWS SageMaker, consuming Kafka streams for sub-second decisioning — and wrote eight microservices end to end, design through deployment.",
       "technologies": [
         "Java",
         "Spring Boot",
-        "AWS",
         "Kafka",
         "AWS SageMaker",
+        "AWS",
         "Redis",
         "Microservices"
       ],
       "achievements": [
-        "Led a team of 6 on a monolith-to-microservices migration with elastic scaling to 10",
-        "000+ daily transactions",
-        "Cut manual inspection 70% and raised fraud detection 55% with an ML risk pipeline",
-        "Reduced system latency 57% via query optimization async processing and Redis caching",
-        "Price Centralisation (KSA): Kafka-based distributed pricing engine that lifted sales 15-38%",
-        "Claims Management & RISK: led claims microservice design and a SageMaker POC that increased fraud-case detection 38%"
+        "Led six engineers off a monolith onto AWS microservices, scaling elastically past 10,000 daily transactions",
+        "Cut manual inspection 70% and raised fraud detection 55% with a real-time ML risk pipeline",
+        "Reduced system latency 57% through query optimisation, async processing and Redis caching",
+        "Claims Management (CMS): led the claims microservice design and the Redis/Kafka migration off the monolith",
+        "RISK: led a SageMaker POC for high-risk customer identification that raised fraud-case detection 38%",
+        "Built CI/CD pipelines that cut deployment time 50%; ran 24/7 on-call for production financial services"
       ],
       "order": 2
     },
     {
+      "id": "cmtfntgjz0003p17ihcyl62nc",
       "company": "Boutiqaat",
       "role": "Software Development Engineer",
       "startDate": "Jan 2022",
       "endDate": "Jul 2022",
       "current": false,
-      "description": "Led migration of a Magento application to Java microservices. Built a Kafka event-driven architecture centralizing pricing across the KSA region, handling 1M+ transactions daily with accurate cross-region pricing and inventory.",
+      "description": "Led migration of a Magento storefront to Java microservices for a multi-country retail platform, then built the Kafka-based distributed pricing engine that centralised pricing across the KSA region — currency conversion, multi-warehouse inventory and nearest-warehouse delivery routing, handling over a million transactions a day.",
       "technologies": [
         "Java",
+        "Spring Boot",
         "Kafka",
+        "MySQL",
         "E-commerce",
         "CI/CD"
       ],
       "achievements": [
-        "Handled 1M+ transactions daily with accurate cross-region pricing",
-        "CI/CD pipelines that cut deployment time 50%",
-        "Contributed to a 38% Middle East sales increase"
+        "Built a Kafka-based distributed pricing engine handling 1M+ transactions daily across KSA warehouses",
+        "Led the migration of a Magento application to Java microservices",
+        "Contributed to a 15–38% sales increase through pricing accuracy and faster delivery routing",
+        "Built CI/CD pipelines that cut deployment time 50%"
       ],
       "order": 3
     },
     {
+      "id": "cmtfntgk30004p17izvjv4r05",
       "company": "Lenskart",
-      "role": "Software Developer",
+      "role": "Software Development Engineer",
       "startDate": "Nov 2019",
       "endDate": "Jan 2022",
       "current": false,
-      "description": "Designed and optimized production systems for end-to-end order processing, reducing delivery time from 7 to 3 days. Maintained and improved system reliability of backend services handling high-volume transactions.",
+      "description": "Built and operated the backend for end-to-end order processing at national scale — microservices in Java 8 and Spring Boot, event-driven order synchronisation with third-party inventory systems over Kafka, and a refund-automation system driven by order state.",
       "technologies": [
         "Java",
         "Spring Boot",
+        "Kafka",
         "MySQL",
         "REST APIs",
-        "System Integration",
-        "Backend Services"
+        "CI/CD"
       ],
       "achievements": [
-        "Reduced delivery time from 7 to 3 days through system optimization",
-        "Maintained high-volume transaction processing systems",
-        "Integrated third-party systems for inventory management",
-        "Received multiple Best Employee of the Month awards"
+        "Cut delivery time from 7 days to 3 by automating order sync with third-party inventory over Kafka",
+        "Built refund automation driven by order state, removing 40% of the refund-operations workload",
+        "Implemented CI/CD pipelines and deployment automation for the microservice estate",
+        "Best Performer of the Year; \"Knight Award\" three times across three quarters"
       ],
       "order": 4
     }
@@ -121,7 +131,7 @@
     {
       "name": "Java",
       "slug": "java",
-      "description": "Enterprise-grade Java development and best practices",
+      "description": "The language and the runtime — concurrency, the JVM, and what its defaults decide for you",
       "icon": "Coffee",
       "order": 0,
       "color": "#ED8936"
@@ -129,15 +139,23 @@
     {
       "name": "Spring Boot",
       "slug": "spring-boot",
-      "description": "Building microservices and web applications with Spring Boot",
+      "description": "Microservices, Spring Security, configuration binding and resilience primitives",
       "icon": "Leaf",
       "order": 1,
       "color": "#68D391"
     },
     {
+      "name": "PostgreSQL",
+      "slug": "postgresql",
+      "description": "Indexes, connection pools, and the database decisions that surface only under load",
+      "icon": "Database",
+      "order": 2,
+      "color": "#4299E1"
+    },
+    {
       "name": "Kafka",
       "slug": "kafka",
-      "description": "Event-driven architectures and real-time data processing",
+      "description": "Event-driven architecture, delivery guarantees and real-time data processing",
       "icon": "Workflow",
       "order": 3,
       "color": "#9F7AEA"
@@ -207,12 +225,140 @@
       ],
       "readTime": 3,
       "createdAt": null
+    },
+    {
+      "title": "Spring Security is a linked list, not a black box",
+      "slug": "spring-security-filter-chain-order",
+      "excerpt": "Most of the framework stops being surprising the moment you picture SecurityFilterChain as what it actually is: an ordered list of servlet filters, where position is the entire mechanism.",
+      "technology": "spring-boot",
+      "published": true,
+      "tags": [
+        "Spring Security",
+        "Spring Boot",
+        "Java",
+        "Application Security"
+      ],
+      "readTime": 4,
+      "createdAt": "2026-08-27T09:00:00.000Z",
+      "content": "Spring Security clicks the moment you stop thinking of it as magic and start thinking of it as a linked list.\n\n`SecurityFilterChain` is exactly that — an ordered list of servlet filters. Each one can do three things and no more: inspect the request, mutate the `SecurityContext`, or short-circuit and return a response before your controller ever runs. Once you hold that picture, most of the framework's surprising behaviour stops being surprising.\n\n## The filters that matter, in the order they run\n\n- **Header filters** set up the response before anything else touches it.\n- **`SecurityContextHolderFilter`** loads any existing security context for this request.\n- **`CsrfFilter`** rejects state-changing requests arriving without a valid token.\n- **Your authentication filter** — form login, JWT, OAuth2 — populates the context.\n- **`ExceptionTranslationFilter`** catches `AccessDeniedException` and `AuthenticationException` thrown by anything downstream and turns them into a 401, a 403, or a redirect.\n- **`AuthorizationFilter`**, last, evaluates your `authorizeHttpRequests` rules and decides whether this specific request gets through at all.\n\nThe last one being last is the whole design. Authorization is not something that happens somewhere in the middle of the chain; it is the final gate before the request reaches your code.\n\n## Order is not a suggestion — it is the mechanism\n\nThis is the part that trips people up.\n\nPut a custom filter **before** `AuthorizationFilter` and it runs on every request, regardless of your authorization rules. Put it **after** and it only ever sees requests that already passed them.\n\nThat is not a performance detail. It changes what your filter is allowed to assume. A filter registered before authorization runs cannot assume anything about the caller — including that they were permitted to reach this endpoint. Plenty of code written on the assumption that it runs \"inside\" the security perimeter is in fact sitting outside it.\n\nThe same trap has a second form:\n\n```java\nhttp.addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class);\n```\n\nThat places your JWT filter after form login's filter. Perfectly fine for an API with no form login. Wrong the moment both coexist — the form-login filter has already had its turn at the context, and now your ordering depends on which of the two the request happens to satisfy.\n\n## What to check first\n\nNext time a request comes back with a 403 nobody can explain, do not start with the authorization rule. Print the chain and look at where your custom filter actually landed relative to `AuthorizationFilter`.\n\n```\nlogging.level.org.springframework.security=DEBUG\n```\n\nSpring will list the chain, in order, at startup. Nine times out of ten the rule was right and the position was wrong.\n\nThe general habit: when a framework's behaviour looks like magic, find the ordered list it is really made of. Spring Security has exactly one, and it is printable."
+    },
+    {
+      "title": "The connection pool was never the problem",
+      "slug": "hikaricp-pool-size-is-a-symptom",
+      "excerpt": "A service was timing out under load and the first fix proposed was a bigger HikariCP pool. It made things worse, for a reason that is baked into how Postgres runs a connection.",
+      "technology": "postgresql",
+      "published": true,
+      "tags": [
+        "PostgreSQL",
+        "Java",
+        "HikariCP",
+        "Performance"
+      ],
+      "readTime": 4,
+      "createdAt": "2026-08-26T09:00:00.000Z",
+      "content": "A service was timing out under load. The fix proposed first: raise the HikariCP pool size. It made things worse.\n\nThe instinct makes sense. More connections should mean more concurrent work. Past a point it is the opposite, and the reason is not in your application at all.\n\n## Postgres runs a connection as a process\n\nEvery connection is its own OS process, competing for the same fixed CPU cores, contending on the same buffer pool and the same lock manager. Beyond roughly:\n\n```\nconnections = (core_count * 2) + effective_spindle_count\n```\n\n— the formula HikariCP's own sizing guide cites from a PostgreSQL mailing-list study — each additional connection adds scheduling and context-switch overhead without adding any real parallelism. The database only has so many cores on which to actually run a query. A pool of 200 against 8 cores does not run 200 queries; it runs 8 and thrashes.\n\n## What was actually happening\n\nA handful of slow queries were holding connections far longer than they should have. The pool drained. The application experienced that as connection starvation, and connection starvation reads as \"not enough connections.\"\n\nRaising the pool size did not make those queries faster. It let more of them run at the same time, which increased lock contention, which made average latency worse for everybody — including the requests that had nothing to do with the slow queries.\n\nThat is the shape worth remembering: **a saturated pool is almost always a symptom.** The disease is how long each connection is held.\n\n## The fix was smaller and less satisfying\n\nThree things, none of them exciting:\n\n- Cut the pool back down.\n- Add a statement timeout, so a slow query fails fast instead of holding a connection indefinitely.\n- Fix the two queries that were doing sequential scans.\n\n```yaml\nspring:\n  datasource:\n    hikari:\n      maximum-pool-size: 20\n      connection-timeout: 3000\n      data-source-properties:\n        # Postgres kills the query rather than the pool waiting on it.\n        options: \"-c statement_timeout=5000\"\n```\n\nThe statement timeout is the load-bearing one. Without it, a single pathological query is indistinguishable, from the pool's point of view, from a healthy query on a busy day — and the pool's only available response is to queue everyone behind it.\n\n## The habit\n\nIf your pool is maxed out and latency is climbing, read the slow query log before you touch `maximum-pool-size`. The pool is reporting the problem, not causing it.\n\nAnd treat the sizing formula as a starting point rather than a target. The right number depends on your core count and on how long your queries actually hold a connection — which is a thing you can measure, not a thing you can guess."
+    },
+    {
+      "title": "Virtual threads did not make anything faster",
+      "slug": "virtual-threads-remove-queueing-not-latency",
+      "excerpt": "We moved to virtual threads and the app got faster. That is not quite what happened — and understanding the difference tells you whether your workload will see anything at all.",
+      "technology": "java",
+      "published": true,
+      "tags": [
+        "Java",
+        "Virtual Threads",
+        "JVM",
+        "Concurrency"
+      ],
+      "readTime": 4,
+      "createdAt": "2026-08-24T09:00:00.000Z",
+      "content": "\"We moved to virtual threads and the app got faster.\"\n\nI have heard versions of this since Java 21 shipped, and it is not quite what happened. Virtual threads did not make any single request faster. They removed a bottleneck that was making your requests wait.\n\nThe distinction matters, because it tells you in advance whether your workload will see anything at all.\n\n## Where the wait was coming from\n\nA platform thread is expensive — roughly a megabyte of stack, and the OS scheduler has to care about every one of them. So you cap the pool. Say 200 threads.\n\nOnce 200 requests are blocked on I/O, request 201 waits in a queue while the CPU sits nearly idle. That queueing wait was your \"slowness,\" and the CPU was never the reason for it.\n\nA virtual thread costs a few hundred bytes and unmounts from its carrier the moment it blocks on I/O. You can have a hundred thousand of them in flight over a handful of carrier threads. Request 201 no longer queues behind a pool limit; it just runs.\n\n```java\n// The whole migration, in Spring Boot 3.2+\nspring.threads.virtual.enabled=true\n```\n\n## So what actually changes\n\n- **Per-request latency at low concurrency: unchanged.** There was no queue to remove.\n- **Throughput ceiling: dramatically higher**, but only when the workload is I/O-bound and was previously thread-starved.\n\nTwo places this helps you not at all:\n\n- **CPU-bound work.** You still have the same number of cores. Nothing about virtual threads creates compute.\n- **A workload that was never pool-starved.** If your 200-thread pool was never full, there was no queueing wait to eliminate, and you will see no difference.\n\n## The caveat that keeps moving\n\n`synchronized` blocks used to pin a virtual thread to its carrier for the duration, cancelling the benefit for that section entirely. That was fixed in JDK 24 by JEP 491 — worth confirming which JDK you are actually running before you assume the old advice applies to you. Half the guidance written between 2023 and 2025 is now describing a JVM you are not on.\n\n## The habit\n\nIf throughput did not move after you switched, do not go looking for a virtual-threads misconfiguration. Go and check whether your workload was ever thread-pool-limited in the first place.\n\nThe general version: before adopting a change that removes a constraint, confirm that the constraint was the thing binding you. Otherwise you have done a migration and bought a null result, and you will spend a week looking for the bug in a system that is behaving correctly."
+    },
+    {
+      "title": "Spring Framework 7 deleted a dependency, and deliberately kept one out",
+      "slug": "spring-framework-7-retry-and-concurrency-limit",
+      "excerpt": "Retry is core now, so spring-retry can go. The more interesting annotation is the other one — and the most interesting thing is what Spring pointedly did not put in the framework.",
+      "technology": "spring-boot",
+      "published": true,
+      "tags": [
+        "Spring Boot",
+        "Spring",
+        "Java",
+        "Resilience"
+      ],
+      "readTime": 5,
+      "createdAt": "2026-08-23T09:00:00.000Z",
+      "content": "Spring Framework 7 removed a dependency from most of my projects. It also deliberately did not remove the one everyone assumes it did.\n\n## Retry is core now\n\n`spring-retry` as a separate dependency is no longer necessary for the common case.\n\n```java\n@Retryable(includes = MessageDeliveryException.class,\n           maxRetries = 4, delay = 100,\n           jitter = 10, multiplier = 2, maxDelay = 1000)\npublic void sendNotification() { ... }\n```\n\nDefaults are 3 retries and a one-second delay. Be precise about the arithmetic, because this is the sort of thing people get wrong in an incident review:\n\n```\ntotal attempts = 1 initial + maxRetries\n```\n\n`maxRetries = 4` means at most **five** invocations of a downstream that may already be struggling. Enable it with `@EnableResilientMethods` on a `@Configuration` class. That is the whole setup.\n\n## The underrated annotation\n\n```java\n@ConcurrencyLimit(10)\npublic void sendNotification() { ... }\n```\n\nIt caps how many threads can be inside a method at once, blocking the rest until a slot frees up.\n\nThe reason this landed *now* is virtual threads.\n\nYour thread pool size used to be an implicit concurrency limit. A 20-thread pool could not hit a downstream with 500 concurrent calls, because it could not produce 500 threads. That protection was never designed; it was a side effect of the thing that was also your bottleneck.\n\nMove to virtual threads and the accidental protection disappears with the bottleneck. No pool, no limit. Your fragile legacy SOAP endpoint now receives everything you can generate, all at once — and you removed its shield in the same commit where you celebrated removing your own.\n\n## There is no @CircuitBreaker in core, and that is correct\n\nRetry and concurrency limiting are **local** decisions. One method, one call, no shared state. Nothing to configure beyond numbers, nothing to argue about.\n\nA circuit breaker is **stateful**. It tracks failure rates over a window and forms an opinion about whether a downstream is healthy. That needs a config surface, metrics, half-open probing, and — the hard part — a definition of \"unhealthy\" that someone has to defend.\n\nSpring put the two primitives with no policy debate into the framework and left the opinionated one to Spring Cloud Circuit Breaker and Resilience4j. A half-implemented circuit breaker is worse than a well-understood external one, because it fails in a way nobody has documented.\n\n## What to do with this\n\nDrop `spring-retry`. Keep Resilience4j if you circuit-break. And go and look at what your concurrency limits actually are now that you are on virtual threads.\n\nIf you have migrated: what is currently stopping your service from opening ten thousand concurrent connections to a downstream that can handle fifty?"
+    },
+    {
+      "title": "Half the virtual-threads advice on the internet is now wrong",
+      "slug": "jep-491-synchronized-no-longer-pins",
+      "excerpt": "\"Replace synchronized with ReentrantLock or your virtual threads will pin.\" That was correct in Java 21. It stopped being correct in Java 24 — and two things did survive the change.",
+      "technology": "java",
+      "published": true,
+      "tags": [
+        "Java",
+        "Virtual Threads",
+        "Concurrency",
+        "JVM"
+      ],
+      "readTime": 5,
+      "createdAt": "2026-08-22T09:00:00.000Z",
+      "content": "\"Replace `synchronized` with `ReentrantLock`, or your virtual threads will pin.\"\n\nThat was correct in Java 21. It stopped being correct in Java 24. It is also the single most quoted piece of virtual-threads advice on the internet, which means a lot of codebases are still carrying a workaround for a problem that no longer exists.\n\n## Why it was ever true\n\nThe JVM tracked monitor ownership at the **platform thread** level, not the virtual thread level. Enter a `synchronized` method and the JVM recorded your *carrier* as holding the monitor.\n\nIf that virtual thread then unmounted mid-method, the scheduler would mount a different virtual thread on the same carrier — and the JVM would consider that thread to hold the monitor. Mutual exclusion, gone.\n\nRather than allow that, the JVM pinned. A blocking read inside a `synchronized` method blocked the carrier, and the OS thread underneath it.\n\nAt scale that is not a slowdown. It is a deadlock waiting to happen: every carrier pinned, nothing left to schedule, and a thread dump that looks like the application is idle.\n\nSo library maintainers rewrote working code to use `ReentrantLock`. Not because it was better, but to work around a JVM implementation detail.\n\n## What JEP 491 changed\n\nJava 24 moved ownership tracking to the virtual thread itself. A virtual thread can now unmount inside a `synchronized` block, block on monitor acquisition, and call `Object.wait()` — all without holding on to its carrier.\n\nThe JEP's guidance is unambiguous: use `synchronized` where practical, use `java.util.concurrent.locks` when you need the flexibility. And do not revert code you have already migrated. `ReentrantLock` is not wrong; it is just no longer mandatory.\n\n## Two things survived\n\n**Pinning still happens through native frames.** If a virtual thread calls native code — a native method, or the FFM API — and that code calls back into Java and blocks, the thread is pinned. Class initialisers behave the same way. This is a smaller surface, but it is not zero, and it is harder to spot because it usually sits inside a dependency.\n\n**`jdk.tracePinnedThreads` is gone.** Removed, not deprecated. Setting it does nothing at all — no warning, no output. The `jdk.VirtualThreadPinned` JFR event replaces it, extended to carry the pin reason and the carrier's identity.\n\n```\n# Does nothing on 24+. Silently.\n-Djdk.tracePinnedThreads=full\n```\n\nIf you are still grepping logs for pinning stack traces, you are grepping for output that is no longer produced. That is worse than having no diagnostics, because an empty result reads like a clean bill of health.\n\n## The habit\n\nEvery piece of performance advice has a version range attached, and almost nobody writes it down. When advice tells you to work around the runtime, check whether the runtime still needs working around — and check what happened to the flag you were using to verify it.\n\nWhich of the two is your codebase still carrying: the `ReentrantLock` rewrites, or the `tracePinnedThreads` flag?"
+    },
+    {
+      "title": "UUIDv7 fixes your index and publishes your timeline",
+      "slug": "uuidv7-postgres-18-tradeoff",
+      "excerpt": "PostgreSQL 18 ships uuidv7() in core, which closes a real B-tree problem in one line. It also hands anyone holding an ID the millisecond it was created.",
+      "technology": "postgresql",
+      "published": true,
+      "tags": [
+        "PostgreSQL",
+        "Databases",
+        "System Design",
+        "Java"
+      ],
+      "readTime": 4,
+      "createdAt": "2026-08-21T09:00:00.000Z",
+      "content": "If your primary key is a UUIDv4, every insert lands at a random position in the B-tree.\n\nPostgreSQL 18 gives you a one-function fix — and a new problem that most posts about it skip.\n\n## The old problem, concretely\n\nA UUIDv4 is 122 random bits, so consecutive inserts scatter across the whole index. Three things follow, and they compound:\n\n- The pages you are writing to are rarely in `shared_buffers`, so you **read before you write**.\n- More pages get dirtied per transaction, so more **full-page writes** hit the WAL.\n- Leaf pages split in the middle rather than at the end, leaving them **half full**.\n\nA `BIGSERIAL` has none of this. Inserts append to one hot page that never leaves cache. That single difference is the entire reason UUID keys acquired their reputation.\n\n## What UUIDv7 changes\n\nRFC 9562 standardised UUIDv7 in 2024 specifically to close that gap. The first 48 bits are a Unix millisecond timestamp; the rest is random. Values generated near each other in time therefore sort near each other in the index, and inserts concentrate on the right edge again.\n\nPostgreSQL 18 ships it in core:\n\n```sql\nCREATE TABLE orders (\n    id uuid DEFAULT uuidv7() PRIMARY KEY,\n    ...\n);\n```\n\nPostgres goes slightly beyond the spec here — it packs a 12-bit sub-millisecond fraction after the timestamp, which makes values strictly monotonic within a backend session rather than merely near-sorted.\n\n## The part you have to decide deliberately\n\n**UUIDv7 is not opaque.** Anyone holding one of your IDs can read the millisecond it was created. It is a single function call:\n\n```sql\nSELECT uuid_extract_timestamp(id) FROM orders LIMIT 1;\n```\n\nFor an internal order ID, that is usually harmless. For a user ID that appears in a public URL, you have published your signup timeline — and given anyone who collects two IDs a way to estimate your growth rate between them. That is competitive intelligence you did not intend to hand out, obtained with no access to anything.\n\nIt also does not fix the third UUID problem. It is still 128 bits, in the table and in every index and every foreign key that references it.\n\n## Where that leaves it\n\nUUIDv7 over v4 for internal keys and write-heavy tables, almost always. For anything you hand to a client, ask one question first: is creation time something I am happy to disclose?\n\nWhich UUID version is on your busiest table right now?"
+    },
+    {
+      "title": "Exactly-once ends at the edge of the cluster",
+      "slug": "kafka-exactly-once-boundary",
+      "excerpt": "\"We enabled exactly-once, so we cannot get duplicates.\" Kafka's guarantee is real, and it is narrower than the name suggests — it stops precisely where your database begins.",
+      "technology": "kafka",
+      "published": true,
+      "tags": [
+        "Kafka",
+        "Distributed Systems",
+        "Event-Driven Architecture",
+        "Java"
+      ],
+      "readTime": 4,
+      "createdAt": "2026-08-20T09:00:00.000Z",
+      "content": "\"We enabled exactly-once, so we cannot get duplicates.\"\n\nI have heard this in design reviews, and it is the most expensive misunderstanding in event-driven Java systems. Kafka's exactly-once semantics are real. They are also narrower than the name suggests.\n\n## What EOS actually gives you\n\nTwo things.\n\n**The idempotent producer.** The broker tracks a producer ID and a sequence number per partition, so a retried send writes the record only once.\n\n**Transactions.** The offsets you commit and the records you produce land atomically across partitions. With `isolation.level=read_committed` on the consumer, you get a correct read-process-write loop.\n\n```properties\nenable.idempotence=true\ntransactional.id=payments-processor-1\nisolation.level=read_committed\n```\n\nBoth guarantees stop at the edge of the cluster.\n\n## Where it breaks\n\nThe moment your consumer does something Kafka does not know about — a database insert, a call to a payment gateway, an S3 write — that side effect is outside the transaction. It has no producer ID. It has no sequence number. Kafka cannot roll it back, because Kafka cannot see it.\n\nSo: your consumer processes the message, writes to Postgres, and crashes before the offset commit. The offset is unchanged. The message is redelivered.\n\nKafka has not broken a single promise it made. You have a duplicate row.\n\n## The guarantee you actually need\n\nIt is idempotency **at the destination**, and Kafka cannot give it to you. In practice that means one of:\n\n- A unique constraint on a natural idempotency key.\n- A processed-messages table, written inside the same database transaction as the business change.\n- The transactional outbox, when the write is also the event source.\n\n```java\n@Transactional\npublic void handle(PaymentEvent event) {\n    // Same transaction as the business write. If this insert violates the\n    // unique constraint, the whole thing rolls back and redelivery costs a\n    // wasted cycle instead of a second payment.\n    processed.insert(event.id());\n    ledger.credit(event.accountId(), event.amount());\n}\n```\n\nThe pattern I keep coming back to: put the dedup key and the business write in one database transaction, and treat the offset commit as best-effort. Redelivery then costs a wasted cycle rather than a duplicate payment, and you stop needing the offset commit to be atomic with anything.\n\n## The habit\n\nKafka gives you exactly-once inside Kafka. Everything past that boundary is your design problem.\n\nSo the question worth asking in the review is not \"is EOS enabled?\" It is: where is the boundary in this system, and does the consumer know it is there?"
+    },
+    {
+      "title": "Java 25 has a flag that shrinks every object header, and it is off",
+      "slug": "compact-object-headers-jep-519",
+      "excerpt": "JEP 519 cuts the object header from 96 bits to 64. The measured gains are real and cost zero lines of code — but it is opt-in, and there are three places it quietly does nothing.",
+      "technology": "java",
+      "published": true,
+      "tags": [
+        "Java",
+        "JVM",
+        "Performance",
+        "Garbage Collection"
+      ],
+      "readTime": 4,
+      "createdAt": "2026-08-19T09:00:00.000Z",
+      "content": "Java 25 shipped a flag that cuts every object header by a third. It is still off by default. If you upgraded and changed nothing else, you are not getting it.\n\n## What the header costs you\n\nEvery object on the JVM heap carries a header — a mark word plus a class pointer. On 64-bit that is 96 bits, or 128 for arrays. For a typical object in the 256–512 bit range, the header alone is over 20% of the footprint. You are paying it on every single allocation, and it is invisible in every profiler view that reports by class.\n\nJEP 519 collapses it to 64 bits: the class pointer is compressed to 22 bits and folded into the mark word.\n\nWhat OpenJDK measured:\n\n- SPECjbb2015: **22% less heap, 8% less CPU time**\n- **15% fewer GC cycles** on G1 and Parallel\n- A parallel JSON parser benchmark: **10% faster**\n\nOne flag:\n\n```\n-XX:+UseCompactObjectHeaders\n```\n\nIn Java 24 this was experimental (JEP 450) and needed `UnlockExperimentalVMOptions`. In 25 it is a product feature.\n\n## The part the release-note posts leave out\n\n**It does not work with ZGC.** G1 and Parallel only.\n\n**It is silently disabled when JVMCI is enabled** — so if you are running Graal JIT, you get nothing, and no warning that you got nothing.\n\n**Compressed class pointers become mandatory**, which caps you below roughly four million loaded classes. Fine for every application I have worked on, but it is a real ceiling and worth knowing it exists.\n\n**The legacy stack-locking path is removed entirely.** If you run an agent or a profiler that reads object headers directly, test it before this reaches production.\n\n## How to decide\n\nThe gain is real and it costs you zero lines of code. It is not free in the sense that you flip it and walk away.\n\nMeasure it against your actual object graph. Workloads with many small objects see the most — a service holding mostly large byte arrays will see close to nothing, because the header is already noise next to the payload.\n\nThat is the general shape of every JVM flag worth turning on: the benchmark tells you the ceiling, and your allocation profile tells you how much of that ceiling is available to you. The two are rarely the same number.\n\nIf you are on 25 and G1, what is the actual blocker to testing this in staging this sprint?"
     }
   ],
   "projects": [
     {
       "title": "auth-platform",
-      "description": "A standalone, vendor-neutral JWT + passkey (WebAuthn) authentication platform — the open-source expression of the auth framework I built at RockWallet. Two independent Spring Boot modules, proven to interoperate over nothing but a public JWKS HTTP contract, with RS256-only verification, refresh-token rotation guarded by real row locks, and keys encrypted at rest.",
+      "description": "A standalone, vendor-neutral JWT + passkey (WebAuthn) authentication platform — the open-source expression of the auth framework I built at RockWallet. Two independent Spring Boot modules, proven to interoperate over nothing but a public JWKS HTTP contract, with RS256-only verification, refresh-token rotation guarded by real row locks, and signing keys encrypted at rest. Deployed on my own server behind Caddy, and it is the identity provider this site signs its own admin in with.",
       "technologies": [
         "Java 21",
         "Spring Boot",
@@ -230,8 +376,24 @@
       "order": 1
     },
     {
+      "title": "multichain-sync-poc",
+      "description": "A pluggable block-sync engine for UTXO chains. Given a stream of block heights it classifies transactions as incoming or outgoing for the addresses you care about, and it is built to survive the four things that actually happen in production: duplicate delivery, out-of-order delivery, unparseable blocks, and workers that die mid-block.",
+      "technologies": [
+        "Java 21",
+        "Spring Boot",
+        "PostgreSQL"
+      ],
+      "demoUrl": "https://kaushal-bhatt.github.io/multichain-sync-poc/",
+      "githubUrl": "https://github.com/kaushal-bhatt/multichain-sync-poc",
+      "status": "Open Source",
+      "category": "Blockchain",
+      "featured": true,
+      "completionDate": "2026-08",
+      "order": 2
+    },
+    {
       "title": "kafka-wikimedia-stream-pipeline",
-      "description": "A real-time streaming pipeline that consumes Wikipedia's live \"recent changes\" event feed (Server-Sent Events) and publishes each edit as a message to an Apache Kafka topic. Includes a companion module of core Kafka producer/consumer patterns — partitioning, callbacks, graceful shutdown, cooperative rebalancing.",
+      "description": "A real-time streaming pipeline that consumes Wikipedia's live recent-changes feed over Server-Sent Events and republishes every edit onto a Kafka topic. Deliberately small, so the four decisions the forty-line bridge makes on your behalf stay visible. Ships with a companion module of core producer and consumer patterns — partitioning, delivery callbacks, graceful shutdown, cooperative rebalancing.",
       "technologies": [
         "Java",
         "Apache Kafka",
@@ -244,53 +406,57 @@
       "category": "Data Engineering",
       "featured": true,
       "completionDate": "2026-08",
-      "order": 2
+      "order": 3
     },
     {
-      "title": "multichain-sync-poc",
-      "description": "A pluggable block-sync engine for UTXO chains. Given a stream of block heights, it classifies transactions as incoming or outgoing for addresses you care about, and survives duplicate delivery, out-of-order delivery, unparseable blocks, and workers that die mid-block.",
+      "title": "wekt.in — this site",
+      "description": "The site you are reading, and the infrastructure under it. Next.js and Postgres, fully admin-managed content, deployed by CI to a single server I run — Caddy terminating TLS for three domains, four containers, two databases with separate roles. The admin panel holds no credentials of its own: it signs in through auth-platform over a real OAuth2 authorization-code flow and authorises on a role claim in the token.",
       "technologies": [
-        "Java 21",
-        "Spring Boot"
+        "Next.js 14",
+        "TypeScript",
+        "Prisma",
+        "PostgreSQL",
+        "Caddy",
+        "GitHub Actions"
       ],
-      "demoUrl": "https://kaushal-bhatt.github.io/multichain-sync-poc/",
-      "githubUrl": "https://github.com/kaushal-bhatt/multichain-sync-poc",
-      "status": "Open Source",
-      "category": "Blockchain",
+      "demoUrl": "https://wekt.in",
+      "githubUrl": "https://github.com/kaushal-bhatt/kaushal-portfolio",
+      "status": "Live",
+      "category": "Platform",
       "featured": false,
       "completionDate": "2026-08",
-      "order": 3
+      "order": 4
     }
   ],
   "about": {
     "content": {
       "heading": "About",
       "headingAccent": "Me",
-      "subtitle": "Passionate about building scalable, high-performance applications that solve real-world problems",
+      "subtitle": "Seven years building event-driven backends for systems where being wrong is expensive — payments, custody, fraud, pricing and order flow.",
       "journeyTitle": "My Journey",
-      "journey": "I’m a Senior Backend Engineer with 7 years designing and operating event-driven microservices where correctness is non-negotiable — crypto custody, KYC/AML pipelines, payment flows, and fraud detection processing millions of transactions a day.\n\nMy work sits at the intersection of distributed systems and security: Kafka/MSK event backbones, service-to-service authentication, secrets management, and the unglamorous cryptographic plumbing that keeps accounts safe. Throughout my career I’ve worked with RockWallet, EPAM Systems, Ibosstech Solutions, Boutiqaat and Lenskart, consistently delivering high-performance solutions that drive business growth.\n\nAt RockWallet I own services inside a 17-microservice monorepo and wrote the platform-wide JWT + WebAuthn authentication framework — the same expertise behind my open-source [auth-platform](https://github.com/kaushal-bhatt/auth-platform) project, which you can [try with a real passkey](https://auth.wekt.in). Open to Senior Backend Engineer roles across the EU — Blue Card eligible, English B2, German A1–A2 (in progress)."
+      "journey": "I build backends where correctness is not negotiable, and I have been doing it for seven years across five companies and four domains.\n\nAt **Lenskart** it was order and refund pipelines feeding a national logistics operation. At **Boutiqaat**, a Kafka-based distributed pricing engine spanning warehouses across Saudi Arabia. At **Ibosstech (SCALONG)** I led six engineers off a monolith and built a real-time fraud and risk pipeline on Kafka and SageMaker. At **EPAM** I built the backend for an LLM-integrated editorial platform for a Thomson Reuters product. Today, at **RockWallet**, I own services inside a 17-microservice monorepo behind a regulated crypto wallet and custody platform.\n\nThe thread running through all of it is event-driven architecture. Kafka is the technology people come to me for, and I have run it in four different companies rather than learning it once — MSK over TLS, consumer-group rebalancing, idempotency, dead-letter handling, and the failure modes you only meet in production at two in the morning.\n\nThe other thread is that I keep ending up owning the ambiguous thing nobody has been assigned. At RockWallet that has meant the platform-wide JWT and WebAuthn authentication framework every service now uses, a zero-downtime configuration server nobody asked for, and ten shared internal libraries other teams build on.\n\nThe projects on this site are that same instinct pointed at my own time. [auth-platform](https://github.com/kaushal-bhatt/auth-platform) is the vendor-neutral expression of the authentication work — you can [sign in to it right now with a real passkey](https://auth.wekt.in). [multichain-sync-poc](https://github.com/kaushal-bhatt/multichain-sync-poc) is the block-sync problem from custody work, rebuilt to survive duplicate delivery, out-of-order delivery and workers that die mid-block. [kafka-wikimedia-stream-pipeline](https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline) is the deliberately small version of a streaming bridge, built so its own defaults are visible. This site runs on my own box and signs its admin in through my own auth service.\n\nOpen to Senior Backend Engineer roles across the EU — Blue Card eligible, English B2, German A1–A2 in progress."
     },
     "skills": [
       {
         "category": "Programming",
         "icon": "Code2",
         "items": [
-          "Java (8, 11, 17, 21)",
-          "Python",
+          "Java (8 · 11 · 17 · 21)",
           "SQL",
-          "JavaScript"
+          "Python",
+          "JavaScript / TypeScript"
         ],
         "color": "orange",
         "order": 1
       },
       {
         "category": "Frameworks",
-        "icon": "Zap",
+        "icon": "Layers",
         "items": [
           "Spring Boot 3.5",
           "Spring Security",
-          "Hibernate / JPA",
-          "Microservices"
+          "Spring MVC",
+          "Hibernate / JPA"
         ],
         "color": "green",
         "order": 2
@@ -311,18 +477,18 @@
         "category": "Cloud & DevOps",
         "icon": "Cloud",
         "items": [
-          "AWS (EC2, S3, MSK, IAM)",
+          "AWS (EC2, S3, MSK, SQS)",
           "Docker",
           "Kubernetes",
           "Terraform",
-          "GitHub Actions"
+          "Jenkins · GitHub Actions"
         ],
         "color": "blue",
         "order": 4
       },
       {
         "category": "Security & Auth",
-        "icon": "Award",
+        "icon": "Shield",
         "items": [
           "JWT / OAuth2",
           "WebAuthn / Passkeys",
@@ -340,33 +506,32 @@
           "MySQL",
           "MongoDB",
           "Redis",
-          "DynamoDB"
+          "DynamoDB · Flyway"
         ],
         "color": "purple",
         "order": 6
       },
       {
         "category": "Observability",
-        "icon": "Users",
+        "icon": "Activity",
         "items": [
           "Datadog",
           "CloudWatch",
           "ELK Stack",
-          "Prometheus",
-          "Grafana"
+          "Prometheus · Grafana"
         ],
         "color": "indigo",
         "order": 7
       },
       {
         "category": "Domain",
-        "icon": "Award",
+        "icon": "Briefcase",
         "items": [
-          "Crypto custody",
-          "Fireblocks",
-          "KYC / AML",
-          "Payment flows",
-          "Fraud detection"
+          "Crypto custody (Fireblocks)",
+          "KYC / AML onboarding",
+          "Payment & refund flows",
+          "Fraud & risk detection",
+          "Pricing & order systems"
         ],
         "color": "yellow",
         "order": 8
@@ -375,28 +540,158 @@
     "stats": [
       {
         "label": "7 Years",
-        "description": "Building Backends",
-        "icon": "Award",
+        "description": "Building Production Backends",
+        "icon": "Briefcase",
         "order": 1
       },
       {
-        "label": "57%",
-        "description": "Latency Reduction Delivered",
+        "label": "1M+",
+        "description": "Transactions a Day at Peak",
         "icon": "Zap",
         "order": 2
       },
       {
         "label": "99.9%",
         "description": "Uptime on Regulated Systems",
-        "icon": "Users",
+        "icon": "Activity",
         "order": 3
       },
       {
-        "label": "1M+",
-        "description": "Daily Transactions Handled",
-        "icon": "Code2",
+        "label": "57%",
+        "description": "Latency Cut on a Live Platform",
+        "icon": "LineChart",
         "order": 4
       }
     ]
+  },
+  "resume": {
+    "fullName": "Kaushal Bhatt",
+    "headline": "Senior Backend Engineer · Java · Spring Boot · Kafka · AWS",
+    "location": "Dehradun, India — open to EU relocation (Blue Card eligible)",
+    "email": "kaushalbhatt28650@gmail.com",
+    "phone": "+91 8126270902",
+    "linkedin": "linkedin.com/in/kaushal-bhatt-5aa73511b",
+    "github": "github.com/kaushal-bhatt",
+    "website": "wekt.in",
+    "summary": "Senior Backend Engineer with 7 years building and operating event-driven microservices across fintech, crypto custody and e-commerce. Java, Spring Boot, Apache Kafka and AWS. Authored a platform-wide JWT/WebAuthn authentication framework at RockWallet and sustain 99.9% uptime across a 17-service monorepo. Open to relocation.",
+    "skills": [
+      {
+        "label": "Languages & Frameworks",
+        "items": "Java (11 / 17 / 21), Spring Boot, Spring Security, Spring MVC, Hibernate / JPA, SQL, Python"
+      },
+      {
+        "label": "Distributed & Cloud",
+        "items": "Apache Kafka, AWS MSK, SQS / SNS, EC2, S3, SageMaker, Docker, Kubernetes, Terraform, Jenkins, GitHub Actions"
+      },
+      {
+        "label": "Data & Security",
+        "items": "PostgreSQL, MySQL, MongoDB, Redis, DynamoDB, Flyway, JWT / OAuth2, WebAuthn, HashiCorp Vault, Datadog"
+      },
+      {
+        "label": "Architecture",
+        "items": "Microservices, Event-Driven Architecture, REST APIs, Distributed Systems, High Availability, CI/CD, Agile / Scrum"
+      }
+    ],
+    "experience": [
+      {
+        "company": "RockWallet (Bayes Fintech Inc.)",
+        "role": "Senior Backend Engineer",
+        "period": "Dec 2024 – Present",
+        "location": "Remote",
+        "context": "Regulated crypto wallet and custody platform — Java 21, Spring Boot, Kafka, AWS",
+        "bullets": [
+          "Authored an annotation-based JWT authentication framework with WebAuthn passkeys and service-to-service auth, adopted across all 17 microservices.",
+          "Designed and operate the Kafka / AWS MSK (TLS) event backbone linking wallet, KYC/AML, payments and notification services.",
+          "Removed redeploys for runtime configuration changes by building a zero-downtime configuration server used platform-wide.",
+          "Shipped cross-chain transaction syncing and fiat payment flows; integrated Fireblocks custody and CoinMarketCap market data.",
+          "Raised reliability 25% with circuit breakers, failover design and Datadog/CloudWatch alerting; sustain 99.9% uptime on 24/7 on-call."
+        ]
+      },
+      {
+        "company": "EPAM Systems (client: Thomson Reuters)",
+        "role": "Senior Software Engineer",
+        "period": "Feb 2024 – Dec 2024",
+        "location": "Remote",
+        "context": "",
+        "bullets": [
+          "Cut the operations team's manual workload from 100% to 10% by shipping runtime document generation with summarisation on an LLM-integrated content platform.",
+          "Improved system uptime 25% by leading a SOAP/REST service-oriented integration redesign.",
+          "Held 95%+ automated test coverage with JUnit and Mockito, reducing production defects 20%.",
+          "Cut junior onboarding time 40% with a structured mentorship programme built for the account."
+        ]
+      },
+      {
+        "company": "Ibosstech Solutions (SCALONG)",
+        "role": "Java Kafka Developer",
+        "period": "Jul 2022 – Dec 2023",
+        "location": "Noida, India",
+        "context": "",
+        "bullets": [
+          "Scaled elastically past 10,000 daily transactions by leading 6 engineers off a monolith onto AWS microservices with Kafka async processing.",
+          "Cut manual inspection 70% and raised fraud detection 55% with a real-time risk pipeline — XGBoost on AWS SageMaker over Kafka streams.",
+          "Reduced system latency 57% through query optimisation, asynchronous processing and Redis caching.",
+          "Halved deployment time with CI/CD pipelines; wrote 8 microservices end to end and ran 24/7 production on-call."
+        ]
+      },
+      {
+        "company": "Boutiqaat",
+        "role": "Software Development Engineer",
+        "period": "Jan 2022 – Jul 2022",
+        "location": "Gurgaon, India",
+        "context": "",
+        "bullets": [
+          "Handled 1M+ transactions daily with a Kafka-based distributed pricing engine centralising pricing across KSA warehouses.",
+          "Led migration of a Magento storefront to Java microservices; pricing accuracy and delivery routing lifted sales 15–38%."
+        ]
+      },
+      {
+        "company": "Lenskart",
+        "role": "Software Development Engineer",
+        "period": "Nov 2019 – Jan 2022",
+        "location": "Faridabad, India",
+        "context": "",
+        "bullets": [
+          "Cut delivery time from 7 days to 3 by automating order synchronisation with third-party inventory over an event-driven Kafka architecture.",
+          "Removed 40% of the refund-operations workload with a refund-automation system driven by order state.",
+          "Recognised as Best Performer of the Year; received the \"Knight Award\" three times."
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "name": "auth-platform",
+        "tagline": "JWT + WebAuthn passkey authentication platform. RS256/JWKS, refresh-token rotation under row locks, signing keys encrypted at rest. Live, with a passkey demo anyone can run.",
+        "liveUrl": "https://auth.wekt.in",
+        "repoUrl": "https://github.com/kaushal-bhatt/auth-platform"
+      },
+      {
+        "name": "multichain-sync-poc",
+        "tagline": "Pluggable block-sync engine for UTXO chains — survives duplicate delivery, out-of-order delivery, unparseable blocks and workers that die mid-block.",
+        "liveUrl": "https://kaushal-bhatt.github.io/multichain-sync-poc/",
+        "repoUrl": "https://github.com/kaushal-bhatt/multichain-sync-poc"
+      },
+      {
+        "name": "kafka-wikimedia-stream-pipeline",
+        "tagline": "Bridges Wikimedia's live SSE edit stream into Kafka, with a companion module of producer/consumer patterns: partitioning, callbacks, graceful shutdown, cooperative rebalancing.",
+        "liveUrl": "https://kaushal-bhatt.github.io/kafka-wikimedia-stream-pipeline/",
+        "repoUrl": "https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline"
+      },
+      {
+        "name": "wekt.in",
+        "tagline": "Portfolio and technical blog. Next.js and Postgres on my own server, deployed by CI; the admin panel authenticates through auth-platform over an OAuth2 authorization-code flow.",
+        "liveUrl": "https://wekt.in",
+        "repoUrl": "https://github.com/kaushal-bhatt/kaushal-portfolio"
+      }
+    ],
+    "education": [
+      {
+        "degree": "B.Tech, Computer Science",
+        "institution": "Swami Rama Himalayan University (SRHU)",
+        "location": "Dehradun, India",
+        "period": "2015 – 2019"
+      }
+    ],
+    "certifications": "Oracle Java SE 8 Programmer (trained) · Architecting on AWS, AWS-authorised (trained) · DevOps & CI/CD Foundations, LinkedIn Learning",
+    "languages": "English (Professional, B2) · Hindi (Native) · German (A1–A2, in progress)"
   }
 }
