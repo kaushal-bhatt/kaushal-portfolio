@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Edit, Trash2, Save, X, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +51,16 @@ export default function PortfolioManagement() {
       setError('Failed to fetch portfolio items');
     }
   };
+
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Runs after the form has rendered — scrolling inside the click handler would
+  // aim at an element React has not committed yet.
+  useEffect(() => {
+    if (editingId) {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [editingId]);
 
   const handleEdit = (portfolio: Portfolio) => {
     setEditingId(portfolio.id);
@@ -142,14 +152,14 @@ export default function PortfolioManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               onClick={() => router.push('/admin')}
-              className="text-gray-600 hover:text-gray-900"
+              className="text-slate-400 hover:text-white"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
@@ -164,17 +174,18 @@ export default function PortfolioManagement() {
 
         {/* Success/Error Messages */}
         {success && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+          <div className="bg-green-500/10 border border-green-500/40 text-green-300 px-4 py-3 rounded">
             {success}
           </div>
         )}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="bg-red-500/10 border border-red-500/40 text-red-300 px-4 py-3 rounded">
             {error}
           </div>
         )}
 
         {editingId && (
+          <div ref={formRef}>
           <Card>
             <CardHeader>
               <CardTitle>{editingId === 'new' ? 'Add New Experience' : 'Edit Experience'}</CardTitle>
@@ -182,7 +193,7 @@ export default function PortfolioManagement() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Company *</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Company *</label>
                   <Input
                     placeholder="Company"
                     value={formData.company || ''}
@@ -190,7 +201,7 @@ export default function PortfolioManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Role *</label>
                   <Input
                     placeholder="Role"
                     value={formData.role || ''}
@@ -201,7 +212,7 @@ export default function PortfolioManagement() {
               
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Start Date *</label>
                   <Input
                     type="date"
                     value={formData.startDate || ''}
@@ -209,7 +220,7 @@ export default function PortfolioManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">End Date</label>
                   <Input
                     type="date"
                     value={formData.endDate || ''}
@@ -234,7 +245,7 @@ export default function PortfolioManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Description *</label>
                 <Textarea
                   placeholder="Description"
                   value={formData.description || ''}
@@ -244,7 +255,7 @@ export default function PortfolioManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Technologies</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Technologies</label>
                 {/* The field is an array now, but the input is still one line of
                     comma-separated text, so it joins on display and splits on
                     change. Typing a trailing comma therefore does not "stick"
@@ -260,7 +271,7 @@ export default function PortfolioManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Achievements</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Achievements</label>
                 <Textarea
                   placeholder="Achievements (comma-separated)"
                   value={(formData.achievements ?? []).join(', ')}
@@ -272,7 +283,7 @@ export default function PortfolioManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Display Order</label>
                 <Input
                   type="number"
                   placeholder="Display Order"
@@ -293,6 +304,7 @@ export default function PortfolioManagement() {
               </div>
             </CardContent>
           </Card>
+          </div>
         )}
 
         <div className="grid gap-4">
@@ -302,8 +314,8 @@ export default function PortfolioManagement() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold">{portfolio.role}</h3>
-                    <p className="text-gray-600">{portfolio.company}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-slate-400">{portfolio.company}</p>
+                    <p className="text-sm text-slate-500">
                       {portfolio.startDate} - {portfolio.current ? 'Present' : portfolio.endDate}
                     </p>
                     <p className="mt-2 text-sm">{portfolio.description}</p>
@@ -320,8 +332,8 @@ export default function PortfolioManagement() {
                     
                     {portfolio.achievements?.length > 0 && (
                       <div className="mt-2">
-                        <p className="text-xs font-medium text-gray-700">Achievements:</p>
-                        <ul className="text-xs text-gray-600 list-disc list-inside">
+                        <p className="text-xs font-medium text-slate-300">Achievements:</p>
+                        <ul className="text-xs text-slate-400 list-disc list-inside">
                           {portfolio.achievements.map((achievement, index) => (
                             <li key={index}>{achievement}</li>
                           ))}
