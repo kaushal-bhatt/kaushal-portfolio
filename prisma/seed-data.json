@@ -238,7 +238,7 @@
         "OkHttp",
         "SSE"
       ],
-      "demoUrl": null,
+      "demoUrl": "https://kaushal-bhatt.github.io/kafka-wikimedia-stream-pipeline/",
       "githubUrl": "https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline",
       "status": "Open Source",
       "category": "Data Engineering",
@@ -253,7 +253,7 @@
         "Java 21",
         "Spring Boot"
       ],
-      "demoUrl": null,
+      "demoUrl": "https://kaushal-bhatt.github.io/multichain-sync-poc/",
       "githubUrl": "https://github.com/kaushal-bhatt/multichain-sync-poc",
       "status": "Open Source",
       "category": "Blockchain",

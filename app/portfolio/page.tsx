@@ -185,7 +185,7 @@ export default function PortfolioPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(project.demoUrl!, '_blank')}
+                            onClick={() => window.open(project.demoUrl!, '_blank', 'noopener,noreferrer')}
                             className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
                           >
                             <ExternalLink className="w-4 h-4 mr-2" />
@@ -195,7 +195,7 @@ export default function PortfolioPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(project.githubUrl, '_blank')}
+                          onClick={() => window.open(project.githubUrl, '_blank', 'noopener,noreferrer')}
                           className="text-gray-400 hover:text-white hover:bg-slate-700"
                         >
                           <Github className="w-4 h-4 mr-2" />
@@ -274,7 +274,7 @@ export default function PortfolioPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => window.open(project.demoUrl!, '_blank')}
+                              onClick={() => window.open(project.demoUrl!, '_blank', 'noopener,noreferrer')}
                               className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white text-xs h-8"
                             >
                               <ExternalLink className="w-3 h-3 mr-1" />
@@ -284,7 +284,7 @@ export default function PortfolioPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => window.open(project.githubUrl, '_blank')}
+                            onClick={() => window.open(project.githubUrl, '_blank', 'noopener,noreferrer')}
                             className="text-gray-400 hover:text-white hover:bg-slate-700 text-xs h-8"
                           >
                             <Github className="w-3 h-3 mr-1" />
