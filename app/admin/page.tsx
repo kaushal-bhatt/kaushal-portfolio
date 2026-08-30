@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase, FolderGit2 } from 'lucide-react';
+import { FileText, Briefcase, FolderGit2, User } from 'lucide-react';
 
 export default function AdminDashboard() {
 
@@ -61,6 +61,23 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <Button className="w-full">Manage Projects</Button>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/about">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="mr-2 h-5 w-5" />
+                  About Section
+                </CardTitle>
+                <CardDescription>
+                  Manage the story, skill cards and figures on the home page
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">Manage About</Button>
               </CardContent>
             </Card>
           </Link>

@@ -261,5 +261,142 @@
       "completionDate": "2026-08",
       "order": 3
     }
-  ]
+  ],
+  "about": {
+    "content": {
+      "heading": "About",
+      "headingAccent": "Me",
+      "subtitle": "Passionate about building scalable, high-performance applications that solve real-world problems",
+      "journeyTitle": "My Journey",
+      "journey": "I’m a Senior Backend Engineer with 7 years designing and operating event-driven microservices where correctness is non-negotiable — crypto custody, KYC/AML pipelines, payment flows, and fraud detection processing millions of transactions a day.\n\nMy work sits at the intersection of distributed systems and security: Kafka/MSK event backbones, service-to-service authentication, secrets management, and the unglamorous cryptographic plumbing that keeps accounts safe. Throughout my career I’ve worked with RockWallet, EPAM Systems, Ibosstech Solutions, Boutiqaat and Lenskart, consistently delivering high-performance solutions that drive business growth.\n\nAt RockWallet I own services inside a 17-microservice monorepo and wrote the platform-wide JWT + WebAuthn authentication framework — the same expertise behind my open-source [auth-platform](https://github.com/kaushal-bhatt/auth-platform) project, which you can [try with a real passkey](https://auth.wekt.in). Open to Senior Backend Engineer roles across the EU — Blue Card eligible, English B2, German A1–A2 (in progress)."
+    },
+    "skills": [
+      {
+        "category": "Programming",
+        "icon": "Code2",
+        "items": [
+          "Java (8, 11, 17, 21)",
+          "Python",
+          "SQL",
+          "JavaScript"
+        ],
+        "color": "orange",
+        "order": 1
+      },
+      {
+        "category": "Frameworks",
+        "icon": "Zap",
+        "items": [
+          "Spring Boot 3.5",
+          "Spring Security",
+          "Hibernate / JPA",
+          "Microservices"
+        ],
+        "color": "green",
+        "order": 2
+      },
+      {
+        "category": "Messaging & Streaming",
+        "icon": "Zap",
+        "items": [
+          "Apache Kafka",
+          "AWS MSK (TLS/SSL)",
+          "SQS / SNS",
+          "RabbitMQ"
+        ],
+        "color": "teal",
+        "order": 3
+      },
+      {
+        "category": "Cloud & DevOps",
+        "icon": "Cloud",
+        "items": [
+          "AWS (EC2, S3, MSK, IAM)",
+          "Docker",
+          "Kubernetes",
+          "Terraform",
+          "GitHub Actions"
+        ],
+        "color": "blue",
+        "order": 4
+      },
+      {
+        "category": "Security & Auth",
+        "icon": "Award",
+        "items": [
+          "JWT / OAuth2",
+          "WebAuthn / Passkeys",
+          "HashiCorp Vault",
+          "RS256 · JWKS"
+        ],
+        "color": "pink",
+        "order": 5
+      },
+      {
+        "category": "Databases",
+        "icon": "Database",
+        "items": [
+          "PostgreSQL",
+          "MySQL",
+          "MongoDB",
+          "Redis",
+          "DynamoDB"
+        ],
+        "color": "purple",
+        "order": 6
+      },
+      {
+        "category": "Observability",
+        "icon": "Users",
+        "items": [
+          "Datadog",
+          "CloudWatch",
+          "ELK Stack",
+          "Prometheus",
+          "Grafana"
+        ],
+        "color": "indigo",
+        "order": 7
+      },
+      {
+        "category": "Domain",
+        "icon": "Award",
+        "items": [
+          "Crypto custody",
+          "Fireblocks",
+          "KYC / AML",
+          "Payment flows",
+          "Fraud detection"
+        ],
+        "color": "yellow",
+        "order": 8
+      }
+    ],
+    "stats": [
+      {
+        "label": "7 Years",
+        "description": "Building Backends",
+        "icon": "Award",
+        "order": 1
+      },
+      {
+        "label": "57%",
+        "description": "Latency Reduction Delivered",
+        "icon": "Zap",
+        "order": 2
+      },
+      {
+        "label": "99.9%",
+        "description": "Uptime on Regulated Systems",
+        "icon": "Users",
+        "order": 3
+      },
+      {
+        "label": "1M+",
+        "description": "Daily Transactions Handled",
+        "icon": "Code2",
+        "order": 4
+      }
+    ]
+  }
 }

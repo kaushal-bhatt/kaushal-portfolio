@@ -1,74 +1,89 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Code2, Database, Cloud, Zap, Award, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { aboutColor, aboutIcon } from '@/lib/about-visuals';
+import { renderMarkdown } from '@/lib/markdown';
 
-const skills = [
-  {
-    category: 'Programming',
-    icon: Code2,
-    items: ['Java (8, 11, 17, 21)', 'Python', 'SQL', 'JavaScript'],
-    color: 'text-orange-400'
-  },
-  {
-    category: 'Frameworks',
-    icon: Zap,
-    items: ['Spring Boot 3.5', 'Spring Security', 'Hibernate / JPA', 'Microservices'],
-    color: 'text-green-400'
-  },
-  {
-    category: 'Messaging & Streaming',
-    icon: Zap,
-    items: ['Apache Kafka', 'AWS MSK (TLS/SSL)', 'SQS / SNS', 'RabbitMQ'],
-    color: 'text-teal-400'
-  },
-  {
-    category: 'Cloud & DevOps',
-    icon: Cloud,
-    items: ['AWS (EC2, S3, MSK, IAM)', 'Docker', 'Kubernetes', 'Terraform', 'GitHub Actions'],
-    color: 'text-blue-400'
-  },
-  {
-    category: 'Security & Auth',
-    icon: Award,
-    items: ['JWT / OAuth2', 'WebAuthn / Passkeys', 'HashiCorp Vault', 'RS256 · JWKS'],
-    color: 'text-pink-400'
-  },
-  {
-    category: 'Databases',
-    icon: Database,
-    items: ['PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'DynamoDB'],
-    color: 'text-purple-400'
-  },
-  {
-    category: 'Observability',
-    icon: Users,
-    items: ['Datadog', 'CloudWatch', 'ELK Stack', 'Prometheus', 'Grafana'],
-    color: 'text-indigo-400'
-  },
-  {
-    category: 'Domain',
-    icon: Award,
-    items: ['Crypto custody', 'Fireblocks', 'KYC / AML', 'Payment flows', 'Fraud detection'],
-    color: 'text-yellow-400'
-  }
-];
+/**
+ * Everything here used to be three hardcoded arrays in this file, so a new skill
+ * or a changed figure meant a commit and a deploy. It is all admin-managed now
+ * and arrives from /api/about; see /admin/about.
+ */
 
-const achievements = [
-  { icon: Award, label: '7 Years', description: 'Building Backends' },
-  { icon: Zap, label: '57%', description: 'Latency Reduction Delivered' },
-  { icon: Users, label: '99.9%', description: 'Uptime on Regulated Systems' },
-  { icon: Code2, label: '1M+', description: 'Daily Transactions Handled' }
-];
+interface AboutContent {
+  heading: string;
+  headingAccent: string;
+  subtitle: string;
+  journeyTitle: string;
+  journey: string;
+}
+
+interface AboutSkill {
+  id: string;
+  category: string;
+  icon: string;
+  items: string[];
+  color: string;
+}
+
+interface AboutStat {
+  id: string;
+  label: string;
+  description: string;
+  icon: string;
+}
 
 export function AboutSection() {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1
   });
+
+  const [content, setContent] = useState<AboutContent | null>(null);
+  const [skills, setSkills] = useState<AboutSkill[]>([]);
+  const [stats, setStats] = useState<AboutStat[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // One request: the three parts are always rendered together, so three
+        // endpoints would only cost three round trips to show one section.
+        const response = await fetch('/api/about');
+        if (response.ok) {
+          const data = await response.json();
+          setContent(data.content);
+          setSkills(data.skills);
+          setStats(data.stats);
+        }
+      } catch (error) {
+        console.error('Failed to fetch about data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <section id="about" className="py-20 bg-slate-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-slate-700 rounded w-64 mx-auto mb-4"></div>
+              <div className="h-4 bg-slate-700 rounded w-96 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="about" ref={ref} className="py-20 bg-slate-800/50">
@@ -80,10 +95,11 @@ export function AboutSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
-            About <span className="gradient-text">Me</span>
+            {content?.heading}{' '}
+            <span className="gradient-text">{content?.headingAccent}</span>
           </h2>
           <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
-            Passionate about building scalable, high-performance applications that solve real-world problems
+            {content?.subtitle}
           </p>
         </motion.div>
 
@@ -96,31 +112,17 @@ export function AboutSection() {
           >
             <Card className="glass-effect border-slate-700">
               <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6 text-white">My Journey</h3>
-                <div className="space-y-4 text-gray-300 leading-relaxed">
-                  <p>
-                    I&apos;m a Senior Backend Engineer with 7 years designing and operating event-driven
-                    microservices where correctness is non-negotiable &mdash; crypto custody, KYC/AML
-                    pipelines, payment flows, and fraud detection processing millions of transactions
-                    a day.
-                  </p>
-                  <p>
-                    My work sits at the intersection of distributed systems and security: Kafka/MSK
-                    event backbones, service-to-service authentication, secrets management, and the
-                    unglamorous cryptographic plumbing that keeps accounts safe. Throughout my career
-                    I&apos;ve worked with RockWallet, EPAM Systems, Ibosstech Solutions, Boutiqaat and
-                    Lenskart, consistently delivering high-performance solutions that drive business
-                    growth.
-                  </p>
-                  <p>
-                    At RockWallet I own services inside a 17-microservice monorepo and wrote the
-                    platform-wide JWT + WebAuthn authentication framework &mdash; the same expertise
-                    behind my open-source <a href="https://github.com/kaushal-bhatt/auth-platform" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">auth-platform</a> project,
-                    which you can <a href="https://auth.wekt.in" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">try with a real passkey</a>.
-                    Open to Senior Backend Engineer roles across the EU &mdash; Blue Card eligible,
-                    English B2, German A1&ndash;A2 (in progress).
-                  </p>
-                </div>
+                <h3 className="text-2xl font-bold mb-6 text-white">{content?.journeyTitle}</h3>
+                {/*
+                  Markdown, not HTML: renderMarkdown escapes its input before
+                  formatting it, so the links in this copy survive as links and
+                  anything else stays text. The paragraph classes come from there
+                  too, which is why there is no space-y-4 wrapper any more.
+                */}
+                <div
+                  className="text-gray-300 leading-relaxed [&>p:first-child]:mt-0"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(content?.journey ?? '') }}
+                />
               </CardContent>
             </Card>
           </motion.div>
@@ -133,15 +135,15 @@ export function AboutSection() {
             className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
           >
             {skills.map((skill) => {
-              const Icon = skill.icon;
+              const Icon = aboutIcon(skill.icon);
               return (
                 <motion.div
-                  key={skill.category}
+                  key={skill.id}
                   whileHover={{ scale: 1.05 }}
                   className="glass-effect rounded-lg p-4 sm:p-6 border border-slate-700"
                 >
                   <div className="flex items-center mb-4">
-                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 ${skill.color} flex-shrink-0`} />
+                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 ${aboutColor(skill.color)} flex-shrink-0`} />
                     <h4 className="text-base sm:text-lg font-semibold text-white">{skill.category}</h4>
                   </div>
                   <ul className="space-y-1.5 sm:space-y-2">
@@ -157,24 +159,24 @@ export function AboutSection() {
           </motion.div>
         </div>
 
-        {/* Achievements */}
+        {/* Figures */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.6 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
         >
-          {achievements.map((achievement) => {
-            const Icon = achievement.icon;
+          {stats.map((stat) => {
+            const Icon = aboutIcon(stat.icon);
             return (
               <motion.div
-                key={achievement.label}
+                key={stat.id}
                 whileHover={{ scale: 1.05, y: -5 }}
                 className="text-center p-4 sm:p-6 glass-effect rounded-lg border border-slate-700"
               >
                 <Icon className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-3 sm:mb-4 text-blue-400" />
-                <div className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2">{achievement.label}</div>
-                <div className="text-gray-300 text-xs sm:text-sm">{achievement.description}</div>
+                <div className="text-lg sm:text-2xl font-bold text-white mb-1 sm:mb-2">{stat.label}</div>
+                <div className="text-gray-300 text-xs sm:text-sm">{stat.description}</div>
               </motion.div>
             );
           })}

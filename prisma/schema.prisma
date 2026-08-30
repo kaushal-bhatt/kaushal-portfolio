@@ -4,12 +4,12 @@
 // switch-schema.sh script swapped a SQLite file in and out.
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ---------------------------------------------------------------------------
@@ -54,9 +54,9 @@ model Portfolio {
 /// really are different things, which is why this is its own table rather than
 /// a flag on that one.
 model Project {
-  id          String   @id @default(cuid())
-  title       String   @unique
-  description String   @db.Text
+  id          String @id @default(cuid())
+  title       String @unique
+  description String @db.Text
 
   technologies String[] @default([])
 
@@ -82,23 +82,23 @@ model Project {
 }
 
 model BlogPost {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   title      String
-  slug       String   @unique
-  excerpt    String   @db.Text
-  content    String   @db.Text
+  slug       String  @unique
+  excerpt    String  @db.Text
+  content    String  @db.Text
   technology String
-  published  Boolean  @default(false)
+  published  Boolean @default(false)
 
   // A byline, not a foreign key. There is no user table to point at, and on a
   // single-author blog the author was never really a relationship — it was a
   // label that happened to be stored somewhere else.
-  authorName String   @default("Kaushal Bhatt")
+  authorName String @default("Kaushal Bhatt")
 
-  tags       String[] @default([])
-  readTime   Int      @default(5)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  tags      String[] @default([])
+  readTime  Int      @default(5)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model TechSection {
@@ -111,4 +111,65 @@ model TechSection {
   color       String   @default("#3B82F6")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// The About section. It was three hardcoded arrays in
+// `components/about-section.tsx` — the prose, the skill cards and the four
+// figures — so changing a number meant a commit and a deploy. Three tables
+// rather than one because they are three different shapes, and because the
+// prose is a singleton while the other two are lists the admin adds to.
+// ---------------------------------------------------------------------------
+
+/// One row, always. `id` defaults to "main" and the admin route upserts on that
+/// rather than creating a second row every time the copy is edited.
+model AboutContent {
+  id String @id @default("main")
+
+  /// The heading is split so the accent keeps its gradient: "About" + "Me".
+  heading       String @default("About")
+  headingAccent String @default("Me")
+
+  /// The line under the heading.
+  subtitle String @db.Text
+
+  journeyTitle String @default("My Journey")
+
+  /// Markdown, rendered with `lib/markdown.ts` — the same subset the blog uses.
+  /// Stored as markdown rather than HTML because that renderer escapes its input
+  /// first, so a link written as [text](url) survives and a `<script>` does not.
+  journey String @db.Text
+
+  updatedAt DateTime @updatedAt
+}
+
+/// A skill card: a heading, an icon, and the bullet list under it.
+model AboutSkill {
+  id       String   @id @default(cuid())
+  category String   @unique
+  /// A key into `lib/about-visuals.ts`, not a class name and not an import path.
+  icon     String   @default("Code2")
+  items    String[] @default([])
+  /// Also a key into that file. Tailwind never sees database values, so a raw
+  /// `text-orange-400` stored here would be purged and do nothing.
+  color    String   @default("blue")
+  order    Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// One of the four figures along the bottom ("7 Years", "57%", …).
+///
+/// Not called `achievement`: `Portfolio.achievements` already exists and means
+/// something else entirely — the bullet points under a job.
+model AboutStat {
+  id          String @id @default(cuid())
+  label       String @unique
+  description String
+  icon        String @default("Award")
+  order       Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

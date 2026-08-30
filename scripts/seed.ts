@@ -60,6 +60,28 @@ type SeedData = {
     readTime: number;
     createdAt: string | null;
   }>;
+  about: {
+    content: {
+      heading: string;
+      headingAccent: string;
+      subtitle: string;
+      journeyTitle: string;
+      journey: string;
+    };
+    skills: Array<{
+      category: string;
+      icon: string;
+      items: string[];
+      color: string;
+      order: number;
+    }>;
+    stats: Array<{
+      label: string;
+      description: string;
+      icon: string;
+      order: number;
+    }>;
+  };
 };
 
 const force = process.env.SEED_FORCE === 'true';
@@ -154,6 +176,54 @@ async function main() {
       });
     }
     console.log(`✅ BlogPost: ${data.blogPosts.length} entries`);
+  }
+
+  // The About section. Guarded like everything else, so a re-seed cannot
+  // overwrite copy edited in the admin panel; the upsert is on the fixed id
+  // because the row may not exist yet on a fresh database.
+  if (await shouldSeed('AboutContent', await prisma.aboutContent.count())) {
+    await prisma.aboutContent.upsert({
+      where: { id: 'main' },
+      update: data.about.content,
+      create: { id: 'main', ...data.about.content },
+    });
+    console.log('✅ AboutContent: 1 entry');
+  }
+
+  if (await shouldSeed('AboutSkill', await prisma.aboutSkill.count())) {
+    // Prunes for the same reason TechSection does: a card dropped from the
+    // fixture has to disappear from the site, and upsert alone only ever adds.
+    const removed = await prisma.aboutSkill.deleteMany({
+      where: { category: { notIn: data.about.skills.map((s) => s.category) } },
+    });
+    for (const skill of data.about.skills) {
+      await prisma.aboutSkill.upsert({
+        where: { category: skill.category },
+        update: skill,
+        create: skill,
+      });
+    }
+    console.log(
+      `✅ AboutSkill: ${data.about.skills.length} entries` +
+        (removed.count ? `, ${removed.count} removed` : '')
+    );
+  }
+
+  if (await shouldSeed('AboutStat', await prisma.aboutStat.count())) {
+    const removed = await prisma.aboutStat.deleteMany({
+      where: { label: { notIn: data.about.stats.map((s) => s.label) } },
+    });
+    for (const stat of data.about.stats) {
+      await prisma.aboutStat.upsert({
+        where: { label: stat.label },
+        update: stat,
+        create: stat,
+      });
+    }
+    console.log(
+      `✅ AboutStat: ${data.about.stats.length} entries` +
+        (removed.count ? `, ${removed.count} removed` : '')
+    );
   }
 
   console.log('🎉 Seeding complete');
