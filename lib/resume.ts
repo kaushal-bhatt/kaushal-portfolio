@@ -17,8 +17,6 @@ import { prisma } from '@/lib/db';
  * a textarea does not become a bullet point.
  */
 
-export const RESUME_ID = 'main';
-
 export interface ResumeSkillGroup {
   label: string;
   items: string;
@@ -95,12 +93,7 @@ export function readProjects(value: unknown): ResumeProject[] {
     const name = str(row.name);
     const repoUrl = str(row.repoUrl);
     if (!name || !repoUrl) return null;
-    return {
-      name,
-      tagline: str(row.tagline),
-      liveUrl: str(row.liveUrl) || null,
-      repoUrl,
-    };
+    return { name, tagline: str(row.tagline), liveUrl: str(row.liveUrl) || null, repoUrl };
   });
 }
 
@@ -129,15 +122,10 @@ export function displayUrl(url: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Reading and writing the row
+// The record
 // ---------------------------------------------------------------------------
 
-/**
- * What the admin form starts from when the row does not exist yet.
- *
- * Empty rather than a sample CV: a template someone forgets to finish is worse
- * than a blank one, because it looks finished.
- */
+/** The document itself, without the columns that decide where it lives. */
 export const RESUME_DEFAULTS = {
   fullName: '',
   headline: '',
@@ -156,14 +144,75 @@ export const RESUME_DEFAULTS = {
   languages: '',
 };
 
-/** The whole record, with the Json columns already narrowed. */
 export type ResumeContent = typeof RESUME_DEFAULTS;
 
-export async function getResume(): Promise<ResumeContent | null> {
-  const row = await prisma.resume.findUnique({ where: { id: RESUME_ID } });
-  if (!row) return null;
+const RESUME_CONTENT_KEYS = Object.keys(RESUME_DEFAULTS) as (keyof ResumeContent)[];
 
+/**
+ * The document out of a full record, without `id`, `slug`, `published` and the
+ * rest — the columns that say where a résumé lives rather than what it says.
+ *
+ * Keyed off the defaults rather than destructured at the call site, so adding a
+ * field to the document means adding it in one place. A destructure that
+ * discards five names is also five unused variables, which is a lint error and
+ * a fair one: it reads as a mistake.
+ */
+export function resumeContentOf(source: Partial<ResumeContent>): ResumeContent {
+  const content = { ...RESUME_DEFAULTS };
+  for (const key of RESUME_CONTENT_KEYS) {
+    const value = source[key];
+    if (value !== undefined) (content as Record<string, unknown>)[key] = value;
+  }
+  return content;
+}
+
+/** What the admin list and the public link surfaces need, without the body. */
+export interface ResumeMeta {
+  id: string;
+  slug: string;
+  label: string;
+  published: boolean;
+  order: number;
+  updatedAt: string;
+}
+
+export type ResumeRecord = ResumeMeta & ResumeContent;
+
+/** Just enough to render a link. */
+export type ResumeLink = Pick<ResumeMeta, 'slug' | 'label'>;
+
+type ResumeRow = {
+  id: string;
+  slug: string;
+  label: string;
+  published: boolean;
+  order: number;
+  updatedAt: Date;
+  fullName: string;
+  headline: string;
+  location: string;
+  email: string;
+  phone: string | null;
+  linkedin: string;
+  github: string;
+  website: string;
+  summary: string;
+  skills: unknown;
+  experience: unknown;
+  projects: unknown;
+  education: unknown;
+  certifications: string;
+  languages: string;
+};
+
+function toRecord(row: ResumeRow): ResumeRecord {
   return {
+    id: row.id,
+    slug: row.slug,
+    label: row.label,
+    published: row.published,
+    order: row.order,
+    updatedAt: row.updatedAt.toISOString(),
     fullName: row.fullName,
     headline: row.headline,
     location: row.location,
@@ -183,7 +232,97 @@ export async function getResume(): Promise<ResumeContent | null> {
 }
 
 /**
- * Turns whatever the admin form posted into a record safe to write.
+ * Two keys, because `order` alone leaves ties undecided and the résumé that
+ * `/resume` redirects to must not depend on which row Postgres happens to
+ * return first.
+ */
+const RESUME_ORDER = [{ order: 'asc' as const }, { updatedAt: 'desc' as const }];
+
+/** Every link surface on the public site reads this, and hides itself when it is empty. */
+export async function getPublishedResumeLinks(): Promise<ResumeLink[]> {
+  return prisma.resume.findMany({
+    where: { published: true },
+    orderBy: RESUME_ORDER,
+    select: { slug: true, label: true },
+  });
+}
+
+/**
+ * Unpublished résumés are absent, not forbidden — 404, never 403. A 403 would
+ * confirm that a draft exists at that address, which is the same reasoning the
+ * blog's unpublished posts follow.
+ */
+export async function getPublishedResume(slug: string): Promise<ResumeRecord | null> {
+  const row = await prisma.resume.findFirst({ where: { slug, published: true } });
+  return row ? toRecord(row) : null;
+}
+
+/** Where a bare /resume goes. */
+export async function getPrimaryPublishedSlug(): Promise<string | null> {
+  const row = await prisma.resume.findFirst({
+    where: { published: true },
+    orderBy: RESUME_ORDER,
+    select: { slug: true },
+  });
+  return row?.slug ?? null;
+}
+
+export async function listResumes(): Promise<ResumeMeta[]> {
+  const list = await prisma.resume.findMany({
+    orderBy: RESUME_ORDER,
+    select: { id: true, slug: true, label: true, published: true, order: true, updatedAt: true },
+  });
+  return list.map((row) => ({ ...row, updatedAt: row.updatedAt.toISOString() }));
+}
+
+export async function getResumeById(id: string): Promise<ResumeRecord | null> {
+  const row = await prisma.resume.findUnique({ where: { id } });
+  return row ? toRecord(row) : null;
+}
+
+// ---------------------------------------------------------------------------
+// Writing
+// ---------------------------------------------------------------------------
+
+export function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
+/**
+ * A slug nothing else is using, suffixed with -2, -3 … until it is free.
+ *
+ * `slug` is unique in the database, so without this a second résumé labelled
+ * the same way fails the insert with a constraint error the admin panel can
+ * only report as "something went wrong". `excludeId` is the row being renamed,
+ * which must not collide with itself.
+ *
+ * There is a race here — two creates in the same millisecond can both find the
+ * same slug free. The unique index still refuses the second, which is the
+ * correct outcome, and one person edits this.
+ */
+export async function uniqueResumeSlug(base: string, excludeId?: string): Promise<string> {
+  const root = base || 'resume';
+  const taken = await prisma.resume.findMany({
+    where: { slug: { startsWith: root }, ...(excludeId ? { NOT: { id: excludeId } } : {}) },
+    select: { slug: true },
+  });
+  const used = new Set(taken.map((row) => row.slug));
+
+  if (!used.has(root)) return root;
+  for (let n = 2; ; n += 1) {
+    const candidate = `${root}-${n}`;
+    if (!used.has(candidate)) return candidate;
+  }
+}
+
+/**
+ * Turns whatever the admin form posted into a body safe to write.
  *
  * Returns the reason instead when a required field is missing. The four
  * required ones are the four the page cannot render around: a résumé with no
@@ -222,4 +361,18 @@ export function normaliseResumeInput(
   }
 
   return { ok: true, value };
+}
+
+/**
+ * The filename the browser suggests when the PDF is saved.
+ *
+ * Browsers name it after `document.title`, so the print button swaps the title
+ * before opening the dialog. Underscores rather than spaces, because this ends
+ * up in a recruiter's downloads folder next to fifty other files.
+ */
+export function pdfFilename(record: Pick<ResumeRecord, 'fullName' | 'label'>): string {
+  const parts = [record.fullName, record.label]
+    .map((part) => part.replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, ''))
+    .filter(Boolean);
+  return parts.join('_') || 'Resume';
 }

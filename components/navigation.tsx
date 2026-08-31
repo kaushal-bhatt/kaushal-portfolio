@@ -5,19 +5,33 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, X, Home, User, Briefcase, BookOpen, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { usePublishedResumes } from '@/hooks/use-published-resumes';
 
-const navItems = [
+const baseNavItems = [
   { name: 'Home', href: '#hero', icon: Home, isScroll: true },
   { name: 'About', href: '#about', icon: User, isScroll: true },
   { name: 'Portfolio', href: '/portfolio', icon: Briefcase, isScroll: false },
   { name: 'Blog', href: '/blog', icon: BookOpen, isScroll: false },
-  { name: 'Resume', href: '/resume', icon: FileText, isScroll: false },
 ];
+
+const RESUME_ITEM = { name: 'Resume', href: '/resume', icon: FileText, isScroll: false };
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
+
+  /*
+    One entry regardless of how many résumés are published — a bare /resume
+    redirects to whichever has the lowest order, and a navigation bar carrying
+    three CV links is a navigation bar nobody reads. The About band is where
+    they are listed individually.
+
+    Gone entirely when nothing is published: /resume 404s in that case, and a
+    nav item that leads to a 404 is worse than no nav item.
+  */
+  const resumes = usePublishedResumes();
+  const navItems = resumes.length > 0 ? [...baseNavItems, RESUME_ITEM] : baseNavItems;
 
   useEffect(() => {
     const handleScroll = () => {

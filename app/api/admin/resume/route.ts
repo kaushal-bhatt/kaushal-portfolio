@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { Prisma } from '@prisma/client';
 import { getAdminSession } from '@/lib/session';
 import { prisma } from '@/lib/db';
-import { getResume, normaliseResumeInput, RESUME_DEFAULTS, RESUME_ID } from '@/lib/resume';
+import {
+  getResumeById,
+  listResumes,
+  resumeContentOf,
+  slugify,
+  uniqueResumeSlug,
+} from '@/lib/resume';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,62 +20,63 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Defaults rather than a 404 when the row is missing: the editor's job on an
-    // empty database is to offer a blank form, not an error.
-    return NextResponse.json((await getResume()) ?? RESUME_DEFAULTS);
+    return NextResponse.json(await listResumes());
   } catch (error) {
-    console.error('Resume fetch error:', error);
-    return NextResponse.json({ error: 'Failed to fetch résumé' }, { status: 500 });
+    console.error('Résumé list error:', error);
+    return NextResponse.json({ error: 'Failed to list résumés' }, { status: 500 });
   }
 }
 
 /**
- * Replaces the whole record.
+ * Creates one, optionally as a copy of another.
  *
- * A PATCH per section would be less to send, but the document is edited as one
- * thing and saved with one button — a partial write would mean the page could
- * end up half-saved if one request failed, which is a state nobody can see from
- * the form.
+ * Copying is the whole point of having more than one row: the way a CV is
+ * edited is by replacing it, and the version being replaced is the one wanted
+ * back later. Duplicating first means the old one is still there, unpublished,
+ * when the new draft turns out worse.
  *
- * An upsert rather than an update: there is exactly one row, it may not exist
- * yet, and a PUT should be able to make it.
+ * A new résumé is always created unpublished, copy or not. Publishing is a
+ * separate, deliberate action — a duplicate that arrived live would put two
+ * near-identical CVs on the site the moment the button was pressed.
  */
-export async function PUT(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     if (!(await getAdminSession())) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Same narrowing the page renders through, run over the payload. The form
-    // is the only client today, but "only trusted callers reach this" is a
-    // property of the current configuration rather than of the code — and it
-    // also drops the blank rows an editing session leaves behind.
-    const parsed = normaliseResumeInput(await request.json());
-    if (!parsed.ok) {
-      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    const body = await request.json().catch(() => ({}));
+    const from = typeof body?.from === 'string' ? body.from : null;
+
+    const source = from ? await getResumeById(from) : null;
+    if (from && !source) {
+      return NextResponse.json({ error: 'Nothing to copy from' }, { status: 404 });
     }
 
-    const { skills, experience, projects, education, phone, ...scalars } = parsed.value;
-    const fields = {
-      ...scalars,
-      // The column is nullable and the form sends "". Storing null keeps "no
-      // phone number" as one value rather than two.
-      phone: phone || null,
-      skills: skills as unknown as Prisma.InputJsonValue,
-      experience: experience as unknown as Prisma.InputJsonValue,
-      projects: projects as unknown as Prisma.InputJsonValue,
-      education: education as unknown as Prisma.InputJsonValue,
-    };
+    const label = source ? `${source.label} (copy)` : 'Untitled résumé';
+    const content = resumeContentOf(source ?? {});
 
-    await prisma.resume.upsert({
-      where: { id: RESUME_ID },
-      update: fields,
-      create: { id: RESUME_ID, ...fields },
+    const created = await prisma.resume.create({
+      data: {
+        slug: await uniqueResumeSlug(slugify(label) || 'resume'),
+        label,
+        published: false,
+        // Behind everything that exists, so creating one never changes which
+        // résumé /resume redirects to.
+        order: (await prisma.resume.count()) + 1,
+        ...content,
+        phone: content.phone || null,
+        skills: content.skills as unknown as Prisma.InputJsonValue,
+        experience: content.experience as unknown as Prisma.InputJsonValue,
+        projects: content.projects as unknown as Prisma.InputJsonValue,
+        education: content.education as unknown as Prisma.InputJsonValue,
+      },
+      select: { id: true },
     });
 
-    return NextResponse.json(await getResume());
+    return NextResponse.json(created, { status: 201 });
   } catch (error) {
-    console.error('Resume update error:', error);
-    return NextResponse.json({ error: 'Failed to save résumé' }, { status: 500 });
+    console.error('Résumé create error:', error);
+    return NextResponse.json({ error: 'Failed to create résumé' }, { status: 500 });
   }
 }

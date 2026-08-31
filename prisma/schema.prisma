@@ -175,21 +175,42 @@ model AboutStat {
 }
 
 // ---------------------------------------------------------------------------
-// The résumé behind /resume.
+// The résumés behind /resume.
 //
-// One row, like AboutContent, and for the same reason: there is one of these,
-// and an admin edit has to update it rather than add a second. It is separate
-// from `Portfolio` even though both describe the same jobs — the site wants
-// paragraphs and the CV wants one-line bullets that lead with the result, and
-// trying to serve both from one column produced a page that read like a CV and
-// a CV that read like a page.
+// Many rows, not one. It started as a singleton like AboutContent, which was
+// wrong for the thing it holds: a CV is edited by replacing it, and the version
+// you just replaced is the one you want back when the next application goes
+// badly. Keeping old rows unpublished makes the history free, and it is the
+// same mechanism that lets a second, differently-angled CV exist alongside the
+// first — one aimed at platform roles, one at data.
+//
+// Separate from `Portfolio` even though both describe the same jobs: the site
+// wants paragraphs and the CV wants one-line bullets that lead with the result.
+// Serving both from one column produced a page that read like a CV and a CV
+// that read like a page.
 //
 // The structured parts are `Json` rather than more tables because nothing ever
 // queries into them: the whole record is read at once to render one document,
 // and a bullet list has no identity outside the job it belongs to.
 // ---------------------------------------------------------------------------
 model Resume {
-  id String @id @default("main")
+  id String @id @default(cuid())
+
+  /// The URL: /resume/senior-backend-engineer.
+  slug String @unique
+
+  /// Shown on the button that links to it, and in the admin list. It is what
+  /// tells two versions apart, so it carries a date or an angle rather than
+  /// just saying "Résumé" twice.
+  label String
+
+  /// Unpublished means gone from the public site entirely — every link to it
+  /// disappears, and the page 404s rather than 403s. A 403 would confirm the
+  /// address exists.
+  published Boolean @default(false)
+
+  /// Decides which one /resume redirects to when several are published.
+  order Int @default(0)
 
   fullName String
   headline String
@@ -224,5 +245,6 @@ model Resume {
   certifications String @db.Text
   languages      String @db.Text
 
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

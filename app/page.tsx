@@ -4,6 +4,7 @@ import { HeroSection } from '@/components/hero-section';
 import { AboutSection } from '@/components/about-section';
 import { PortfolioSection } from '@/components/portfolio-section';
 import { BlogSection } from '@/components/blog-section';
+import { ResumeFooterLink } from '@/components/resume-footer-link';
 
 export default function Home() {
   return (
@@ -37,15 +38,12 @@ export default function Home() {
               >
                 Email
               </a>
-              {/* The phone number lives on the résumé PDF only — see hero-section.tsx. */}
-              <a
-                href="/resume"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-green-400 transition-colors"
-              >
-                Résumé
-              </a>
+              {/*
+                The phone number lives on the résumé PDF only — see
+                hero-section.tsx. This link hides itself when no résumé is
+                published, which is why it is a component and not an anchor.
+              */}
+              <ResumeFooterLink />
               <a
                 href="https://www.linkedin.com/in/kaushal-bhatt-5aa73511b/"
                 target="_blank"

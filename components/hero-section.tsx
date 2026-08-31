@@ -4,8 +4,11 @@
 import { motion } from 'framer-motion';
 import { ChevronDown, Mail, FileText, Linkedin, Github, MapPin, Briefcase, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { usePublishedResumes } from '@/hooks/use-published-resumes';
 
 export function HeroSection() {
+  const resumes = usePublishedResumes();
+
   const scrollToNext = () => {
     document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -150,19 +153,23 @@ export function HeroSection() {
               this page is public and a tel: link on a public page is a scraper
               target, whereas a recruiter who downloads the PDF has the number.
               The slot is more useful pointing at the résumé anyway.
+
+              Absent while nothing is published, because /resume 404s then.
             */}
-            <motion.a
-              href="/resume"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.1, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-green-400 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
-              aria-label="Résumé"
-            >
-              <FileText className="w-6 h-6" />
-            </motion.a>
-            
+            {resumes.length > 0 && (
+              <motion.a
+                href="/resume"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-green-400 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
+                aria-label="Résumé"
+              >
+                <FileText className="w-6 h-6" />
+              </motion.a>
+            )}
+
             <motion.a
               href="https://www.linkedin.com/in/kaushal-bhatt-5aa73511b/"
               target="_blank"

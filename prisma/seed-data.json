@@ -564,134 +564,140 @@
       }
     ]
   },
-  "resume": {
-    "fullName": "Kaushal Bhatt",
-    "headline": "Senior Backend Engineer · Java · Spring Boot · Kafka · AWS",
-    "location": "Dehradun, India — open to EU relocation (Blue Card eligible)",
-    "email": "kaushalbhatt28650@gmail.com",
-    "phone": "+91 8126270902",
-    "linkedin": "linkedin.com/in/kaushal-bhatt-5aa73511b",
-    "github": "github.com/kaushal-bhatt",
-    "website": "wekt.in",
-    "summary": "Senior Backend Engineer with 7 years building and operating event-driven microservices across fintech, crypto custody and e-commerce. Java, Spring Boot, Apache Kafka and AWS. Authored a platform-wide JWT/WebAuthn authentication framework at RockWallet and sustain 99.9% uptime across a 17-service monorepo. Open to relocation.",
-    "skills": [
-      {
-        "label": "Languages & Frameworks",
-        "items": "Java (11 / 17 / 21), Spring Boot, Spring Security, Spring MVC, Hibernate / JPA, SQL, Python"
-      },
-      {
-        "label": "Distributed & Cloud",
-        "items": "Apache Kafka, AWS MSK, SQS / SNS, EC2, S3, SageMaker, Docker, Kubernetes, Terraform, Jenkins, GitHub Actions"
-      },
-      {
-        "label": "Data & Security",
-        "items": "PostgreSQL, MySQL, MongoDB, Redis, DynamoDB, Flyway, JWT / OAuth2, WebAuthn, HashiCorp Vault, Datadog"
-      },
-      {
-        "label": "Architecture",
-        "items": "Microservices, Event-Driven Architecture, REST APIs, Distributed Systems, High Availability, CI/CD, Agile / Scrum"
-      }
-    ],
-    "experience": [
-      {
-        "company": "RockWallet (Bayes Fintech Inc.)",
-        "role": "Senior Backend Engineer",
-        "period": "Dec 2024 – Present",
-        "location": "Remote",
-        "context": "Regulated crypto wallet and custody platform — Java 21, Spring Boot, Kafka, AWS",
-        "bullets": [
-          "Authored an annotation-based JWT authentication framework with WebAuthn passkeys and service-to-service auth, adopted across all 17 microservices.",
-          "Designed and operate the Kafka / AWS MSK (TLS) event backbone linking wallet, KYC/AML, payments and notification services.",
-          "Removed redeploys for runtime configuration changes by building a zero-downtime configuration server used platform-wide.",
-          "Shipped cross-chain transaction syncing and fiat payment flows; integrated Fireblocks custody and CoinMarketCap market data.",
-          "Raised reliability 25% with circuit breakers, failover design and Datadog/CloudWatch alerting; sustain 99.9% uptime on 24/7 on-call."
-        ]
-      },
-      {
-        "company": "EPAM Systems (client: Thomson Reuters)",
-        "role": "Senior Software Engineer",
-        "period": "Feb 2024 – Dec 2024",
-        "location": "Remote",
-        "context": "",
-        "bullets": [
-          "Cut the operations team's manual workload from 100% to 10% by shipping runtime document generation with summarisation on an LLM-integrated content platform.",
-          "Improved system uptime 25% by leading a SOAP/REST service-oriented integration redesign.",
-          "Held 95%+ automated test coverage with JUnit and Mockito, reducing production defects 20%.",
-          "Cut junior onboarding time 40% with a structured mentorship programme built for the account."
-        ]
-      },
-      {
-        "company": "Ibosstech Solutions (SCALONG)",
-        "role": "Java Kafka Developer",
-        "period": "Jul 2022 – Dec 2023",
-        "location": "Noida, India",
-        "context": "",
-        "bullets": [
-          "Scaled elastically past 10,000 daily transactions by leading 6 engineers off a monolith onto AWS microservices with Kafka async processing.",
-          "Cut manual inspection 70% and raised fraud detection 55% with a real-time risk pipeline — XGBoost on AWS SageMaker over Kafka streams.",
-          "Reduced system latency 57% through query optimisation, asynchronous processing and Redis caching.",
-          "Halved deployment time with CI/CD pipelines; wrote 8 microservices end to end and ran 24/7 production on-call."
-        ]
-      },
-      {
-        "company": "Boutiqaat",
-        "role": "Software Development Engineer",
-        "period": "Jan 2022 – Jul 2022",
-        "location": "Gurgaon, India",
-        "context": "",
-        "bullets": [
-          "Handled 1M+ transactions daily with a Kafka-based distributed pricing engine centralising pricing across KSA warehouses.",
-          "Led migration of a Magento storefront to Java microservices; pricing accuracy and delivery routing lifted sales 15–38%."
-        ]
-      },
-      {
-        "company": "Lenskart",
-        "role": "Software Development Engineer",
-        "period": "Nov 2019 – Jan 2022",
-        "location": "Faridabad, India",
-        "context": "",
-        "bullets": [
-          "Cut delivery time from 7 days to 3 by automating order synchronisation with third-party inventory over an event-driven Kafka architecture.",
-          "Removed 40% of the refund-operations workload with a refund-automation system driven by order state.",
-          "Recognised as Best Performer of the Year; received the \"Knight Award\" three times."
-        ]
-      }
-    ],
-    "projects": [
-      {
-        "name": "auth-platform",
-        "tagline": "JWT + WebAuthn passkey authentication platform. RS256/JWKS, refresh-token rotation under row locks, signing keys encrypted at rest. Live, with a passkey demo anyone can run.",
-        "liveUrl": "https://auth.wekt.in",
-        "repoUrl": "https://github.com/kaushal-bhatt/auth-platform"
-      },
-      {
-        "name": "multichain-sync-poc",
-        "tagline": "Pluggable block-sync engine for UTXO chains — survives duplicate delivery, out-of-order delivery, unparseable blocks and workers that die mid-block.",
-        "liveUrl": "https://kaushal-bhatt.github.io/multichain-sync-poc/",
-        "repoUrl": "https://github.com/kaushal-bhatt/multichain-sync-poc"
-      },
-      {
-        "name": "kafka-wikimedia-stream-pipeline",
-        "tagline": "Bridges Wikimedia's live SSE edit stream into Kafka, with a companion module of producer/consumer patterns: partitioning, callbacks, graceful shutdown, cooperative rebalancing.",
-        "liveUrl": "https://kaushal-bhatt.github.io/kafka-wikimedia-stream-pipeline/",
-        "repoUrl": "https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline"
-      },
-      {
-        "name": "wekt.in",
-        "tagline": "Portfolio and technical blog. Next.js and Postgres on my own server, deployed by CI; the admin panel authenticates through auth-platform over an OAuth2 authorization-code flow.",
-        "liveUrl": "https://wekt.in",
-        "repoUrl": "https://github.com/kaushal-bhatt/kaushal-portfolio"
-      }
-    ],
-    "education": [
-      {
-        "degree": "B.Tech, Computer Science",
-        "institution": "Swami Rama Himalayan University (SRHU)",
-        "location": "Dehradun, India",
-        "period": "2015 – 2019"
-      }
-    ],
-    "certifications": "Oracle Java SE 8 Programmer (trained) · Architecting on AWS, AWS-authorised (trained) · DevOps & CI/CD Foundations, LinkedIn Learning",
-    "languages": "English (Professional, B2) · Hindi (Native) · German (A1–A2, in progress)"
-  }
+  "resumes": [
+    {
+      "slug": "senior-backend-engineer",
+      "label": "Senior Backend Engineer",
+      "published": true,
+      "order": 0,
+      "fullName": "Kaushal Bhatt",
+      "headline": "Senior Backend Engineer · Java · Spring Boot · Kafka · AWS",
+      "location": "Dehradun, India — open to EU relocation (Blue Card eligible)",
+      "email": "kaushalbhatt28650@gmail.com",
+      "phone": "+91 8126270902",
+      "linkedin": "linkedin.com/in/kaushal-bhatt-5aa73511b",
+      "github": "github.com/kaushal-bhatt",
+      "website": "wekt.in",
+      "summary": "Senior Backend Engineer with 7 years building and operating event-driven microservices across fintech, crypto custody and e-commerce. Java, Spring Boot, Apache Kafka and AWS. Authored a platform-wide JWT/WebAuthn authentication framework at RockWallet and sustain 99.9% uptime across a 17-service monorepo. Open to relocation.",
+      "skills": [
+        {
+          "label": "Languages & Frameworks",
+          "items": "Java (11 / 17 / 21), Spring Boot, Spring Security, Spring MVC, Hibernate / JPA, SQL, Python"
+        },
+        {
+          "label": "Distributed & Cloud",
+          "items": "Apache Kafka, AWS MSK, SQS / SNS, EC2, S3, SageMaker, Docker, Kubernetes, Terraform, Jenkins, GitHub Actions"
+        },
+        {
+          "label": "Data & Security",
+          "items": "PostgreSQL, MySQL, MongoDB, Redis, DynamoDB, Flyway, JWT / OAuth2, WebAuthn, HashiCorp Vault, Datadog"
+        },
+        {
+          "label": "Architecture",
+          "items": "Microservices, Event-Driven Architecture, REST APIs, Distributed Systems, High Availability, CI/CD, Agile / Scrum"
+        }
+      ],
+      "experience": [
+        {
+          "company": "RockWallet (Bayes Fintech Inc.)",
+          "role": "Senior Backend Engineer",
+          "period": "Dec 2024 – Present",
+          "location": "Remote",
+          "context": "Regulated crypto wallet and custody platform — Java 21, Spring Boot, Kafka, AWS",
+          "bullets": [
+            "Authored an annotation-based JWT authentication framework with WebAuthn passkeys and service-to-service auth, adopted across all 17 microservices.",
+            "Designed and operate the Kafka / AWS MSK (TLS) event backbone linking wallet, KYC/AML, payments and notification services.",
+            "Removed redeploys for runtime configuration changes by building a zero-downtime configuration server used platform-wide.",
+            "Shipped cross-chain transaction syncing and fiat payment flows; integrated Fireblocks custody and CoinMarketCap market data.",
+            "Raised reliability 25% with circuit breakers, failover design and Datadog/CloudWatch alerting; sustain 99.9% uptime on 24/7 on-call."
+          ]
+        },
+        {
+          "company": "EPAM Systems (client: Thomson Reuters)",
+          "role": "Senior Software Engineer",
+          "period": "Feb 2024 – Dec 2024",
+          "location": "Remote",
+          "context": "",
+          "bullets": [
+            "Cut the operations team's manual workload from 100% to 10% by shipping runtime document generation with summarisation on an LLM-integrated content platform.",
+            "Improved system uptime 25% by leading a SOAP/REST service-oriented integration redesign.",
+            "Held 95%+ automated test coverage with JUnit and Mockito, reducing production defects 20%.",
+            "Cut junior onboarding time 40% with a structured mentorship programme built for the account."
+          ]
+        },
+        {
+          "company": "Ibosstech Solutions (SCALONG)",
+          "role": "Java Kafka Developer",
+          "period": "Jul 2022 – Dec 2023",
+          "location": "Noida, India",
+          "context": "",
+          "bullets": [
+            "Scaled elastically past 10,000 daily transactions by leading 6 engineers off a monolith onto AWS microservices with Kafka async processing.",
+            "Cut manual inspection 70% and raised fraud detection 55% with a real-time risk pipeline — XGBoost on AWS SageMaker over Kafka streams.",
+            "Reduced system latency 57% through query optimisation, asynchronous processing and Redis caching.",
+            "Halved deployment time with CI/CD pipelines; wrote 8 microservices end to end and ran 24/7 production on-call."
+          ]
+        },
+        {
+          "company": "Boutiqaat",
+          "role": "Software Development Engineer",
+          "period": "Jan 2022 – Jul 2022",
+          "location": "Gurgaon, India",
+          "context": "",
+          "bullets": [
+            "Handled 1M+ transactions daily with a Kafka-based distributed pricing engine centralising pricing across KSA warehouses.",
+            "Led migration of a Magento storefront to Java microservices; pricing accuracy and delivery routing lifted sales 15–38%."
+          ]
+        },
+        {
+          "company": "Lenskart",
+          "role": "Software Development Engineer",
+          "period": "Nov 2019 – Jan 2022",
+          "location": "Faridabad, India",
+          "context": "",
+          "bullets": [
+            "Cut delivery time from 7 days to 3 by automating order synchronisation with third-party inventory over an event-driven Kafka architecture.",
+            "Removed 40% of the refund-operations workload with a refund-automation system driven by order state.",
+            "Recognised as Best Performer of the Year; received the \"Knight Award\" three times."
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "auth-platform",
+          "tagline": "JWT + WebAuthn passkey authentication platform. RS256/JWKS, refresh-token rotation under row locks, signing keys encrypted at rest. Live, with a passkey demo anyone can run.",
+          "liveUrl": "https://auth.wekt.in",
+          "repoUrl": "https://github.com/kaushal-bhatt/auth-platform"
+        },
+        {
+          "name": "multichain-sync-poc",
+          "tagline": "Pluggable block-sync engine for UTXO chains — survives duplicate delivery, out-of-order delivery, unparseable blocks and workers that die mid-block.",
+          "liveUrl": "https://kaushal-bhatt.github.io/multichain-sync-poc/",
+          "repoUrl": "https://github.com/kaushal-bhatt/multichain-sync-poc"
+        },
+        {
+          "name": "kafka-wikimedia-stream-pipeline",
+          "tagline": "Bridges Wikimedia's live SSE edit stream into Kafka, with a companion module of producer/consumer patterns: partitioning, callbacks, graceful shutdown, cooperative rebalancing.",
+          "liveUrl": "https://kaushal-bhatt.github.io/kafka-wikimedia-stream-pipeline/",
+          "repoUrl": "https://github.com/kaushal-bhatt/kafka-wikimedia-stream-pipeline"
+        },
+        {
+          "name": "wekt.in",
+          "tagline": "Portfolio and technical blog. Next.js and Postgres on my own server, deployed by CI; the admin panel authenticates through auth-platform over an OAuth2 authorization-code flow.",
+          "liveUrl": "https://wekt.in",
+          "repoUrl": "https://github.com/kaushal-bhatt/kaushal-portfolio"
+        }
+      ],
+      "education": [
+        {
+          "degree": "B.Tech, Computer Science",
+          "institution": "Swami Rama Himalayan University (SRHU)",
+          "location": "Dehradun, India",
+          "period": "2015 – 2019"
+        }
+      ],
+      "certifications": "Oracle Java SE 8 Programmer (trained) · Architecting on AWS, AWS-authorised (trained) · DevOps & CI/CD Foundations, LinkedIn Learning",
+      "languages": "English (Professional, B2) · Hindi (Native) · German (A1–A2, in progress)"
+    }
+  ]
 }

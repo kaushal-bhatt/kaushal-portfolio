@@ -17,31 +17,26 @@ import { Button } from '@/components/ui/button';
  * The title swap is for the filename: browsers name the saved PDF after
  * `document.title`, so without this it saves as whatever reads well in a tab.
  * It is restored on `afterprint` rather than on the next line, because the
- * dialog outlives the call in some browsers and the tab would sit there
- * showing the filename.
+ * dialog outlives the call in some browsers and the tab would sit there showing
+ * the filename. Both strings are passed in, because with several résumés the
+ * right filename is a property of the one being looked at.
  */
-const PDF_FILENAME = 'Kaushal_Bhatt_Senior_Backend_Engineer';
-
-export function ResumePrintButton() {
+export function ResumePrintButton({ filename, title }: { filename: string; title: string }) {
   useEffect(() => {
     const restore = () => {
-      document.title = 'Kaushal Bhatt — Résumé';
+      document.title = title;
     };
     window.addEventListener('afterprint', restore);
     return () => window.removeEventListener('afterprint', restore);
-  }, []);
+  }, [title]);
 
   const print = () => {
-    document.title = PDF_FILENAME;
+    document.title = filename;
     window.print();
   };
 
   return (
-    <Button
-      onClick={print}
-      className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-      size="sm"
-    >
+    <Button onClick={print} className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg" size="sm">
       <Download className="w-4 h-4 mr-2" />
       Download PDF
     </Button>

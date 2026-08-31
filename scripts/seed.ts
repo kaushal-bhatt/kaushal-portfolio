@@ -87,13 +87,17 @@ type SeedData = {
     }>;
   };
   /**
-   * The /resume record. Typed loosely on purpose: `skills`, `experience`,
+   * The /resume records. Typed loosely on purpose: `skills`, `experience`,
    * `projects` and `education` are Json columns, and repeating their shape here
    * would put a second definition of it next to the one in lib/resume.ts that
    * the page actually reads through. That file narrows at the point of use,
    * which is where a wrong shape needs catching.
    */
-  resume: {
+  resumes: Array<{
+    slug: string;
+    label: string;
+    published: boolean;
+    order: number;
     fullName: string;
     headline: string;
     location: string;
@@ -109,7 +113,7 @@ type SeedData = {
     education: unknown;
     certifications: string;
     languages: string;
-  };
+  }>;
 };
 
 const force = process.env.SEED_FORCE === 'true';
@@ -254,23 +258,27 @@ async function main() {
     );
   }
 
-  // The résumé, upserted on its fixed id like AboutContent — the row may not
-  // exist yet on a fresh database, and there must never be a second one.
+  // The résumés, upserted on the slug. Nothing is pruned here, unlike the
+  // other tables: an unpublished résumé that is no longer in the fixture is the
+  // history of the document, and deleting it is exactly what keeping several
+  // rows was for.
   if (await shouldSeed('Resume', await prisma.resume.count())) {
-    const { skills, experience, projects, education, ...scalars } = data.resume;
-    const record = {
-      ...scalars,
-      skills: skills as Prisma.InputJsonValue,
-      experience: experience as Prisma.InputJsonValue,
-      projects: projects as Prisma.InputJsonValue,
-      education: education as Prisma.InputJsonValue,
-    };
-    await prisma.resume.upsert({
-      where: { id: 'main' },
-      update: record,
-      create: { id: 'main', ...record },
-    });
-    console.log('✅ Resume: 1 entry');
+    for (const resume of data.resumes) {
+      const { skills, experience, projects, education, ...scalars } = resume;
+      const record = {
+        ...scalars,
+        skills: skills as Prisma.InputJsonValue,
+        experience: experience as Prisma.InputJsonValue,
+        projects: projects as Prisma.InputJsonValue,
+        education: education as Prisma.InputJsonValue,
+      };
+      await prisma.resume.upsert({
+        where: { slug: resume.slug },
+        update: record,
+        create: record,
+      });
+    }
+    console.log(`✅ Resume: ${data.resumes.length} entries`);
   }
 
   console.log('🎉 Seeding complete');

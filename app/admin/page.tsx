@@ -90,7 +90,7 @@ export default function AdminDashboard() {
                   Résumé
                 </CardTitle>
                 <CardDescription>
-                  Edit the document behind /resume — the one that prints to PDF
+                  Every version of the CV — edit, publish, unpublish, duplicate
                 </CardDescription>
               </CardHeader>
               <CardContent>

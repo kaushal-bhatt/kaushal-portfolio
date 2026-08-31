@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { aboutColor, aboutIcon } from '@/lib/about-visuals';
 import { renderMarkdown } from '@/lib/markdown';
+import { usePublishedResumes } from '@/hooks/use-published-resumes';
 
 /**
  * Everything here used to be three hardcoded arrays in this file, so a new skill
@@ -49,6 +50,8 @@ export function AboutSection() {
   const [skills, setSkills] = useState<AboutSkill[]>([]);
   const [stats, setStats] = useState<AboutStat[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const resumes = usePublishedResumes();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -189,45 +192,67 @@ export function AboutSection() {
           reading an engineer's site is usually looking for exactly one artefact,
           and until now the only way to get it was to ask.
 
-          A link rather than a file download — /resume renders from the same
-          database as everything above it, so there is no PDF sitting in a repo
-          quietly going out of date. The PDF is made on demand from that page.
+          A link rather than a file download — /resume/<slug> renders from the
+          same database as everything above it, so there is no PDF sitting in a
+          repo quietly going out of date. The PDF is made on demand from that
+          page.
+
+          One button per published résumé. Unlike the navigation, which gets a
+          single entry, this is the surface where having a second differently
+          angled CV is worth showing — and when nothing is published the whole
+          band is absent rather than sitting there linking to a 404.
         */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-8 sm:mt-12"
-        >
-          <div className="rounded-xl border border-blue-500/30 bg-gradient-to-r from-blue-600/15 via-purple-600/10 to-blue-600/15 p-6 sm:p-8">
-            <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-4">
-                <div className="hidden flex-shrink-0 rounded-lg bg-blue-500/15 p-3 sm:block">
-                  <FileText className="h-6 w-6 text-blue-300" />
+        {resumes.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="mt-8 sm:mt-12"
+          >
+            <div className="rounded-xl border border-blue-500/30 bg-gradient-to-r from-blue-600/15 via-purple-600/10 to-blue-600/15 p-6 sm:p-8">
+              <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="hidden flex-shrink-0 rounded-lg bg-blue-500/15 p-3 sm:block">
+                    <FileText className="h-6 w-6 text-blue-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white sm:text-2xl">Résumé</h3>
+                    <p className="mt-1.5 max-w-xl text-sm text-gray-300 sm:text-base">
+                      The two-page version — seven years of roles, the stack, and links to
+                      everything of mine that is running live. Opens in the browser; the same
+                      page saves as a PDF.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white sm:text-2xl">Résumé</h3>
-                  <p className="mt-1.5 max-w-xl text-sm text-gray-300 sm:text-base">
-                    The two-page version — seven years of roles, the stack, and links to
-                    everything of mine that is running live. Opens in the browser; the same
-                    page saves as a PDF.
-                  </p>
+
+                <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-shrink-0 sm:flex-row">
+                  {resumes.map((resume) => (
+                    <Button
+                      key={resume.slug}
+                      asChild
+                      size="lg"
+                      className="w-full bg-blue-600 text-white shadow-xl transition-all duration-300 hover:bg-blue-700 hover:shadow-2xl sm:w-auto"
+                    >
+                      <a
+                        href={`/resume/${resume.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {/*
+                          The label is the button text once there is more than
+                          one — "View Résumé" twice would be two buttons that
+                          look identical and are not.
+                        */}
+                        {resumes.length > 1 ? resume.label : 'View Résumé'}
+                        <ArrowUpRight className="ml-2 h-5 w-5" />
+                      </a>
+                    </Button>
+                  ))}
                 </div>
               </div>
-
-              <Button
-                asChild
-                size="lg"
-                className="w-full flex-shrink-0 bg-blue-600 text-white shadow-xl transition-all duration-300 hover:bg-blue-700 hover:shadow-2xl sm:w-auto"
-              >
-                <a href="/resume" target="_blank" rel="noopener noreferrer">
-                  View Résumé
-                  <ArrowUpRight className="ml-2 h-5 w-5" />
-                </a>
-              </Button>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
       </div>
     </section>
   );
