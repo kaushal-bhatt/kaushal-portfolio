@@ -20,18 +20,15 @@ export default function Home() {
           <div className="text-center">
             {/*
               This used to say "Built with Next.js and passion for great
-              software", which every portfolio footer says and which tells a
-              reader nothing. What is actually true here is more interesting and
-              costs the same line.
+              software", which every portfolio footer says. It is not the place
+              for a stack listing either — a footer gets one line, and the one
+              worth spending it on is what the reader should do next.
             */}
             <p className="text-gray-400">
               © {new Date().getFullYear()} Kaushal Bhatt
             </p>
-            <p className="mt-2 text-sm text-gray-500 max-w-2xl mx-auto">
-              Next.js and Postgres on one box I run myself &mdash; Caddy terminating TLS for three
-              domains, four containers, deployed by CI on every push to <code className="text-gray-400">main</code>.
-              The admin panel holds no credentials: it signs in with a passkey, through my own
-              auth service.
+            <p className="mt-2 text-sm text-gray-500">
+              Designed, built and run by me &mdash; open to Senior Backend Engineer roles across the EU.
             </p>
             <div className="flex justify-center space-x-6 mt-4">
               <a
