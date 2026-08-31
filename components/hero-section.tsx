@@ -60,14 +60,30 @@ export function HeroSection() {
             transition={{ delay: 0.8, duration: 0.8 }}
             className="mb-12"
           >
+            {/*
+              Leads with e-commerce scale rather than with the auth work. The
+              auth framework is the most interesting thing I have built, but it
+              is not the thing a recruiter is scanning for — traffic is, and the
+              two consumer platforms are where the traffic was. RockWallet comes
+              third here because "currently" carries it anyway.
+
+              Company names and figures are white rather than another accent
+              colour: four coloured technology words is already the limit before
+              the paragraph stops reading as a sentence.
+            */}
             <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-4">
-              I design and operate high-throughput, event-driven microservices in regulated
-              fintech, crypto custody and e-commerce &mdash; <span className="text-blue-400 font-semibold">Java</span>,
+              I build event-driven backends for systems that carry real traffic. Order processing
+              at national scale for <span className="text-white font-semibold">Lenskart</span> &mdash;
+              Kafka-driven inventory synchronisation that cut delivery from seven days to three.
+              A distributed pricing engine across Saudi warehouses at{' '}
+              <span className="text-white font-semibold">Boutiqaat</span>, carrying{' '}
+              <span className="text-white font-semibold">over a million transactions a day</span>.
+              Now regulated fintech: the wallet and custody platform at{' '}
+              <span className="text-white font-semibold">RockWallet</span>, where I authored the
+              JWT + passkey auth framework all 17 services run on. <span className="text-blue-400 font-semibold">Java</span>,
               <span className="text-green-400 font-semibold"> Spring Boot</span>,
-              <span className="text-purple-400 font-semibold"> Apache Kafka</span> and
-              <span className="text-yellow-400 font-semibold"> AWS</span>. Currently building the
-              wallet &amp; custody platform at RockWallet, where I authored the annotation-based
-              JWT + passkey auth framework used across every service.
+              <span className="text-purple-400 font-semibold"> Apache Kafka</span>,
+              <span className="text-yellow-400 font-semibold"> AWS</span>.
             </p>
           </motion.div>
 

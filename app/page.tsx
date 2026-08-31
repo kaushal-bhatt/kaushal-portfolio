@@ -18,8 +18,20 @@ export default function Home() {
       <footer className="py-12 bg-slate-900 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
+            {/*
+              This used to say "Built with Next.js and passion for great
+              software", which every portfolio footer says and which tells a
+              reader nothing. What is actually true here is more interesting and
+              costs the same line.
+            */}
             <p className="text-gray-400">
-              © {new Date().getFullYear()} Kaushal Bhatt. Built with Next.js and passion for great software.
+              © {new Date().getFullYear()} Kaushal Bhatt
+            </p>
+            <p className="mt-2 text-sm text-gray-500 max-w-2xl mx-auto">
+              Next.js and Postgres on one box I run myself &mdash; Caddy terminating TLS for three
+              domains, four containers, deployed by CI on every push to <code className="text-gray-400">main</code>.
+              The admin panel holds no credentials: it signs in with a passkey, through my own
+              auth service.
             </p>
             <div className="flex justify-center space-x-6 mt-4">
               <a
