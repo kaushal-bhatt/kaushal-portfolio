@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { prisma } from '@/lib/db';
+import { getResume } from '@/lib/resume';
 import { ResumeDocument } from '@/components/resume-document';
 import { ResumePrintButton } from '@/components/resume-print-button';
 
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ResumePage() {
-  const resume = await prisma.resume.findUnique({ where: { id: 'main' } });
+  const resume = await getResume();
 
   // A 404 rather than an empty template: an address that answers with a résumé
   // shaped hole is worse than one that says there is nothing here.

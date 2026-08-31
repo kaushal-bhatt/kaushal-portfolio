@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase, FolderGit2, User } from 'lucide-react';
+import { FileText, Briefcase, FolderGit2, User, ScrollText } from 'lucide-react';
 
 export default function AdminDashboard() {
 
@@ -78,6 +78,23 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <Button className="w-full">Manage About</Button>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/resume">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <ScrollText className="mr-2 h-5 w-5" />
+                  Résumé
+                </CardTitle>
+                <CardDescription>
+                  Edit the document behind /resume — the one that prints to PDF
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">Manage Résumé</Button>
               </CardContent>
             </Card>
           </Link>

@@ -1,5 +1,8 @@
+import { prisma } from '@/lib/db';
+
 /**
- * Shapes for the structured columns on `Resume`.
+ * Shapes for the structured columns on `Resume`, and the readers that narrow
+ * into them.
  *
  * Prisma types a `Json` column as `Prisma.JsonValue`, which is honest — the
  * database will hold whatever was written into it, and nothing checks that a
@@ -7,9 +10,14 @@
  * rather than casts: each one drops anything that does not look like the row it
  * expects, and the page renders the rest.
  *
- * The alternative was `as ResumeExperience[]`, which turns a typo in one bullet
- * into a blank page rather than one missing line.
+ * The same readers run on the way *in*, over the admin form's payload. Both
+ * directions are boundaries with untyped data on the far side, and one set of
+ * rules for both means the editor cannot save a shape the page then refuses to
+ * render. They trim, and drop rows that came out empty, so a blank line left in
+ * a textarea does not become a bullet point.
  */
+
+export const RESUME_ID = 'main';
 
 export interface ResumeSkillGroup {
   label: string;
@@ -45,11 +53,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function str(value: unknown): string {
-  return typeof value === 'string' ? value : '';
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 function strList(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+  if (!Array.isArray(value)) return [];
+  return value.map(str).filter(Boolean);
 }
 
 /** Maps over a Json column that should hold an array of objects, dropping the rest. */
@@ -117,4 +126,100 @@ export function readEducation(value: unknown): ResumeEducation[] {
  */
 export function displayUrl(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+}
+
+// ---------------------------------------------------------------------------
+// Reading and writing the row
+// ---------------------------------------------------------------------------
+
+/**
+ * What the admin form starts from when the row does not exist yet.
+ *
+ * Empty rather than a sample CV: a template someone forgets to finish is worse
+ * than a blank one, because it looks finished.
+ */
+export const RESUME_DEFAULTS = {
+  fullName: '',
+  headline: '',
+  location: '',
+  email: '',
+  phone: '',
+  linkedin: '',
+  github: '',
+  website: '',
+  summary: '',
+  skills: [] as ResumeSkillGroup[],
+  experience: [] as ResumeExperience[],
+  projects: [] as ResumeProject[],
+  education: [] as ResumeEducation[],
+  certifications: '',
+  languages: '',
+};
+
+/** The whole record, with the Json columns already narrowed. */
+export type ResumeContent = typeof RESUME_DEFAULTS;
+
+export async function getResume(): Promise<ResumeContent | null> {
+  const row = await prisma.resume.findUnique({ where: { id: RESUME_ID } });
+  if (!row) return null;
+
+  return {
+    fullName: row.fullName,
+    headline: row.headline,
+    location: row.location,
+    email: row.email,
+    phone: row.phone ?? '',
+    linkedin: row.linkedin,
+    github: row.github,
+    website: row.website,
+    summary: row.summary,
+    skills: readSkills(row.skills),
+    experience: readExperience(row.experience),
+    projects: readProjects(row.projects),
+    education: readEducation(row.education),
+    certifications: row.certifications,
+    languages: row.languages,
+  };
+}
+
+/**
+ * Turns whatever the admin form posted into a record safe to write.
+ *
+ * Returns the reason instead when a required field is missing. The four
+ * required ones are the four the page cannot render around: a résumé with no
+ * name is not a résumé, and a blank summary leaves a labelled empty box at the
+ * top of the document. Everything else may legitimately be empty — there is no
+ * rule that a CV must list certifications.
+ */
+export function normaliseResumeInput(
+  input: unknown
+): { ok: true; value: ResumeContent } | { ok: false; error: string } {
+  if (!isRecord(input)) return { ok: false, error: 'Expected an object' };
+
+  const value: ResumeContent = {
+    fullName: str(input.fullName),
+    headline: str(input.headline),
+    location: str(input.location),
+    email: str(input.email),
+    phone: str(input.phone),
+    linkedin: str(input.linkedin),
+    github: str(input.github),
+    website: str(input.website),
+    summary: str(input.summary),
+    skills: readSkills(input.skills),
+    experience: readExperience(input.experience),
+    projects: readProjects(input.projects),
+    education: readEducation(input.education),
+    certifications: str(input.certifications),
+    languages: str(input.languages),
+  };
+
+  const missing = (['fullName', 'headline', 'email', 'summary'] as const).filter(
+    (field) => !value[field]
+  );
+  if (missing.length > 0) {
+    return { ok: false, error: `Required: ${missing.join(', ')}` };
+  }
+
+  return { ok: true, value };
 }

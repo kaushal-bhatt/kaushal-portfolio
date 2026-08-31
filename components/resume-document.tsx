@@ -1,11 +1,4 @@
-import type { Resume } from '@prisma/client';
-import {
-  displayUrl,
-  readEducation,
-  readExperience,
-  readProjects,
-  readSkills,
-} from '@/lib/resume';
+import { displayUrl, type ResumeContent } from '@/lib/resume';
 
 /**
  * The résumé, as an A4 sheet.
@@ -21,11 +14,8 @@ import {
  * silently. The styling here is all vertical rhythm and type weight, which
  * costs nothing on the way through a parser.
  */
-export function ResumeDocument({ resume }: { resume: Resume }) {
-  const skills = readSkills(resume.skills);
-  const experience = readExperience(resume.experience);
-  const projects = readProjects(resume.projects);
-  const education = readEducation(resume.education);
+export function ResumeDocument({ resume }: { resume: ResumeContent }) {
+  const { skills, experience, projects, education } = resume;
 
   return (
     <article className="resume-sheet mx-auto w-full max-w-[210mm] bg-white text-slate-800 shadow-2xl print:shadow-none">
