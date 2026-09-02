@@ -23,7 +23,15 @@ export async function GET() {
     return NextResponse.json(await listResumes());
   } catch (error) {
     console.error('Résumé list error:', error);
-    return NextResponse.json({ error: 'Failed to list résumés' }, { status: 500 });
+
+    // The real reason, not a generic string. This route is behind the admin
+    // session, and the caller can already read the whole database through the
+    // panel — so there is nothing here a message could disclose that they do
+    // not already have. The first failure of this route was a column that did
+    // not exist yet, and "Failed to list résumés" sent the reader looking for
+    // deleted rows instead of an unapplied migration.
+    const detail = error instanceof Error ? error.message.split('\n')[0] : String(error);
+    return NextResponse.json({ error: `Failed to list résumés — ${detail}` }, { status: 500 });
   }
 }
 

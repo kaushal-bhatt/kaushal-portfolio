@@ -39,11 +39,15 @@ export default function ResumeList() {
       if (response.ok) {
         setResumes(await response.json());
       } else {
-        setError('Failed to load résumés');
+        // The server's reason, not a generic string. The first time this fired
+        // it was a missing column, and "Failed to load résumés" sent the reader
+        // looking for deleted rows instead of an unapplied migration.
+        const body = await response.json().catch(() => ({}));
+        setError(body.error ?? `Failed to load résumés (HTTP ${response.status})`);
       }
     } catch (err) {
       console.error('Failed to load résumés:', err);
-      setError('Failed to load résumés');
+      setError('Failed to load résumés — the request did not complete.');
     }
   };
 
@@ -163,23 +167,32 @@ export default function ResumeList() {
       )}
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-normal text-slate-400">
-            {publishedCount === 0 ? (
-              <>
-                Nothing is published, so the résumé link is hidden everywhere on the site — the
-                navigation, the hero, the About band and the footer.
-              </>
-            ) : (
-              <>
-                {publishedCount} published. A bare <code className="text-slate-300">/resume</code>{' '}
-                lands on the one with the lowest order; the About band shows a button for each.
-              </>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {resumes === null && <p className="text-slate-400">Loading…</p>}
+        {/*
+          Only once the list has actually arrived. `publishedCount` is 0 while
+          `resumes` is null too, so this used to announce that nothing was
+          published during the load — and, worse, next to a failure, where it
+          read as a statement about the data rather than about not having any.
+        */}
+        {resumes !== null && (
+          <CardHeader>
+            <CardTitle className="text-base font-normal text-slate-400">
+              {publishedCount === 0 ? (
+                <>
+                  Nothing is published, so the résumé link is hidden everywhere on the site — the
+                  navigation, the hero, the About band and the footer.
+                </>
+              ) : (
+                <>
+                  {publishedCount} published. A bare{' '}
+                  <code className="text-slate-300">/resume</code> lands on the one with the lowest
+                  order; the About band shows a button for each.
+                </>
+              )}
+            </CardTitle>
+          </CardHeader>
+        )}
+        <CardContent className="space-y-3 pt-6">
+          {resumes === null && !error && <p className="text-slate-400">Loading…</p>}
 
           {resumes?.length === 0 && (
             <p className="text-sm text-slate-500">

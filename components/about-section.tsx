@@ -91,7 +91,24 @@ export function AboutSection() {
   }
 
   return (
-    <section id="about" ref={ref} className="py-20 bg-slate-800/50">
+    // `overflow-x-clip` is load-bearing, and the reason is not obvious.
+    //
+    // The two panels below animate in from the sides: the story starts at
+    // x:-50, the skill cards at x:+50, and neither moves until this section
+    // scrolls into view. So from the moment the page loads until someone
+    // scrolls this far, the skill cards sit 50px to the right of where they
+    // belong — and the document is that much wider than the screen.
+    //
+    // On a phone that is not a stray scrollbar, it is a zoom: the browser
+    // widens the layout viewport to fit the content it can see, so a 320px
+    // phone laid the page out at 400px and shrank everything to match. The
+    // symptom appeared site-wide and had nothing to do with the section that
+    // caused it. Measured before this line: viewport 400 on a 320px screen.
+    //
+    // `clip` rather than `hidden`: hidden would make this a scroll container,
+    // which changes how anything inside it can position itself. Decoration must
+    // not be able to change the width of the document.
+    <section id="about" ref={ref} className="py-20 bg-slate-800/50 overflow-x-clip">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
