@@ -248,3 +248,30 @@ model Resume {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// ---------------------------------------------------------------------------
+// The "book a call" section.
+//
+// One row, like AboutContent. Its own table rather than three more columns on
+// that one because it drives a separate section of the page — putting it there
+// would mean "About" was the place you go to edit something that is not the
+// About section.
+//
+// An empty `calendlyUrl` is the off switch: the section disappears, the
+// navigation entry with it, and no third-party script is ever requested. That
+// is also the state a fresh database starts in, so nothing has to be
+// configured for the site to be correct.
+// ---------------------------------------------------------------------------
+model Booking {
+  id String @id @default("main")
+
+  /// The full Calendly URL, e.g. https://calendly.com/kaushal/30min.
+  /// Empty means the whole section is off.
+  calendlyUrl String @default("")
+
+  heading       String @default("Book")
+  headingAccent String @default("a Call")
+  subtitle      String @db.Text @default("")
+
+  updatedAt DateTime @updatedAt
+}

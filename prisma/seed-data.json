@@ -699,5 +699,11 @@
       "certifications": "Oracle Java SE 8 Programmer (trained) · Architecting on AWS, AWS-authorised (trained) · DevOps & CI/CD Foundations, LinkedIn Learning",
       "languages": "English (Professional, B2) · Hindi (Native) · German (A1–A2, in progress)"
     }
-  ]
+  ],
+  "booking": {
+    "calendlyUrl": "",
+    "heading": "Book",
+    "headingAccent": "a Call",
+    "subtitle": "Thirty minutes, any timezone. Happy to talk through anything on this site."
+  }
 }

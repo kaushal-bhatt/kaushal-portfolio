@@ -4,6 +4,7 @@ import { HeroSection } from '@/components/hero-section';
 import { AboutSection } from '@/components/about-section';
 import { PortfolioSection } from '@/components/portfolio-section';
 import { BlogSection } from '@/components/blog-section';
+import { BookingSection } from '@/components/booking-section';
 import { ResumeFooterLink } from '@/components/resume-footer-link';
 
 export default function Home() {
@@ -14,7 +15,10 @@ export default function Home() {
       <AboutSection />
       <PortfolioSection />
       <BlogSection />
-      
+
+      {/* Renders nothing at all until a Calendly URL is set in /admin/booking. */}
+      <BookingSection />
+
       {/* Footer */}
       <footer className="py-12 bg-slate-900 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

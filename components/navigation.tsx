@@ -3,9 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, Home, User, Briefcase, BookOpen, FileText } from 'lucide-react';
+import { Menu, X, Home, User, Briefcase, BookOpen, FileText, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePublishedResumes } from '@/hooks/use-published-resumes';
+import { useBooking } from '@/hooks/use-booking';
 
 const baseNavItems = [
   { name: 'Home', href: '#hero', icon: Home, isScroll: true },
@@ -15,6 +16,8 @@ const baseNavItems = [
 ];
 
 const RESUME_ITEM = { name: 'Resume', href: '/resume', icon: FileText, isScroll: false };
+
+const BOOKING_ITEM = { name: 'Book a Call', href: '#booking', icon: CalendarDays, isScroll: true };
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,14 +34,25 @@ export function Navigation() {
     nav item that leads to a 404 is worse than no nav item.
   */
   const resumes = usePublishedResumes();
-  const navItems = resumes.length > 0 ? [...baseNavItems, RESUME_ITEM] : baseNavItems;
+  const booking = useBooking();
+
+  /*
+    Both entries are conditional on the thing they point at existing. The
+    booking one scrolls to a section that is not rendered until a Calendly URL
+    is set, and a nav item that scrolls nowhere is worse than no nav item.
+  */
+  const navItems = [
+    ...baseNavItems,
+    ...(resumes.length > 0 ? [RESUME_ITEM] : []),
+    ...(booking.calendlyUrl ? [BOOKING_ITEM] : []),
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
       
       // Update active section based on scroll position
-      const sections = ['hero', 'about', 'portfolio', 'blog'];
+      const sections = ['hero', 'about', 'portfolio', 'blog', 'booking'];
       const scrollPosition = window.scrollY + 100;
       
       for (const section of sections) {

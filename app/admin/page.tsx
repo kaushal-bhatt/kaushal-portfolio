@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase, FolderGit2, User, ScrollText } from 'lucide-react';
+import { FileText, Briefcase, FolderGit2, User, ScrollText, CalendarDays } from 'lucide-react';
 
 export default function AdminDashboard() {
 
@@ -78,6 +78,23 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <Button className="w-full">Manage About</Button>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/booking">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CalendarDays className="mr-2 h-5 w-5" />
+                  Book a Call
+                </CardTitle>
+                <CardDescription>
+                  The Calendly section — paste a URL to switch it on, clear it to switch it off
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">Manage Booking</Button>
               </CardContent>
             </Card>
           </Link>

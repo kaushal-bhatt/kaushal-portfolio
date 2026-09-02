@@ -114,6 +114,17 @@ type SeedData = {
     certifications: string;
     languages: string;
   }>;
+  /**
+   * The "book a call" section. `calendlyUrl` is empty in the fixture on
+   * purpose — the URL is a live third-party endpoint and belongs in the admin
+   * panel, not in a file that gets committed and read by anyone.
+   */
+  booking: {
+    calendlyUrl: string;
+    heading: string;
+    headingAccent: string;
+    subtitle: string;
+  };
 };
 
 const force = process.env.SEED_FORCE === 'true';
@@ -279,6 +290,18 @@ async function main() {
       });
     }
     console.log(`✅ Resume: ${data.resumes.length} entries`);
+  }
+
+  // The booking section, upserted on its fixed id like AboutContent. Seeding it
+  // does not switch it on: the fixture carries the copy and an empty URL, and
+  // an empty URL is the off position.
+  if (await shouldSeed('Booking', await prisma.booking.count())) {
+    await prisma.booking.upsert({
+      where: { id: 'main' },
+      update: data.booking,
+      create: { id: 'main', ...data.booking },
+    });
+    console.log('✅ Booking: 1 entry');
   }
 
   console.log('🎉 Seeding complete');
