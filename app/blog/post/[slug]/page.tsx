@@ -1,243 +1,236 @@
-
-'use client';
-
-import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Calendar, Tag, Share2, User } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { ArrowLeft, Calendar, Clock, Tag, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { safeTags } from '@/lib/safe-arrays';
+import { BlogShareButton } from '@/components/blog-share-button';
+import { getPublishedPost, metaDescription } from '@/lib/posts';
+import { resolveSite } from '@/lib/site';
 import { renderMarkdown } from '@/lib/markdown';
+import { safeTags } from '@/lib/safe-arrays';
 
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  technology: string;
-  published: boolean;
-  tags: string[];
-  readTime: number;
-  createdAt: string;
-  updatedAt: string;
-  authorName: string;
+/**
+ * A blog post.
+ *
+ * This was a client component that fetched itself in a `useEffect`, which had
+ * two costs. A crawler was handed an empty shell and had to run JavaScript to
+ * see any of the writing. And there was no `generateMetadata`, so all twelve
+ * posts inherited the root title — twelve articles competing in search as one
+ * page, under a heading that described none of them.
+ *
+ * It is a server component now. The only thing left that needs the browser is
+ * the share button.
+ *
+ * The entrance animations went with the conversion. They were three fades on a
+ * page of text, and they are what pulled framer-motion into the bundle. They
+ * are also the family of bug that widened the layout viewport twice — an
+ * animated offset is a real width until it finishes.
+ */
+
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const [post, site] = await Promise.all([getPublishedPost(params.slug), resolveSite()]);
+  if (!post) return { title: 'Article not found' };
+
+  const canonical = `/blog/post/${post.slug}`;
+  const description = metaDescription(post.excerpt);
+
+  return {
+    title: post.title,
+    description,
+    // Without this, a post reachable at more than one address competes with
+    // itself. It also tells a crawler which URL to show in a result.
+    alternates: { canonical },
+    openGraph: {
+      type: 'article',
+      title: post.title,
+      description,
+      url: canonical,
+      publishedTime: post.createdAt.toISOString(),
+      modifiedTime: post.updatedAt.toISOString(),
+      authors: [post.authorName],
+      tags: safeTags(post.tags),
+      ...(site.ogImageUrl ? { images: [site.ogImageUrl] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description,
+      ...(site.ogImageUrl ? { images: [site.ogImageUrl] } : {}),
+    },
+  };
 }
 
-export default function BlogPostPage() {
-  const router = useRouter();
-  const params = useParams();
-  const slug = params?.slug as string;
-  
-  const [post, setPost] = useState<BlogPost | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  const [post, site] = await Promise.all([getPublishedPost(params.slug), resolveSite()]);
 
-  useEffect(() => {
-    if (!slug) return;
+  // 404 for a draft as well as for a slug that never existed. A 403 would
+  // confirm that unpublished writing sits at that address.
+  if (!post) notFound();
 
-    const fetchPost = async () => {
-      try {
-        const response = await fetch(`/api/blog-posts/${slug}`);
-        if (response.ok) {
-          const postData = await response.json();
-          if (postData.published) {
-            setPost(postData);
-          } else {
-            setError('This post is not published yet.');
-          }
-        } else {
-          setError('Post not found.');
+  const tags = safeTags(post.tags);
+  const published = post.createdAt.toISOString();
+
+  /**
+   * Structured data. This is what puts an author, a date and a headline into a
+   * search result instead of a bare blue link, and it is the only part of this
+   * page a crawler reads rather than infers.
+   */
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: published,
+    dateModified: post.updatedAt.toISOString(),
+    author: { '@type': 'Person', name: post.authorName },
+    keywords: tags.join(', '),
+    articleSection: post.technology,
+    ...(site.host
+      ? {
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': `https://${site.host}/blog/post/${post.slug}`,
+          },
         }
-      } catch (error) {
-        console.error('Failed to fetch post:', error);
-        setError('Failed to load post.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [slug]);
-
-  const handleShare = () => {
-    if (navigator.share && post) {
-      navigator.share({
-        title: post.title,
-        text: post.excerpt,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      // You could show a toast notification here
-    }
+      : {}),
+    ...(site.ogImageUrl ? { image: site.ogImageUrl } : {}),
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading article...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !post) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Article Not Found</h1>
-          <p className="text-gray-400 mb-6">{error || 'The article you are looking for does not exist.'}</p>
-          <Link href="/blog">
-            <Button>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Blog
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-900">
+      {/*
+        The JSON-LD is a data block, not markup: it is serialised with
+        JSON.stringify and the closing-tag sequence is escaped, because a post
+        title containing `</script>` would otherwise end this element early.
+      */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
+
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="mb-6">
             <Link href="/blog">
-              <Button
-                variant="ghost"
-                className="text-white hover:bg-slate-800 mb-4"
-              >
+              <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Blog
               </Button>
             </Link>
           </div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="mb-4">
-              <Badge 
-                variant="outline" 
-                className="border-blue-600/30 text-blue-400 mb-4"
-              >
+
+          <div className="mb-4">
+            <Link href={`/blog/technology/${post.technology}`}>
+              <Badge variant="outline" className="border-blue-600/30 text-blue-400 mb-4">
                 {post.technology}
               </Badge>
+            </Link>
+          </div>
+
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
+            {post.title}
+          </h1>
+
+          <div className="flex flex-wrap items-center gap-4 text-gray-300">
+            <div className="flex items-center">
+              <User className="w-4 h-4 mr-2" />
+              <span>by {post.authorName}</span>
             </div>
-            
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
-              {post.title}
-            </h1>
-            
-            <div className="flex flex-wrap items-center gap-4 text-gray-300">
-              <div className="flex items-center">
-                <User className="w-4 h-4 mr-2" />
-                <span>by {post.authorName}</span>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-2" />
-                <span>{post.readTime} min read</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleShare}
-                className="text-gray-300 hover:text-white hover:bg-slate-800"
-              >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
+            <div className="flex items-center">
+              <Calendar className="w-4 h-4 mr-2" />
+              {/*
+                An explicit locale and a <time> element. `toLocaleDateString()`
+                with no argument formats differently on the server and in the
+                browser, which React reports as a hydration mismatch — and the
+                machine-readable dateTime is what a crawler reads.
+              */}
+              <time dateTime={published}>
+                {post.createdAt.toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </time>
             </div>
-          </motion.div>
+            <div className="flex items-center">
+              <Clock className="w-4 h-4 mr-2" />
+              <span>{post.readTime} min read</span>
+            </div>
+            <BlogShareButton title={post.title} text={post.excerpt} />
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-8 md:p-12">
-              {/* Article Content */}
-              {/*
-                No `prose` classes here: @tailwindcss/typography is not
-                installed, so they generated nothing and only suggested that
-                typography styling was in play. renderMarkdown emits its own.
-              */}
-              <div className="max-w-none">
-                {/*
-                  Still dangerouslySetInnerHTML, but renderMarkdown escapes the
-                  content before it formats anything — so a post body cannot
-                  inject markup. It also understands headings, code blocks and
-                  lists, which the previous two-rule replace turned into literal
-                  `#` and backticks.
-                */}
-                <div
-                  className="text-gray-300 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
-                />
-              </div>
-              
-              {/* Tags */}
-              {safeTags(post.tags).length > 0 && (
-                <div className="mt-12 pt-8 border-t border-slate-700">
-                  <h3 className="text-white font-semibold mb-4">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {safeTags(post.tags).map((tag) => (
-                      <Badge 
-                        key={tag}
+        <Card className="bg-slate-800 border-slate-700">
+          <CardContent className="p-8 md:p-12">
+            {/*
+              No `prose` classes here: @tailwindcss/typography is not installed,
+              so they generated nothing and only suggested that typography
+              styling was in play. renderMarkdown emits its own.
+
+              Still dangerouslySetInnerHTML, but renderMarkdown escapes the
+              content before it formats anything — so a post body cannot inject
+              markup.
+            */}
+            <div
+              className="text-gray-300 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+            />
+
+            {tags.length > 0 && (
+              <div className="mt-12 pt-8 border-t border-slate-700">
+                <h2 className="text-white font-semibold mb-4">Tags</h2>
+                <div className="flex flex-wrap gap-2">
+                  {/*
+                    Real links, not click handlers. They were badges with an
+                    onClick calling router.push, which meant this list needed
+                    the browser and a crawler saw nothing to follow.
+                  */}
+                  {tags.map((tag) => (
+                    <Link key={tag} href={`/blog?search=${encodeURIComponent(tag)}`}>
+                      <Badge
                         variant="secondary"
-                        className="bg-slate-700 text-gray-300 hover:bg-slate-600 cursor-pointer"
-                        onClick={() => router.push(`/blog?search=${encodeURIComponent(tag)}`)}
+                        className="bg-slate-700 text-gray-300 hover:bg-slate-600"
                       >
                         <Tag className="w-3 h-3 mr-1" />
                         {tag}
                       </Badge>
-                    ))}
-                  </div>
+                    </Link>
+                  ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-12 text-center"
-        >
+        <div className="mt-12 text-center">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/blog">
-              <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800">
+              <Button
+                variant="outline"
+                className="border-slate-600 text-slate-300 hover:bg-slate-800"
+              >
                 View All Articles
               </Button>
             </Link>
             <Link href="/">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                Back to Portfolio
-              </Button>
+              <Button className="bg-blue-600 hover:bg-blue-700">Back to Portfolio</Button>
             </Link>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
