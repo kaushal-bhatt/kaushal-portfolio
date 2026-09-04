@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { techIcon } from '@/lib/tech-visuals';
 import { safeTags } from '@/lib/safe-arrays';
 
 interface BlogPost {
@@ -84,19 +85,6 @@ export default function TechnologyBlogPage() {
     fetchData();
   }, [slug]);
 
-  const getIconComponent = (iconName: string) => {
-    const iconMap: { [key: string]: string } = {
-      Coffee: '☕',
-      Leaf: '🍃',
-      Database: '🗄️',
-      Workflow: '⚡',
-      Activity: '📊',
-      Brain: '🧠',
-      Zap: '⚡',
-      FileText: '📄'
-    };
-    return iconMap[iconName] || '📝';
-  };
 
   if (loading) {
     return (
@@ -149,7 +137,7 @@ export default function TechnologyBlogPage() {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <div className="text-4xl mb-4">{getIconComponent(techSection.icon)}</div>
+            <div className="text-4xl mb-4">{techIcon(techSection.icon)}</div>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
               {techSection.name} <span className="gradient-text">Articles</span>
             </h1>

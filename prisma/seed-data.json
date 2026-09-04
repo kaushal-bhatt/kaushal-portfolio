@@ -134,7 +134,7 @@
       "description": "The language and the runtime — concurrency, the JVM, and what its defaults decide for you",
       "icon": "Coffee",
       "order": 0,
-      "color": "#ED8936"
+      "color": "orange"
     },
     {
       "name": "Spring Boot",
@@ -142,7 +142,7 @@
       "description": "Microservices, Spring Security, configuration binding and resilience primitives",
       "icon": "Leaf",
       "order": 1,
-      "color": "#68D391"
+      "color": "green"
     },
     {
       "name": "PostgreSQL",
@@ -150,7 +150,7 @@
       "description": "Indexes, connection pools, and the database decisions that surface only under load",
       "icon": "Database",
       "order": 2,
-      "color": "#4299E1"
+      "color": "cyan"
     },
     {
       "name": "Kafka",
@@ -158,7 +158,7 @@
       "description": "Event-driven architecture, delivery guarantees and real-time data processing",
       "icon": "Workflow",
       "order": 3,
-      "color": "#9F7AEA"
+      "color": "purple"
     }
   ],
   "blogPosts": [
@@ -705,5 +705,51 @@
     "heading": "Book",
     "headingAccent": "a Call",
     "subtitle": "Thirty minutes, any timezone. Happy to talk through anything on this site."
+  },
+  "site": {
+    "host": "wekt.in",
+    "isDefault": true,
+    "fullName": "Kaushal Bhatt",
+    "headline": "Senior Backend Engineer · 7 years",
+    "locationLine": "Dehradun, India · Open to EU relocation (Blue Card eligible)",
+    "navBrand": "Kaushal Bhatt",
+    "heroGreeting": "Hi, I'm",
+    "heroIntro": "I build event-driven backends for systems that carry real traffic. Order processing at national scale for **Lenskart** — Kafka-driven inventory synchronisation that cut delivery from seven days to three. A distributed pricing engine across Saudi warehouses at **Boutiqaat**, carrying **over a million transactions a day**. Now regulated fintech: the wallet and custody platform at **RockWallet**, where I authored the JWT + passkey auth framework all 17 services run on. **Java**, **Spring Boot**, **Apache Kafka**, **AWS**.",
+    "primaryCtaLabel": "View My Work",
+    "demoUrl": "https://auth.wekt.in",
+    "demoLabel": "Try the Passkey Demo",
+    "email": "kaushalbhatt28650@gmail.com",
+    "linkedinUrl": "https://www.linkedin.com/in/kaushal-bhatt-5aa73511b/",
+    "githubUrl": "https://github.com/kaushal-bhatt",
+    "footerTagline": "Designed, built and run by me — open to Senior Backend Engineer roles across the EU.",
+    "experienceHeading": "Professional",
+    "experienceHeadingAccent": "Experience",
+    "experienceSubtitle": "A journey through impactful projects and technical achievements",
+    "projectsHeading": "My",
+    "projectsHeadingAccent": "Portfolio",
+    "projectsSubtitle": "A showcase of my technical projects, from enterprise microservices to modern web applications",
+    "blogHeading": "Technical",
+    "blogHeadingAccent": "Blog",
+    "blogSubtitle": "Sharing insights, best practices, and deep dives into modern technologies",
+    "blogPageHeading": "Technical",
+    "blogPageHeadingAccent": "Blog",
+    "blogPageSubtitle": "Insights, tutorials, and deep dives into modern technologies",
+    "contactHeading": "Interested in working together?",
+    "contactSubtitle": "Let's discuss how I can help bring your project to life",
+    "metaTitle": "Kaushal Bhatt - Senior Backend Engineer",
+    "metaDescription": "Senior Backend Engineer with 7 years building high-throughput, event-driven microservices in fintech and crypto custody. Java, Spring Boot, Kafka, AWS. Open to EU relocation.",
+    "metaKeywords": [
+      "Kaushal Bhatt",
+      "Backend Engineer",
+      "Java Developer",
+      "Spring Boot",
+      "Kafka",
+      "AWS",
+      "Microservices",
+      "WebAuthn",
+      "Passkeys"
+    ],
+    "ogImageUrl": "",
+    "accent": "blue"
   }
 }

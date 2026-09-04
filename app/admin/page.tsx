@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Briefcase, FolderGit2, User, ScrollText, CalendarDays } from 'lucide-react';
+import { FileText, Briefcase, FolderGit2, User, ScrollText, CalendarDays, Globe, Tags } from 'lucide-react';
 
 export default function AdminDashboard() {
 
@@ -14,6 +14,45 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/*
+            First card, because it is the one that owns the site's identity —
+            the name, the hero, the contact links and what a search result says.
+            Everything below it is content that hangs off that.
+          */}
+          <Link href="/admin/site">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Globe className="mr-2 h-5 w-5" />
+                  Site
+                </CardTitle>
+                <CardDescription>
+                  Name, hero, contact links, section headings and search previews
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">Manage Site</Button>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/topics">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Tags className="mr-2 h-5 w-5" />
+                  Blog Topics
+                </CardTitle>
+                <CardDescription>
+                  Rename, re-icon or remove the topics posts are filed under
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">Manage Topics</Button>
+              </CardContent>
+            </Card>
+          </Link>
+
           <Link href="/admin/posts">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader>

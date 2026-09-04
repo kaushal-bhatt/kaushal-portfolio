@@ -7,6 +7,7 @@ import { Menu, X, Home, User, Briefcase, BookOpen, FileText, CalendarDays } from
 import { Button } from '@/components/ui/button';
 import { usePublishedResumes } from '@/hooks/use-published-resumes';
 import { useBooking } from '@/hooks/use-booking';
+import { useSite } from '@/hooks/use-site';
 
 const baseNavItems = [
   { name: 'Home', href: '#hero', icon: Home, isScroll: true },
@@ -35,6 +36,7 @@ export function Navigation() {
   */
   const resumes = usePublishedResumes();
   const booking = useBooking();
+  const site = useSite();
 
   /*
     Both entries are conditional on the thing they point at existing. The
@@ -100,7 +102,7 @@ export function Navigation() {
               onClick={() => handleNavigation({ href: '#hero', isScroll: true })}
               className="text-xl font-bold gradient-text cursor-pointer"
             >
-              Kaushal Bhatt
+              {site.navBrand || site.fullName}
             </button>
           </motion.div>
 

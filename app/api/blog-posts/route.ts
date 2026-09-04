@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { getAdminSession } from '@/lib/session';
 import { transformBlogPostForAPI, transformBlogPostForDB } from '@/lib/sqlite-helpers';
 import { Prisma } from '@prisma/client';
+import { ensureTechSection } from '@/lib/topics';
 // Read live content, so this must never be evaluated at build time: the Docker
 // image is built with no database reachable, and a statically prerendered
 // handler would try to query one and fail the build.
@@ -98,11 +99,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Free text, not a fixed list. An unrecognised topic creates its row here
+    // rather than being refused — the editor's dropdown used to be the only
+    // source of valid values, and adding one to it was a deploy.
+    const technology = await ensureTechSection(body.technology);
+    if (!technology) {
+      return NextResponse.json({ error: 'Technology is required' }, { status: 400 });
+    }
+
     const postData: CreateBlogPostRequest = {
       title: body.title,
       excerpt: body.excerpt,
       content: body.content,
-      technology: body.technology,
+      technology,
       tags: body.tags || [],
       readTime: body.readTime || 5,
       published: body.published || false
@@ -165,6 +174,18 @@ export async function PUT(request: NextRequest) {
     if (updateData.tags) {
       const transformedData = transformBlogPostForDB({ tags: updateData.tags });
       updateData.tags = transformedData.tags;
+    }
+
+    // Same as POST: retyping the topic is allowed to invent one. Guarded on
+    // presence rather than truthiness because this handler also receives
+    // partial updates, and an absent `technology` must not be read as an
+    // instruction to clear it.
+    if (typeof updateData.technology === 'string') {
+      const technology = await ensureTechSection(updateData.technology);
+      if (!technology) {
+        return NextResponse.json({ error: 'Technology is required' }, { status: 400 });
+      }
+      updateData.technology = technology;
     }
 
     // The slug is deliberately NOT regenerated here.

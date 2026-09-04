@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { techIcon } from '@/lib/tech-visuals';
+import { useSite } from '@/hooks/use-site';
 import { safeTags } from '@/lib/safe-arrays';
 
 interface BlogPost {
@@ -40,6 +42,8 @@ export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [techSections, setTechSections] = useState<TechSection[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const site = useSite();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTech, setSelectedTech] = useState('All');
 
@@ -87,19 +91,6 @@ export default function BlogPage() {
     return matchesSearch && matchesTech && post.published;
   });
 
-  const getIconComponent = (iconName: string) => {
-    const iconMap: { [key: string]: string } = {
-      Coffee: '☕',
-      Leaf: '🍃',
-      Database: '🗄️',
-      Workflow: '⚡',
-      Activity: '📊',
-      Brain: '🧠',
-      Zap: '⚡',
-      FileText: '📄'
-    };
-    return iconMap[iconName] || '📝';
-  };
 
   if (loading) {
     return (
@@ -136,11 +127,12 @@ export default function BlogPage() {
             className="text-center"
           >
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              Technical <span className="gradient-text">Blog</span>
+              {site.blogPageHeading}{' '}
+              <span className="gradient-text">{site.blogPageHeadingAccent}</span>
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Insights, tutorials, and deep dives into modern technologies
-            </p>
+            {site.blogPageSubtitle && (
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto">{site.blogPageSubtitle}</p>
+            )}
           </motion.div>
         </div>
       </div>
@@ -187,7 +179,7 @@ export default function BlogPage() {
                       : "border-slate-600 text-slate-300 hover:bg-slate-800"
                   }`}
                 >
-                  {getIconComponent(tech.icon)} {tech.name} ({tech._count?.blogPosts || 0})
+                  {techIcon(tech.icon)} {tech.name} ({tech._count?.blogPosts || 0})
                 </Button>
               ))}
             </div>
@@ -297,7 +289,7 @@ export default function BlogPage() {
                 >
                   <Card className="bg-slate-800 border-slate-700 hover:border-blue-600/50 transition-all duration-300 text-center">
                     <CardContent className="p-6">
-                      <div className="text-3xl mb-3">{getIconComponent(tech.icon)}</div>
+                      <div className="text-3xl mb-3">{techIcon(tech.icon)}</div>
                       <h3 className="text-lg font-semibold text-white mb-2">{tech.name}</h3>
                       <p className="text-gray-400 text-sm mb-3">{tech.description}</p>
                       <Badge 

@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Fetched, not hardcoded — see the note in app/admin/posts/[id]/page.tsx. The
 // list that was here stored display names while posts store slugs, so a post
@@ -215,19 +214,39 @@ export default function NewPost() {
                 </div>
 
                 <div>
-                  <Label htmlFor="technology" className="text-white">Technology *</Label>
-                  <Select onValueChange={(value) => setFormData({ ...formData, technology: value })} value={formData.technology}>
-                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
-                      <SelectValue placeholder="Select technology..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {technologies.map((tech) => (
-                        <SelectItem key={tech.slug} value={tech.slug}>
-                          {tech.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="technology" className="text-white">Topic *</Label>
+                  {/*
+                    Free text with suggestions, not a dropdown.
+
+                    It was a Select over whatever rows happened to be in
+                    TechSection, and there was no admin UI for that table — so
+                    writing about anything outside the four seeded topics meant
+                    a code change. On an empty table the list was empty and no
+                    post could be created at all.
+
+                    A `datalist` keeps the existing topics one keystroke away
+                    while allowing anything else. The API creates the row for an
+                    unrecognised value, matching on the slug so "Spring Boot"
+                    finds `spring-boot` rather than making a near-duplicate.
+                  */}
+                  <Input
+                    id="technology"
+                    list="technology-options"
+                    value={formData.technology}
+                    onChange={(e) => setFormData({ ...formData, technology: e.target.value })}
+                    placeholder="e.g. AI, Java, System Design…"
+                    className="bg-slate-800 border-slate-600 text-white"
+                    required
+                  />
+                  <datalist id="technology-options">
+                    {technologies.map((tech) => (
+                      <option key={tech.slug} value={tech.name} />
+                    ))}
+                  </datalist>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Anything goes. A topic that does not exist yet is created when the post is
+                    saved; tidy up its icon and colour in Blog Topics.
+                  </p>
                 </div>
 
                 <div>

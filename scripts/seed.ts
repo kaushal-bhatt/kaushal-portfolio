@@ -115,6 +115,16 @@ type SeedData = {
     languages: string;
   }>;
   /**
+   * The site itself: everything that used to be a string literal in a
+   * component. `host` is what a request is matched against, so a fresh install
+   * on a different domain has to change it before anything resolves.
+   */
+  site: {
+    host: string;
+    isDefault: boolean;
+    [field: string]: string | string[] | boolean;
+  };
+  /**
    * The "book a call" section. `calendlyUrl` is empty in the fixture on
    * purpose — the URL is a live third-party endpoint and belongs in the admin
    * panel, not in a file that gets committed and read by anyone.
@@ -144,6 +154,19 @@ async function main() {
   const data: SeedData = JSON.parse(
     readFileSync(join(__dirname, '..', 'prisma', 'seed-data.json'), 'utf8')
   );
+
+  // The site first: it is the row every other table's content hangs off, and on
+  // a fresh database it is the difference between a portfolio and an unnamed
+  // one. Upserted on `host` because that is what a request resolves against.
+  if (await shouldSeed('Site', await prisma.site.count())) {
+    const { host, ...rest } = data.site;
+    await prisma.site.upsert({
+      where: { host },
+      update: rest as never,
+      create: { host, ...rest } as never,
+    });
+    console.log(`✅ Site: ${host}`);
+  }
 
   // No user row is created any more. Sign-in is auth-platform's job, and this
   // database holds no accounts, no password hashes and no sessions — the blog's

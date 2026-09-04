@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
+import { useSite } from '@/hooks/use-site';
 import { safeTechnologies, safeAchievements } from '@/lib/safe-arrays';
 
 /** What /api/portfolio actually returns: the list fields may arrive either way. */
@@ -37,6 +38,8 @@ export function PortfolioSection() {
 
   const [portfolio, setPortfolio] = useState<PortfolioEntry[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const site = useSite();
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -87,11 +90,12 @@ export function PortfolioSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Professional <span className="gradient-text">Experience</span>
+            {site.experienceHeading}{' '}
+            <span className="gradient-text">{site.experienceHeadingAccent}</span>
           </h2>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            A journey through impactful projects and technical achievements
-          </p>
+          {site.experienceSubtitle && (
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">{site.experienceSubtitle}</p>
+          )}
         </motion.div>
 
         <div className="space-y-8">
@@ -183,15 +187,19 @@ export function PortfolioSection() {
           transition={{ duration: 0.8, delay: 0.8 }}
           className="text-center mt-12"
         >
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => window.open('mailto:kaushalbhatt28650@gmail.com?subject=Let\'s Discuss Opportunities')}
-            className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300"
-          >
-            <ExternalLink className="w-5 h-5 mr-2" />
-            Let&apos;s Work Together
-          </Button>
+          {site.email && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() =>
+                window.open(`mailto:${site.email}?subject=Let's Discuss Opportunities`)
+              }
+              className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300"
+            >
+              <ExternalLink className="w-5 h-5 mr-2" />
+              Let&apos;s Work Together
+            </Button>
+          )}
         </motion.div>
       </div>
     </section>

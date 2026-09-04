@@ -4,6 +4,7 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, ExternalLink, Github, Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useSite } from '@/hooks/use-site';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,8 @@ export default function PortfolioPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const site = useSite();
 
   useEffect(() => {
     fetch('/api/projects')
@@ -90,11 +93,12 @@ export default function PortfolioPage() {
             className="text-center"
           >
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              My <span className="gradient-text">Portfolio</span>
+              {site.projectsHeading}{' '}
+              <span className="gradient-text">{site.projectsHeadingAccent}</span>
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              A showcase of my technical projects, from enterprise microservices to modern web applications
-            </p>
+            {site.projectsSubtitle && (
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto">{site.projectsSubtitle}</p>
+            )}
           </motion.div>
         </div>
       </div>
@@ -307,19 +311,19 @@ export default function PortfolioPage() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-center mt-16 py-12 border-t border-slate-700"
         >
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Interested in working together?
-          </h2>
-          <p className="text-gray-300 mb-6">
-            Let&apos;s discuss how I can help bring your project to life
-          </p>
-          <Button
-            size="lg"
-            onClick={() => window.open('mailto:kaushalbhatt28650@gmail.com', '_blank')}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Get In Touch
-          </Button>
+          {site.contactHeading && (
+            <h2 className="text-2xl font-bold text-white mb-4">{site.contactHeading}</h2>
+          )}
+          {site.contactSubtitle && <p className="text-gray-300 mb-6">{site.contactSubtitle}</p>}
+          {site.email && (
+            <Button
+              size="lg"
+              onClick={() => window.open(`mailto:${site.email}`, '_blank')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Get In Touch
+            </Button>
+          )}
         </motion.div>
       </div>
     </div>

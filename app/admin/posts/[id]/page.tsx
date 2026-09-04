@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { renderMarkdown } from '@/lib/markdown';
 
 // The technology list is fetched, not hardcoded.
@@ -279,19 +278,25 @@ export default function EditPost() {
                 </div>
 
                 <div>
-                  <Label htmlFor="technology" className="text-white">Technology *</Label>
-                  <Select value={post.technology} onValueChange={(value) => setPost({ ...post, technology: value })}>
-                    <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
-                      <SelectValue placeholder="Select technology..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {technologies.map((tech) => (
-                        <SelectItem key={tech.slug} value={tech.slug}>
-                          {tech.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="technology" className="text-white">Topic *</Label>
+                  {/* Free text with suggestions — see the comment in posts/new. */}
+                  <Input
+                    id="technology"
+                    list="technology-options"
+                    value={post.technology}
+                    onChange={(e) => setPost({ ...post, technology: e.target.value })}
+                    placeholder="e.g. AI, Java, System Design…"
+                    className="bg-slate-800 border-slate-600 text-white"
+                    required
+                  />
+                  <datalist id="technology-options">
+                    {technologies.map((tech) => (
+                      <option key={tech.slug} value={tech.name} />
+                    ))}
+                  </datalist>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Anything goes. A topic that does not exist yet is created on save.
+                  </p>
                 </div>
 
                 <div>

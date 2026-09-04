@@ -108,7 +108,9 @@ model TechSection {
   description String   @db.Text
   icon        String
   order       Int      @default(0)
-  color       String   @default("#3B82F6")
+  /// A key into `lib/tech-visuals.ts`, not a hex value. It held a raw hex
+  /// string that three components fetched and none rendered.
+  color       String   @default("blue")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -271,7 +273,107 @@ model Booking {
 
   heading       String @default("Book")
   headingAccent String @default("a Call")
-  subtitle      String @db.Text @default("")
+  subtitle      String @default("") @db.Text
 
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// The site itself — everything that was a string literal in a component.
+//
+// The hero, the navigation brand, the footer, every section heading, the
+// contact links and the page metadata all lived in source until now, so
+// changing a tagline was a commit and a deploy.
+//
+// `host` and `isDefault` exist from the first row, even though there is only
+// one. They are the seam: when a second portfolio arrives it is a row here and
+// a DNS record, not a rewrite. Resolution already works — it just always finds
+// the same site today.
+//
+// The small chrome strings are deliberately NOT here: "Read", "Source Code",
+// "View All Articles", "min read". They are UI, identical for anybody, and
+// putting them in the database would turn one form into a translation table.
+// ---------------------------------------------------------------------------
+model Site {
+  id String @id @default(cuid())
+
+  /// The hostname this site answers on, e.g. "wekt.in". No scheme, no port.
+  host String @unique
+
+  /// Where an unrecognised Host lands. Exactly one row should have this.
+  isDefault Boolean @default(false)
+
+  // --- identity -------------------------------------------------------------
+  fullName     String
+  /// The line under the name: "Senior Backend Engineer · 7 years".
+  headline     String @default("")
+  locationLine String @default("")
+  /// The navigation brand. Usually the name, but not always.
+  navBrand     String @default("")
+
+  // --- hero -----------------------------------------------------------------
+  heroGreeting String @default("Hi, I'm")
+
+  /// Markdown, rendered with `lib/markdown.ts` — the same escape-first subset
+  /// the blog and the About journey use. Markdown rather than HTML so the
+  /// company names keep their emphasis without the column being able to inject.
+  heroIntro String @default("") @db.Text
+
+  primaryCtaLabel String @default("View My Work")
+
+  /// The middle hero button. Empty hides it — the pattern Booking.calendlyUrl
+  /// established, and the reason there is no separate boolean.
+  demoUrl   String @default("")
+  demoLabel String @default("")
+
+  // --- contact --------------------------------------------------------------
+  // Each is empty-means-hidden. A site with no GitHub should show no icon
+  // rather than an icon linking to a 404.
+  email       String @default("")
+  linkedinUrl String @default("")
+  githubUrl   String @default("")
+
+  // --- footer ---------------------------------------------------------------
+  footerTagline String @default("") @db.Text
+
+  // --- section copy ---------------------------------------------------------
+  // Heading and accent are split for the same reason AboutContent splits them:
+  // the accent half carries the gradient.
+  experienceHeading       String @default("Professional")
+  experienceHeadingAccent String @default("Experience")
+  experienceSubtitle      String @default("") @db.Text
+
+  projectsHeading       String @default("My")
+  projectsHeadingAccent String @default("Portfolio")
+  projectsSubtitle      String @default("") @db.Text
+
+  blogHeading       String @default("Technical")
+  blogHeadingAccent String @default("Blog")
+  blogSubtitle      String @default("") @db.Text
+
+  /// The /blog page has its own H1 and its own line under it, which today say
+  /// something slightly different from the home page's blog section.
+  blogPageHeading       String @default("Technical")
+  blogPageHeadingAccent String @default("Blog")
+  blogPageSubtitle      String @default("") @db.Text
+
+  contactHeading  String @default("")
+  contactSubtitle String @default("") @db.Text
+
+  // --- SEO ------------------------------------------------------------------
+  metaTitle       String   @default("")
+  metaDescription String   @default("") @db.Text
+  metaKeywords    String[] @default([])
+  /// Absolute URL. Empty falls back to the app's generated OG image.
+  ogImageUrl      String   @default("")
+
+  // --- theme ----------------------------------------------------------------
+  /// A key into ACCENTS in `lib/site.ts`, never a class string. Tailwind reads
+  /// source and never the database, so a stored `from-blue-400` would name a
+  /// class that was purged at build time and the gradient would silently
+  /// vanish. Same reasoning as `lib/about-visuals.ts`.
+  accent String @default("blue")
+
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -5,9 +5,12 @@ import { motion } from 'framer-motion';
 import { ChevronDown, Mail, FileText, Linkedin, Github, MapPin, Briefcase, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePublishedResumes } from '@/hooks/use-published-resumes';
+import { useSite } from '@/hooks/use-site';
+import { renderMarkdown } from '@/lib/markdown';
 
 export function HeroSection() {
   const resumes = usePublishedResumes();
+  const site = useSite();
 
   const scrollToNext = () => {
     document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
@@ -40,21 +43,23 @@ export function HeroSection() {
             className="mb-8"
           >
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-white">Hi, I&apos;m </span>
-              <span className="gradient-text">Kaushal Bhatt</span>
+              <span className="text-white">{site.heroGreeting} </span>
+              <span className="gradient-text">{site.fullName}</span>
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-4">
-              Senior Backend Engineer &middot; 7 years
-            </p>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-              className="flex items-center justify-center space-x-2 text-gray-400 mb-8 px-4"
-            >
-              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-              <span className="text-sm sm:text-base text-center">Dehradun, India &middot; Open to EU relocation (Blue Card eligible)</span>
-            </motion.div>
+            {site.headline && (
+              <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-4">{site.headline}</p>
+            )}
+            {site.locationLine && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="flex items-center justify-center space-x-2 text-gray-400 mb-8 px-4"
+              >
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base text-center">{site.locationLine}</span>
+              </motion.div>
+            )}
           </motion.div>
 
           <motion.div
@@ -64,30 +69,20 @@ export function HeroSection() {
             className="mb-12"
           >
             {/*
-              Leads with e-commerce scale rather than with the auth work. The
-              auth framework is the most interesting thing I have built, but it
-              is not the thing a recruiter is scanning for — traffic is, and the
-              two consumer platforms are where the traffic was. RockWallet comes
-              third here because "currently" carries it anyway.
+              Markdown, not JSX. This paragraph used to be hand-marked-up with a
+              span per emphasised name, which meant every wording change was a
+              deploy. `**bold**` now does the same job, and `renderMarkdown`
+              escapes its input first — so the column cannot inject markup even
+              though it is rendered with dangerouslySetInnerHTML.
 
-              Company names and figures are white rather than another accent
-              colour: four coloured technology words is already the limit before
-              the paragraph stops reading as a sentence.
+              The paragraph classes come from the renderer, which is why the
+              wrapper only has to unset the leading margin — the same pattern
+              the About story uses.
             */}
-            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-4">
-              I build event-driven backends for systems that carry real traffic. Order processing
-              at national scale for <span className="text-white font-semibold">Lenskart</span> &mdash;
-              Kafka-driven inventory synchronisation that cut delivery from seven days to three.
-              A distributed pricing engine across Saudi warehouses at{' '}
-              <span className="text-white font-semibold">Boutiqaat</span>, carrying{' '}
-              <span className="text-white font-semibold">over a million transactions a day</span>.
-              Now regulated fintech: the wallet and custody platform at{' '}
-              <span className="text-white font-semibold">RockWallet</span>, where I authored the
-              JWT + passkey auth framework all 17 services run on. <span className="text-blue-400 font-semibold">Java</span>,
-              <span className="text-green-400 font-semibold"> Spring Boot</span>,
-              <span className="text-purple-400 font-semibold"> Apache Kafka</span>,
-              <span className="text-yellow-400 font-semibold"> AWS</span>.
-            </p>
+            <div
+              className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-4 [&>p]:my-0 [&_strong]:text-white"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(site.heroIntro) }}
+            />
           </motion.div>
 
           <motion.div
@@ -102,35 +97,42 @@ export function HeroSection() {
               onClick={() => document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <Briefcase className="w-5 h-5 mr-2" />
-              View My Work
+              {site.primaryCtaLabel}
             </Button>
-            
+
             {/*
               Second, not third: of the three, this is the only one a visitor can
               act on immediately — register a passkey, sign in with it, and watch
               every request and response. Green rather than the muted slate of
               "Get In Touch" so it reads as a live thing to use, without
               competing with the primary call to action.
-            */}
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-emerald-500/60 text-emerald-300 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 shadow-xl hover:shadow-2xl transition-all duration-300"
-              onClick={() => window.open('https://auth.wekt.in', '_blank', 'noopener,noreferrer')}
-            >
-              <Fingerprint className="w-5 h-5 mr-2" />
-              Try the Passkey Demo
-            </Button>
 
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-slate-600 text-slate-300 hover:bg-slate-800 shadow-xl hover:shadow-2xl transition-all duration-300"
-              onClick={() => window.open('mailto:kaushalbhatt28650@gmail.com')}
-            >
-              <Mail className="w-5 h-5 mr-2" />
-              Get In Touch
-            </Button>
+              Absent when no demo URL is set, rather than a button leading
+              nowhere — the same empty-means-off rule the contact links follow.
+            */}
+            {site.demoUrl && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-emerald-500/60 text-emerald-300 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 shadow-xl hover:shadow-2xl transition-all duration-300"
+                onClick={() => window.open(site.demoUrl, '_blank', 'noopener,noreferrer')}
+              >
+                <Fingerprint className="w-5 h-5 mr-2" />
+                {site.demoLabel || 'Try the Demo'}
+              </Button>
+            )}
+
+            {site.email && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-slate-600 text-slate-300 hover:bg-slate-800 shadow-xl hover:shadow-2xl transition-all duration-300"
+                onClick={() => window.open(`mailto:${site.email}`)}
+              >
+                <Mail className="w-5 h-5 mr-2" />
+                Get In Touch
+              </Button>
+            )}
           </motion.div>
 
           <motion.div
@@ -139,15 +141,23 @@ export function HeroSection() {
             transition={{ delay: 1.6, duration: 0.8 }}
             className="flex justify-center space-x-4 sm:space-x-6 px-4"
           >
-            <motion.a
-              href="mailto:kaushalbhatt28650@gmail.com"
-              whileHover={{ scale: 1.1, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-blue-400 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
-            >
-              <Mail className="w-6 h-6" />
-            </motion.a>
-            
+            {/*
+              Each icon is present only if its link is. Clearing the field in
+              /admin/site removes the icon rather than leaving one that opens a
+              blank mail client or a 404.
+            */}
+            {site.email && (
+              <motion.a
+                href={`mailto:${site.email}`}
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-blue-400 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
+                aria-label="Email"
+              >
+                <Mail className="w-6 h-6" />
+              </motion.a>
+            )}
+
             {/*
               The phone number used to be here. It is on the résumé PDF instead:
               this page is public and a tel: link on a public page is a scraper
@@ -170,27 +180,33 @@ export function HeroSection() {
               </motion.a>
             )}
 
-            <motion.a
-              href="https://www.linkedin.com/in/kaushal-bhatt-5aa73511b/"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.1, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-blue-600 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
-            >
-              <Linkedin className="w-6 h-6" />
-            </motion.a>
-            
-            <motion.a
-              href="https://github.com/kaushal-bhatt"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.1, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-purple-400 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
-            >
-              <Github className="w-6 h-6" />
-            </motion.a>
+            {site.linkedinUrl && (
+              <motion.a
+                href={site.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-blue-600 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="w-6 h-6" />
+              </motion.a>
+            )}
+
+            {site.githubUrl && (
+              <motion.a
+                href={site.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                className="p-3 bg-slate-800/50 rounded-full text-gray-300 hover:text-purple-400 hover:bg-slate-700/50 transition-all duration-300 glass-effect"
+                aria-label="GitHub"
+              >
+                <Github className="w-6 h-6" />
+              </motion.a>
+            )}
           </motion.div>
         </div>
       </div>

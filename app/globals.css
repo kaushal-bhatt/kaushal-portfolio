@@ -51,6 +51,34 @@
   @apply bg-gradient-to-r from-blue-400 via-purple-500 to-blue-600 bg-clip-text text-transparent;
 }
 
+/*
+  The accent gradient, per site.
+
+  The class on <body> comes from `Site.accent`, which stores a KEY — `emerald`,
+  not `from-emerald-400`. Tailwind decides what CSS to emit by reading source
+  files and it never reads the database, so a class name stored in a column
+  would be purged at build time and every heading would render as transparent
+  text with nothing obviously broken. Written out here, `@apply` forces the
+  utilities to exist. Same reasoning as `lib/about-visuals.ts`.
+
+  `blue` needs no block: it is what `.gradient-text` already is.
+*/
+.accent-emerald .gradient-text {
+  @apply from-emerald-400 via-teal-500 to-emerald-600;
+}
+
+.accent-violet .gradient-text {
+  @apply from-violet-400 via-fuchsia-500 to-violet-600;
+}
+
+.accent-amber .gradient-text {
+  @apply from-amber-400 via-orange-500 to-amber-600;
+}
+
+.accent-rose .gradient-text {
+  @apply from-rose-400 via-pink-500 to-rose-600;
+}
+
 .glass-effect {
   @apply bg-white/5 backdrop-blur-md border border-white/10;
 }

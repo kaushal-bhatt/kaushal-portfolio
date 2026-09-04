@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
+import { techIcon } from '@/lib/tech-visuals';
+import { useSite } from '@/hooks/use-site';
 
 interface TechSection {
   id: string;
@@ -42,6 +44,8 @@ export function BlogSection() {
   const [techSections, setTechSections] = useState<TechSection[]>([]);
   const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const site = useSite();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,20 +89,6 @@ export function BlogSection() {
     );
   }
 
-  const getIconComponent = (iconName: string) => {
-    // Mapping icon names to actual components for demo
-    const iconMap: { [key: string]: string } = {
-      Coffee: '☕',
-      Leaf: '🍃',
-      Database: '🗄️',
-      Workflow: '⚡',
-      Activity: '📊',
-      Brain: '🧠',
-      Zap: '⚡',
-      FileText: '📄'
-    };
-    return iconMap[iconName] || '📝';
-  };
 
   return (
     <section id="blog" ref={ref} className="py-20 bg-slate-800/50">
@@ -110,10 +100,10 @@ export function BlogSection() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
-            Technical <span className="gradient-text">Blog</span>
+            {site.blogHeading} <span className="gradient-text">{site.blogHeadingAccent}</span>
           </h2>
           <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
-            Sharing insights, best practices, and deep dives into modern technologies
+            {site.blogSubtitle}
           </p>
         </motion.div>
 
@@ -136,7 +126,7 @@ export function BlogSection() {
               >
                 <Card className="glass-effect border-slate-700 hover:border-blue-600/50 transition-all duration-300">
                   <CardContent className="p-3 sm:p-6 text-center">
-                    <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">{getIconComponent(tech.icon)}</div>
+                    <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">{techIcon(tech.icon)}</div>
                     <h4 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">{tech.name}</h4>
                     <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{tech.description}</p>
                     <Badge 

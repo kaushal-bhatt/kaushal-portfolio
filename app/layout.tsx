@@ -1,40 +1,59 @@
-
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
+import { accentClass, resolveSite } from '@/lib/site';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata: Metadata = {
-  title: 'Kaushal Bhatt - Senior Backend Engineer',
-  description: 'Senior Backend Engineer with 7 years building high-throughput, event-driven microservices in fintech and crypto custody. Java, Spring Boot, Kafka, AWS. Open to EU relocation.',
-  keywords: ['Kaushal Bhatt', 'Backend Engineer', 'Java Developer', 'Spring Boot', 'Kafka', 'AWS', 'Microservices', 'WebAuthn', 'Passkeys'],
-  authors: [{ name: 'Kaushal Bhatt' }],
-  openGraph: {
-    title: 'Kaushal Bhatt - Senior Backend Engineer',
-    description: '7 years of Java, Spring Boot, Kafka and AWS in regulated fintech and crypto custody.',
-    type: 'website',
-    locale: 'en_US',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Kaushal Bhatt - Senior Backend Engineer',
-    description: '7 years of Java, Spring Boot, Kafka and AWS in regulated fintech and crypto custody.',
-  },
-};
+/**
+ * Reads the database through `resolveSite()`, so the whole app is rendered on
+ * demand rather than prerendered.
+ *
+ * That is a real change and worth naming: every page under this layout used to
+ * be static. Almost nothing is lost — the pages already fetched all of their
+ * content from `/api/*` in the browser, so the "static" shell was an empty one.
+ * What is gained is that the title, the description and the link preview are
+ * per site, which is the whole point of the frame being data.
+ */
+export const dynamic = 'force-dynamic';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await resolveSite();
+
+  // Falls back through to something sensible rather than rendering "undefined"
+  // in a tab. A site with no name at all is a fresh database, not a bug worth
+  // crashing the page over.
+  const title =
+    site.metaTitle || [site.fullName, site.headline].filter(Boolean).join(' — ') || 'Portfolio';
+  const description = site.metaDescription || site.headline || '';
+  const images = site.ogImageUrl ? [site.ogImageUrl] : undefined;
+
+  return {
+    title,
+    description,
+    keywords: site.metaKeywords,
+    authors: site.fullName ? [{ name: site.fullName }] : undefined,
+    // Absolute URLs in Open Graph are required by most consumers, and this is
+    // the only place that knows which host the request came in on.
+    metadataBase: site.host ? new URL(`https://${site.host}`) : undefined,
+    openGraph: { title, description, type: 'website', locale: 'en_US', images },
+    twitter: { card: 'summary_large_image', title, description, images },
+  };
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const site = await resolveSite();
+
   return (
     <html lang="en" className="dark">
-      <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
+      {/*
+        The accent class sits on <body> so one attribute re-colours every
+        `.gradient-text` on the page — the nav brand, the hero name and every
+        section heading's second half.
+      */}
+      <body className={`${inter.className} ${accentClass(site.accent)}`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
