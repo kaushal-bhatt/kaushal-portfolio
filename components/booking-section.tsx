@@ -140,9 +140,21 @@ export function BookingSection() {
             page uses.
           */
           <div className="overflow-hidden rounded-xl bg-white shadow-2xl">
+            {/*
+              `h-`, not `min-h-`. Calendly injects an iframe styled
+              `height: 100%`, and a percentage height resolves against the
+              parent's HEIGHT — a parent with only a min-height gives it nothing
+              to resolve against, so the iframe fell back to the CSS default of
+              150px. That renders as a cramped strip with its own scrollbar at
+              the top of an otherwise empty white card, which is what this
+              looked like before: not a failure to load, a failure to size.
+
+              Taller on a phone because the calendar and the time list stack
+              there; 700px is Calendly's own figure for the side-by-side layout.
+            */}
             <div
               ref={container}
-              className="min-h-[1000px] w-full sm:min-h-[700px]"
+              className="h-[1000px] w-full sm:h-[700px]"
               aria-label="Booking calendar"
             />
           </div>
