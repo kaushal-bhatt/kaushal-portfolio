@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BlogShareButton } from '@/components/blog-share-button';
-import { getPublishedPost, metaDescription } from '@/lib/posts';
+import { getPublishedPost, getTechSection, metaDescription } from '@/lib/posts';
 import { resolveSite } from '@/lib/site';
 import { renderMarkdown } from '@/lib/markdown';
 import { safeTags } from '@/lib/safe-arrays';
@@ -90,6 +90,10 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   // confirm that unpublished writing sits at that address.
   if (!post) notFound();
 
+  // Read after the guard, so a 404 does not pay for a query it will not use.
+  // `cache()` means the OG image route reuses this rather than asking again.
+  const section = await getTechSection(post.technology);
+
   const tags = safeTags(post.tags);
   const published = post.createdAt.toISOString();
 
@@ -146,9 +150,16 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           </div>
 
           <div className="mb-4">
+            {/*
+              The topic's display name, not the slug. `BlogPost.technology`
+              stores "spring-boot", so this badge read "spring-boot" — the same
+              slug-versus-name confusion that once made the blog's filters match
+              nothing. Falls back to the slug for a post filed under a topic
+              that has since been deleted.
+            */}
             <Link href={`/blog/technology/${post.technology}`}>
               <Badge variant="outline" className="border-blue-600/30 text-blue-400 mb-4">
-                {post.technology}
+                {section?.name ?? post.technology}
               </Badge>
             </Link>
           </div>

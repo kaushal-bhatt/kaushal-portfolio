@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { getPublishedPost } from '@/lib/posts';
+import { getPublishedPost, getTechSection } from '@/lib/posts';
 import { resolveSite } from '@/lib/site';
 
 /**
@@ -43,8 +43,14 @@ export default async function Image({ params }: { params: { slug: string } }) {
   // The page 404s an unpublished post, so this should never be reached for one
   // — but a card rendering the word "undefined" is worse than a plain one.
   const title = post?.title ?? site.fullName ?? '';
-  const topic = post?.technology ?? '';
   const readTime = post?.readTime;
+
+  // `BlogPost.technology` stores the slug, so the badge read "SPRING-BOOT"
+  // rather than "Spring Boot". The topic row carries the display name; falling
+  // back to the slug covers a post filed under a topic that has since been
+  // deleted.
+  const section = post ? await getTechSection(post.technology) : null;
+  const topic = section?.name ?? post?.technology ?? '';
 
   return new ImageResponse(
     (
