@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { getPublishedResume, pdfFilename } from '@/lib/resume';
+import { getPublishedResume } from '@/lib/content/resume';
+import { pdfFilename } from '@/lib/resume-content';
+import { currentSiteId } from '@/lib/site';
 import { ResumeDocument } from '@/components/resume-document';
 import { ResumePrintButton } from '@/components/resume-print-button';
 
@@ -13,7 +15,8 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const resume = await getPublishedResume(params.slug);
+  const siteId = await currentSiteId();
+  const resume = siteId && (await getPublishedResume(siteId, params.slug));
   if (!resume) return { title: 'Résumé' };
 
   return {
@@ -23,7 +26,8 @@ export async function generateMetadata({
 }
 
 export default async function ResumePage({ params }: { params: { slug: string } }) {
-  const resume = await getPublishedResume(params.slug);
+  const siteId = await currentSiteId();
+  const resume = siteId && (await getPublishedResume(siteId, params.slug));
 
   // 404 rather than 403, and the same answer for an unpublished résumé as for
   // one that never existed. A 403 tells the caller the address is real.

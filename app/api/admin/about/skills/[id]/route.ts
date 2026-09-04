@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import { stringToArray } from '@/lib/sqlite-helpers';
+import { writerSite } from '@/lib/access';
+import { deleteSkill, updateSkill } from '@/lib/content/about';
 import { invalidAboutVisual } from '@/lib/about-visuals';
 
 export const dynamic = 'force-dynamic';
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const data = await request.json();
 
@@ -21,18 +19,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const bad = invalidAboutVisual(data);
     if (bad) return NextResponse.json({ error: bad }, { status: 400 });
 
-    const skill = await prisma.aboutSkill.update({
-      where: { id: params.id },
-      data: {
-        category: data.category.trim(),
-        icon: data.icon || 'Code2',
-        items: stringToArray(data.items),
-        color: data.color || 'blue',
-        order: data.order || 0,
-      },
-    });
+    if (!(await updateSkill(writer.siteId, params.id, data))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
-    return NextResponse.json(skill);
+    return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof Error && error.message.includes('Unique constraint')) {
       return NextResponse.json(
@@ -47,11 +38,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
+
+    if (!(await deleteSkill(writer.siteId, params.id))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    await prisma.aboutSkill.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Skill deletion error:', error);

@@ -1,31 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { Prisma } from '@prisma/client';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import {
-  getResumeById,
-  listResumes,
-  resumeContentOf,
-  slugify,
-  uniqueResumeSlug,
-} from '@/lib/resume';
+import { writerSite } from '@/lib/access';
+import { createResume, getResumeById, listResumes, uniqueResumeSlug } from '@/lib/content/resume';
+import { resumeContentOf, slugify } from '@/lib/resume-content';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects — it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Verified server-side: signature, issuer, audience, the required role and a
+    // grant on this site. The middleware ahead of this only chooses redirects —
+    // it verifies nothing.
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
-    return NextResponse.json(await listResumes());
+    return NextResponse.json(await listResumes(writer.siteId));
   } catch (error) {
     console.error('Résumé list error:', error);
 
     // The real reason, not a generic string. This route is behind the admin
-    // session, and the caller can already read the whole database through the
+    // session, and the caller can already read the whole site through the
     // panel — so there is nothing here a message could disclose that they do
     // not already have. The first failure of this route was a column that did
     // not exist yet, and "Failed to list résumés" sent the reader looking for
@@ -49,37 +42,25 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const body = await request.json().catch(() => ({}));
     const from = typeof body?.from === 'string' ? body.from : null;
 
-    const source = from ? await getResumeById(from) : null;
+    // Copying reads through the site-scoped getter, so "copy from" cannot reach
+    // the other portfolio's CV by id.
+    const source = from ? await getResumeById(writer.siteId, from) : null;
     if (from && !source) {
       return NextResponse.json({ error: 'Nothing to copy from' }, { status: 404 });
     }
 
     const label = source ? `${source.label} (copy)` : 'Untitled résumé';
-    const content = resumeContentOf(source ?? {});
 
-    const created = await prisma.resume.create({
-      data: {
-        slug: await uniqueResumeSlug(slugify(label) || 'resume'),
-        label,
-        published: false,
-        // Behind everything that exists, so creating one never changes which
-        // résumé /resume redirects to.
-        order: (await prisma.resume.count()) + 1,
-        ...content,
-        phone: content.phone || null,
-        skills: content.skills as unknown as Prisma.InputJsonValue,
-        experience: content.experience as unknown as Prisma.InputJsonValue,
-        projects: content.projects as unknown as Prisma.InputJsonValue,
-        education: content.education as unknown as Prisma.InputJsonValue,
-      },
-      select: { id: true },
+    const created = await createResume(writer.siteId, {
+      slug: await uniqueResumeSlug(writer.siteId, slugify(label) || 'resume'),
+      label,
+      content: resumeContentOf(source ?? {}),
     });
 
     return NextResponse.json(created, { status: 201 });

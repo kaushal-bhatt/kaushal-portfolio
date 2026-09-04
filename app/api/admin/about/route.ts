@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import { ABOUT_CONTENT_DEFAULTS, ABOUT_CONTENT_ID, getAbout } from '@/lib/about';
+import { writerSite } from '@/lib/access';
+import { getAbout, saveAboutContent } from '@/lib/content/about';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects - it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Verified server-side: signature, issuer, audience, the required role and a
+    // grant on this site. The middleware ahead of this only chooses redirects -
+    // it verifies nothing.
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
-    return NextResponse.json(await getAbout());
+    return NextResponse.json(await getAbout(writer.siteId));
   } catch (error) {
     console.error('About fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch about content' }, { status: 500 });
@@ -22,13 +21,12 @@ export async function GET() {
 
 /**
  * The prose block. An upsert rather than a create/update pair: there is exactly
- * one row and it may not exist yet, so a PUT has to be able to make it.
+ * one row per site and it may not exist yet, so a PUT has to be able to make it.
  */
 export async function PUT(request: NextRequest) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const data = await request.json();
 
@@ -39,21 +37,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const fields = {
-      heading: data.heading?.trim() || ABOUT_CONTENT_DEFAULTS.heading,
-      headingAccent: data.headingAccent?.trim() || ABOUT_CONTENT_DEFAULTS.headingAccent,
-      subtitle: data.subtitle,
-      journeyTitle: data.journeyTitle?.trim() || ABOUT_CONTENT_DEFAULTS.journeyTitle,
-      journey: data.journey,
-    };
-
-    const content = await prisma.aboutContent.upsert({
-      where: { id: ABOUT_CONTENT_ID },
-      update: fields,
-      create: { id: ABOUT_CONTENT_ID, ...fields },
-    });
-
-    return NextResponse.json(content);
+    return NextResponse.json(await saveAboutContent(writer.siteId, data));
   } catch (error) {
     console.error('About update error:', error);
     return NextResponse.json({ error: 'Failed to save about content' }, { status: 500 });

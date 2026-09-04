@@ -1,39 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import { stringToArray } from '@/lib/sqlite-helpers';
+import { writerSite } from '@/lib/access';
+import { deleteExperience, updateExperience } from '@/lib/content/experience';
+
+export const dynamic = 'force-dynamic';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects - it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const data = await request.json();
-    
-    const portfolio = await prisma.portfolio.update({
-      where: { id: params.id },
-      data: {
-        company: data.company,
-        role: data.role,
-        startDate: data.startDate,
-        endDate: data.endDate || null,
-        current: data.current || false,
-        description: data.description,
-        // `String[]` columns since the move to Postgres. The admin form still
-        // submits comma-separated text, so normalise rather than assume.
-        technologies: stringToArray(data.technologies),
-        achievements: stringToArray(data.achievements),
-        order: data.order || 0,
-      },
-    });
 
-    return NextResponse.json(portfolio);
+    // The id is in the URL, so it is the caller's to choose. A row on another
+    // site does not match and is reported as absent — 404 rather than 403,
+    // because a response that distinguishes the two confirms the row exists.
+    if (!(await updateExperience(writer.siteId, params.id, data))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Portfolio update error:', error);
     return NextResponse.json(
@@ -48,15 +36,12 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects - it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
-    await prisma.portfolio.delete({
-      where: { id: params.id },
-    });
+    if (!(await deleteExperience(writer.siteId, params.id))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

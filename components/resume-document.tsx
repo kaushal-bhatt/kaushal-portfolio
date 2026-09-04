@@ -1,4 +1,4 @@
-import { displayUrl, type ResumeContent } from '@/lib/resume';
+import { displayUrl, type ResumeContent } from '@/lib/resume-content';
 
 /**
  * The résumé, as an A4 sheet.

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ResumeLink } from '@/lib/resume';
+import type { ResumeLink } from '@/lib/resume-content';
 
 /**
  * The published résumés, for the four places on the site that link to one.

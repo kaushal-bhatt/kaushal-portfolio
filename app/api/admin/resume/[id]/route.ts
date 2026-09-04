@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { Prisma } from '@prisma/client';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import { getResumeById, normaliseResumeInput, slugify, uniqueResumeSlug } from '@/lib/resume';
+import { writerSite } from '@/lib/access';
+import {
+  deleteResume,
+  getResumeById,
+  patchResume,
+  uniqueResumeSlug,
+  updateResume,
+} from '@/lib/content/resume';
+import { normaliseResumeInput, slugify } from '@/lib/resume-content';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
-    const resume = await getResumeById(params.id);
+    const resume = await getResumeById(writer.siteId, params.id);
     if (!resume) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
@@ -33,9 +37,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  */
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const body = await request.json();
 
@@ -57,29 +60,21 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     // uniqueness search against itself, so saving without renaming does not
     // walk the slug to -2 every time.
     const requested = typeof body.slug === 'string' && body.slug.trim() ? body.slug : label;
-    const slug = await uniqueResumeSlug(slugify(requested), params.id);
+    const slug = await uniqueResumeSlug(writer.siteId, slugify(requested), params.id);
 
-    const { skills, experience, projects, education, phone, ...scalars } = parsed.value;
-
-    await prisma.resume.update({
-      where: { id: params.id },
-      data: {
-        ...scalars,
-        label,
-        slug,
-        published: Boolean(body.published),
-        order: Number.isFinite(body.order) ? Number(body.order) : 0,
-        // The column is nullable and the form sends "". Storing null keeps "no
-        // phone number" as one value rather than two.
-        phone: phone || null,
-        skills: skills as unknown as Prisma.InputJsonValue,
-        experience: experience as unknown as Prisma.InputJsonValue,
-        projects: projects as unknown as Prisma.InputJsonValue,
-        education: education as unknown as Prisma.InputJsonValue,
-      },
+    const saved = await updateResume(writer.siteId, params.id, {
+      slug,
+      label,
+      published: Boolean(body.published),
+      order: Number.isFinite(body.order) ? Number(body.order) : 0,
+      content: parsed.value,
     });
 
-    return NextResponse.json(await getResumeById(params.id));
+    if (!saved) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(await getResumeById(writer.siteId, params.id));
   } catch (error) {
     console.error('Résumé update error:', error);
     return NextResponse.json({ error: 'Failed to save résumé' }, { status: 500 });
@@ -95,9 +90,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  */
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const body = await request.json();
     const data: { published?: boolean; order?: number } = {};
@@ -109,11 +103,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Nothing to change' }, { status: 400 });
     }
 
-    const updated = await prisma.resume.update({
-      where: { id: params.id },
-      data,
-      select: { id: true, published: true, order: true },
-    });
+    const updated = await patchResume(writer.siteId, params.id, data);
+    if (!updated) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -124,11 +117,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
+
+    if (!(await deleteResume(writer.siteId, params.id))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    await prisma.resume.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Résumé deletion error:', error);

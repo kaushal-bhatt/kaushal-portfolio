@@ -1,25 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getAdminSession } from '@/lib/session';
+import type { Prisma } from '@prisma/client';
+import { requireSiteAccess, writerSite } from '@/lib/access';
+import {
+  createPost,
+  deletePost,
+  getPostById,
+  listPosts,
+  updatePost,
+  uniquePostSlug,
+} from '@/lib/content/posts';
+import { ensureTopic } from '@/lib/content/topics';
+import { currentSiteId } from '@/lib/site';
 import { transformBlogPostForAPI, transformBlogPostForDB } from '@/lib/sqlite-helpers';
-import { Prisma } from '@prisma/client';
-import { ensureTechSection } from '@/lib/topics';
 // Read live content, so this must never be evaluated at build time: the Docker
 // image is built with no database reachable, and a statically prerendered
 // handler would try to query one and fail the build.
 export const dynamic = 'force-dynamic';
-
-// Define the expected request body type
-interface CreateBlogPostRequest {
-  title: string;
-  excerpt: string;
-  content: string;
-  technology: string;
-  ogImageUrl?: string;
-  tags?: string[];
-  readTime?: number;
-  published?: boolean;
-}
 
 /**
  * The optional per-post preview image.
@@ -47,56 +43,37 @@ function invalidOgImage(value: string): string | null {
 
 export async function GET(request: NextRequest) {
   try {
+    const siteId = await currentSiteId();
+    if (!siteId) return NextResponse.json([]);
+
     const { searchParams } = new URL(request.url);
     const technology = searchParams.get('technology');
     const id = searchParams.get('id');
-    
+
     // Drafts are for the author only. Established once here because the `id`
     // branch below returns early — it used to hand back any post by id, to
     // anyone, which was a third way to the same unpublished text.
-    const isAdmin = (await getAdminSession()) !== null;
+    const isAdmin = (await requireSiteAccess()).ok;
 
     if (id) {
-      const post = await prisma.blogPost.findUnique({
-        where: { id }
-      });
+      const post = await getPostById(siteId, id);
 
       // 404 rather than 403 for a draft: the response must not confirm that one
-      // exists at that id.
+      // exists at that id. A post belonging to the other portfolio is not found
+      // here either, and by the same mechanism — the site is in the query.
       if (!post || (!post.published && !isAdmin)) {
         return NextResponse.json({ error: 'Post not found' }, { status: 404 });
       }
 
       return NextResponse.json(transformBlogPostForAPI(post));
     }
-    
+
     // The blog page filtered drafts out in the browser, which hid them from a
     // reader and from nobody else. The admin post list uses this same route, so
     // the filter lifts for a verified admin session rather than unconditionally.
-    let whereClause: Prisma.BlogPostWhereInput = isAdmin ? {} : { published: true };
+    const posts = await listPosts(siteId, { includeDrafts: isAdmin, technology });
 
-    if (technology) {
-      // Exact, case-insensitive — callers pass the section's slug, which is what
-      // BlogPost.technology stores. This was a `contains` match, which is why
-      // "Java" happened to find "java" while "Spring Boot" never found
-      // "spring-boot": a space is not a hyphen. A substring match also quietly
-      // widens the filter, so a section named "Go" would collect every post
-      // about MongoDB.
-      // Spread, not replace: assigning a fresh object here would drop the
-      // published filter above, so filtering by technology would have handed
-      // out drafts again.
-      whereClause = { ...whereClause, technology: { equals: technology, mode: 'insensitive' } };
-    }
-
-    const posts = await prisma.blogPost.findMany({
-      where: whereClause,
-      orderBy: {
-        createdAt: 'desc'
-      }
-    });
-
-    const transformedPosts = posts.map(post => transformBlogPostForAPI(post));
-    return NextResponse.json(transformedPosts);
+    return NextResponse.json(posts.map((post) => transformBlogPostForAPI(post)));
   } catch (error) {
     console.error('Blog posts fetch error:', error);
     return NextResponse.json(
@@ -108,14 +85,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects - it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Verified server-side: signature, issuer, audience, the required role AND
+    // a grant on this site. The middleware ahead of this only chooses redirects
+    // - it verifies nothing.
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.title || !body.excerpt || !body.content || !body.technology) {
       return NextResponse.json(
@@ -127,7 +104,7 @@ export async function POST(request: NextRequest) {
     // Free text, not a fixed list. An unrecognised topic creates its row here
     // rather than being refused — the editor's dropdown used to be the only
     // source of valid values, and adding one to it was a deploy.
-    const technology = await ensureTechSection(body.technology);
+    const technology = await ensureTopic(writer.siteId, body.technology);
     if (!technology) {
       return NextResponse.json({ error: 'Technology is required' }, { status: 400 });
     }
@@ -138,41 +115,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: badImage }, { status: 400 });
     }
 
-    const postData: CreateBlogPostRequest = {
-      title: body.title,
-      excerpt: body.excerpt,
-      content: body.content,
-      technology,
-      ogImageUrl,
-      tags: body.tags || [],
-      readTime: body.readTime || 5,
-      published: body.published || false
-    };
-
-    // Generate slug from title
-    const slug = postData.title
+    const base = String(body.title)
       .toLowerCase()
       .replace(/[^a-z0-9 -]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
 
-    // Transform data for DB
-    const transformedData = transformBlogPostForDB(postData);
+    // Suffixed until free rather than written straight in. The slug is unique
+    // per site, so two posts with the same title on one portfolio used to fail
+    // the insert on a constraint the writer could not see — reported to them as
+    // "failed to create blog post" and nothing else.
+    const slug = await uniquePostSlug(writer.siteId, base);
 
-    // Create the blog post with properly typed data
-    const post = await prisma.blogPost.create({
-      data: {
-        title: postData.title,
-        excerpt: postData.excerpt,
-        content: postData.content,
-        technology: postData.technology,
-        ogImageUrl: postData.ogImageUrl ?? '',
-        tags: transformedData.tags,
-        readTime: postData.readTime,
-        published: postData.published,
-        slug,
-      }
+    const post = await createPost(writer.siteId, slug, {
+      title: body.title,
+      excerpt: body.excerpt,
+      content: body.content,
+      technology,
+      ogImageUrl,
+      tags: transformBlogPostForDB({ tags: body.tags || [] }).tags,
+      readTime: body.readTime || 5,
+      published: body.published || false,
     });
 
     return NextResponse.json(transformBlogPostForAPI(post), { status: 201 });
@@ -187,11 +151,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects - it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const body = await request.json();
     const { id, ...updateData } = body;
@@ -214,7 +175,7 @@ export async function PUT(request: NextRequest) {
     // partial updates, and an absent `technology` must not be read as an
     // instruction to clear it.
     if (typeof updateData.technology === 'string') {
-      const technology = await ensureTechSection(updateData.technology);
+      const technology = await ensureTopic(writer.siteId, updateData.technology);
       if (!technology) {
         return NextResponse.json({ error: 'Technology is required' }, { status: 400 });
       }
@@ -245,10 +206,10 @@ export async function PUT(request: NextRequest) {
     // the existing slug back, so it is carried through unchanged; sending a
     // different one is how you rename a post on purpose.
 
-    const post = await prisma.blogPost.update({
-      where: { id },
-      data: updateData
-    });
+    const post = await updatePost(writer.siteId, id, updateData as Prisma.BlogPostUpdateInput);
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
 
     return NextResponse.json(transformBlogPostForAPI(post));
   } catch (error) {
@@ -262,11 +223,8 @@ export async function PUT(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects - it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const body = await request.json();
     const { id, ...updateData } = body;
@@ -284,10 +242,10 @@ export async function PATCH(request: NextRequest) {
       updateData.tags = transformedData.tags;
     }
 
-    const post = await prisma.blogPost.update({
-      where: { id },
-      data: updateData
-    });
+    const post = await updatePost(writer.siteId, id, updateData as Prisma.BlogPostUpdateInput);
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
 
     return NextResponse.json(transformBlogPostForAPI(post));
   } catch (error) {
@@ -301,11 +259,8 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects - it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -317,9 +272,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await prisma.blogPost.delete({
-      where: { id }
-    });
+    if (!(await deletePost(writer.siteId, id))) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,40 +1,31 @@
-
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import type { TechSection } from '@prisma/client';
+import { listTopicsWithCounts } from '@/lib/content/topics';
+import { currentSiteId } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * The blog's topics, with how many published articles each holds.
+ *
+ * The count used to be one query per topic in a `Promise.all` — five topics
+ * meant six round trips. It is one `groupBy` now, inside
+ * `listTopicsWithCounts`.
+ */
 export async function GET() {
   try {
-    const techSections = await prisma.techSection.findMany({
-      orderBy: {
-        order: 'asc'
-      }
-    });
+    const siteId = await currentSiteId();
+    if (!siteId) return NextResponse.json([]);
 
-    // Get counts separately to avoid type issues
-    const sectionsWithCounts = await Promise.all(
-      techSections.map(async (section: TechSection) => {
-        const postCount = await prisma.blogPost.count({
-          where: {
-            OR: [
-              { technology: section.name, published: true },
-              { technology: section.slug, published: true }
-            ]
-          }
-        });
-        
-        return {
-          ...section,
-          _count: {
-            blogPosts: postCount
-          }
-        };
-      })
+    const topics = await listTopicsWithCounts(siteId, true);
+
+    // `_count.blogPosts` is the shape three components already read. Renaming
+    // it here would be a rename in all of them for nothing.
+    return NextResponse.json(
+      topics.map(({ postCount, ...section }) => ({
+        ...section,
+        _count: { blogPosts: postCount },
+      }))
     );
-
-    return NextResponse.json(sectionsWithCounts);
   } catch (error) {
     console.error('Tech sections fetch error:', error);
     return NextResponse.json(

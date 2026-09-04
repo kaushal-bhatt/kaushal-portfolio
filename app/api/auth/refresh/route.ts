@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   ACCESS_COOKIE, REFRESH_COOKIE,
-  cookieOptions, authPlatformInternalUrl, siteUrl, safeNext,
+  cookieOptions, authPlatformInternalUrl, siteOrigin, safeNext,
 } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
@@ -23,8 +23,13 @@ export async function GET(request: NextRequest) {
   const next = safeNext(request.nextUrl.searchParams.get('next'));
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
 
+  // Resolved once and passed down: every redirect out of this handler has to
+  // land on the host the visitor is actually on, and `toLogin` cannot read the
+  // request for itself.
+  const origin = await siteOrigin();
+
   if (!refreshToken) {
-    return toLogin(next);
+    return toLogin(origin, next);
   }
 
   try {
@@ -34,24 +39,24 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({ refreshToken }),
       cache: 'no-store',
     });
-    if (!res.ok) return toLogin(next);
+    if (!res.ok) return toLogin(origin, next);
 
     const tokens = await res.json();
-    if (!tokens.accessToken || !tokens.refreshToken) return toLogin(next);
+    if (!tokens.accessToken || !tokens.refreshToken) return toLogin(origin, next);
 
-    const response = NextResponse.redirect(new URL(next, siteUrl()));
+    const response = NextResponse.redirect(new URL(next, origin));
     response.cookies.set(ACCESS_COOKIE, tokens.accessToken, cookieOptions(tokens.expiresIn ?? 900));
     response.cookies.set(REFRESH_COOKIE, tokens.refreshToken, cookieOptions(REFRESH_MAX_AGE, '/api/auth'));
     return response;
   } catch {
     // The auth service being unreachable is not a reason to keep a session the app cannot
     // verify. Send them to sign in; if the service is down, that is where they will find out.
-    return toLogin(next);
+    return toLogin(origin, next);
   }
 }
 
-function toLogin(next: string) {
-  const login = new URL('/api/auth/login', siteUrl());
+function toLogin(origin: string, next: string) {
+  const login = new URL('/api/auth/login', origin);
   login.searchParams.set('next', next);
   const response = NextResponse.redirect(login);
   response.cookies.delete(ACCESS_COOKIE);

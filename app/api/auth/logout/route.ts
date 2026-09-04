@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ACCESS_COOKIE, REFRESH_COOKIE, cookieOptions, siteUrl } from '@/lib/session';
+import { ACCESS_COOKIE, REFRESH_COOKIE, cookieOptions, siteOrigin } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
  * `delete` without the matching path leaves a cookie set at /api/auth untouched.
  */
 export async function POST() {
-  const response = NextResponse.redirect(new URL('/', siteUrl()), { status: 303 });
+  const response = NextResponse.redirect(new URL('/', await siteOrigin()), { status: 303 });
   response.cookies.set(ACCESS_COOKIE, '', cookieOptions(0));
   response.cookies.set(REFRESH_COOKIE, '', cookieOptions(0, '/api/auth'));
   return response;

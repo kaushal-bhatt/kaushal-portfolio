@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import { stringToArray } from '@/lib/sqlite-helpers';
+import { writerSite } from '@/lib/access';
+import { createSkill } from '@/lib/content/about';
 import { invalidAboutVisual } from '@/lib/about-visuals';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Verified server-side: signature, issuer, audience, the required role and a
+    // grant on this site.
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const data = await request.json();
 
@@ -22,20 +21,10 @@ export async function POST(request: NextRequest) {
     const bad = invalidAboutVisual(data);
     if (bad) return NextResponse.json({ error: bad }, { status: 400 });
 
-    const skill = await prisma.aboutSkill.create({
-      data: {
-        category: data.category.trim(),
-        icon: data.icon || 'Code2',
-        // The form submits comma-separated text; the column is String[].
-        items: stringToArray(data.items),
-        color: data.color || 'blue',
-        order: data.order || 0,
-      },
-    });
-
-    return NextResponse.json(skill, { status: 201 });
+    return NextResponse.json(await createSkill(writer.siteId, data), { status: 201 });
   } catch (error) {
-    // `category` is unique, so the same card cannot be added twice by accident.
+    // `category` is unique within a site, so the same card cannot be added
+    // twice by accident.
     if (error instanceof Error && error.message.includes('Unique constraint')) {
       return NextResponse.json(
         { error: 'A skill card with that category already exists' },

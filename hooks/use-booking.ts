@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BOOKING_DEFAULTS, type BookingContent } from '@/lib/booking';
+import { BOOKING_DEFAULTS, type BookingContent } from '@/lib/booking-content';
 
 /**
  * The booking section's copy and URL.

@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from 'jose';
+import { isKnownHost, requestHost } from '@/lib/site';
 
 /**
  * The admin session.
@@ -51,10 +52,58 @@ export const authPlatformInternalUrl = () =>
   (process.env.AUTH_PLATFORM_INTERNAL_URL || required('AUTH_PLATFORM_URL')).replace(/\/$/, '');
 export const ssoClientId = () => required('AUTH_PLATFORM_SSO_CLIENT_ID');
 export const ssoClientSecret = () => required('AUTH_PLATFORM_SSO_CLIENT_SECRET');
+
+/**
+ * The configured origin. Still the fallback for everything below, and still the
+ * only answer during `next build`, where there is no request.
+ */
 export const siteUrl = () => required('PORTFOLIO_BASE_URL').replace(/\/$/, '');
-export const callbackUrl = () => `${siteUrl()}/api/auth/callback`;
+
+/**
+ * The origin this request actually arrived at.
+ *
+ * One deployment answers on more than one hostname now, and every part of the
+ * sign-in round trip has to agree on which. Deriving it from
+ * `PORTFOLIO_BASE_URL` — one value, baked into the container — would send an
+ * admin signing in at the second portfolio back to the first, where their
+ * cookies are not.
+ *
+ * The `Host` header is caller-controlled, so it is checked against the sites
+ * that exist before being trusted with a `redirect_uri`. auth-platform matches
+ * that value by exact string equality against its own allowlist and would
+ * refuse a forged one anyway — but that puts this app's correctness in another
+ * service's configuration file, and the check here costs one indexed lookup.
+ *
+ * Note what this means for deployment: `AUTH_PLATFORM_SSO_REDIRECT_URIS` in
+ * auth-platform's `.env` must list BOTH callbacks. It is a `List<String>`, so
+ * one SSO client serves both hosts and no auth-platform code changes.
+ */
+export async function siteOrigin(): Promise<string> {
+  const host = requestHost();
+  if (host && (await isKnownHost(host))) {
+    // http only for local development, where PORTFOLIO_BASE_URL says so.
+    const scheme = siteUrl().startsWith('http://') ? 'http' : 'https';
+    return `${scheme}://${host}`;
+  }
+  return siteUrl();
+}
+
+export async function callbackUrl(): Promise<string> {
+  return `${await siteOrigin()}/api/auth/callback`;
+}
 
 const requiredRole = () => process.env.AUTH_PLATFORM_SSO_REQUIRED_ROLE || 'portfolio-admin';
+
+/**
+ * The role that grants every site at once, bypassing the `SiteUser` lookup.
+ *
+ * Granted by SQL in auth-platform exactly the way `portfolio-admin` is — see
+ * DEPLOY.md. It travels in the access token, so granting it to an account with
+ * a live session does nothing until that session refreshes; signing out and
+ * back in is the reliable way to pick it up.
+ */
+export const superRole = () =>
+  process.env.AUTH_PLATFORM_SSO_SUPER_ROLE || 'portfolio-superadmin';
 
 /**
  * `createRemoteJWKSet` fetches the issuer's keys and caches them, re-fetching only when a token

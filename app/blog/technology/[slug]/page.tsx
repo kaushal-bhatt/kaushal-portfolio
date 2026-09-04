@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { techIcon } from '@/lib/tech-visuals';
 import { safeTags } from '@/lib/safe-arrays';
+import { useSite } from '@/hooks/use-site';
 
 interface BlogPost {
   id: string;
@@ -39,6 +40,7 @@ export default function TechnologyBlogPage() {
   const params = useParams();
   const slug = params?.slug as string;
   
+  const site = useSite();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [techSection, setTechSection] = useState<TechSection | null>(null);
   const [loading, setLoading] = useState(true);
@@ -208,7 +210,7 @@ export default function TechnologyBlogPage() {
                       <Calendar className="w-4 h-4 mr-1" />
                       {new Date(post.createdAt).toLocaleDateString()}
                       <span className="mx-2">•</span>
-                      <span>by {post.authorName}</span>
+                      <span>by {post.authorName || site.fullName}</span>
                     </div>
                   </CardHeader>
                   

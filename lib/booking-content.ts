@@ -1,16 +1,15 @@
-import { prisma } from '@/lib/db';
-
 /**
- * The "book a call" section.
+ * The "book a call" section's shape, defaults and validation.
  *
- * Everything here hangs off one question: is `calendlyUrl` set? If it is not,
- * the section does not render, the navigation entry is not there, and the
- * browser never asks assets.calendly.com for anything. That is deliberately the
- * default — a fresh database has no row at all, and the site is correct in that
- * state rather than showing an empty calendar.
+ * Split from the reads for the same reason `lib/site-content.ts` is split from
+ * `lib/site.ts`: `hooks/use-booking.ts` is a client hook and imports the type
+ * and the defaults from here. It used to import them from a module that also
+ * imported Prisma, which built only because the import happened to be
+ * tree-shaken — `lib/site.ts` had the identical shape and failed the build
+ * outright. That was luck, and this removes the need for it.
+ *
+ * Nothing in this file touches a request or a database.
  */
-
-export const BOOKING_ID = 'main';
 
 export const BOOKING_DEFAULTS = {
   calendlyUrl: '',
@@ -20,18 +19,6 @@ export const BOOKING_DEFAULTS = {
 };
 
 export type BookingContent = typeof BOOKING_DEFAULTS;
-
-export async function getBooking(): Promise<BookingContent> {
-  const row = await prisma.booking.findUnique({ where: { id: BOOKING_ID } });
-  if (!row) return { ...BOOKING_DEFAULTS };
-
-  return {
-    calendlyUrl: row.calendlyUrl,
-    heading: row.heading,
-    headingAccent: row.headingAccent,
-    subtitle: row.subtitle,
-  };
-}
 
 /**
  * Only a Calendly URL over https is accepted.

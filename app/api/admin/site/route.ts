@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import { normaliseSiteInput, requestHost, resolveSite } from '@/lib/site';
+import { requireSiteAccess } from '@/lib/access';
+import { hostTaken, normaliseSiteInput, resolveSite, saveSite } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects — it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verified server-side: signature, issuer, audience, the required role and a
+    // grant on this site. The middleware ahead of this only chooses redirects —
+    // it verifies nothing.
+    const access = await requireSiteAccess();
+    if (!access.ok) {
+      return access.reason === 'anonymous'
+        ? NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        : NextResponse.json({ error: 'You do not have access to this site' }, { status: 403 });
     }
 
-    return NextResponse.json(await resolveSite());
+    return NextResponse.json(access.site);
   } catch (error) {
     console.error('Site fetch error:', error);
     const detail = error instanceof Error ? error.message.split('\n')[0] : String(error);
@@ -25,17 +28,22 @@ export async function GET() {
  * Saves the site this admin is signed in to.
  *
  * Which site that is comes from the request's own host, not from the payload —
- * so an admin editing `wekt.in/admin/site` can only ever write `wekt.in`'s row.
- * That is what makes this route correct on the day a second site exists,
- * without the form having to carry an id the caller could change.
+ * so an admin editing `wekt.in/admin/site` can only ever write `wekt.in`'s row,
+ * and the row is addressed by its id rather than by anything the form sends.
  *
- * The upsert's create branch is for a database that has no row yet: the first
- * save from a fresh install makes the site rather than failing.
+ * There is no create branch any more. A site now has to exist before it can be
+ * edited, because `requireSiteAccess()` cannot decide who may edit a site that
+ * is not there — the first row is inserted by SQL alongside its owner's grant.
+ * The upsert this used to do would, with two hosts live, have let a request to
+ * an unrecognised name conjure a third site.
  */
 export async function PUT(request: NextRequest) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const access = await requireSiteAccess();
+    if (!access.ok) {
+      return access.reason === 'anonymous'
+        ? NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        : NextResponse.json({ error: 'You do not have access to this site' }, { status: 403 });
     }
 
     const parsed = normaliseSiteInput(await request.json());
@@ -43,28 +51,16 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
 
-    const current = await resolveSite();
-    const host = current.host || requestHost();
-
     // Renaming the host is allowed — it is how this site moves to a new domain
     // — but it must not be able to point at another site's row.
-    if (parsed.value.host !== host) {
-      const clash = await prisma.site.findUnique({ where: { host: parsed.value.host } });
-      if (clash) {
-        return NextResponse.json(
-          { error: `Another site already answers on ${parsed.value.host}.` },
-          { status: 409 }
-        );
-      }
+    if (await hostTaken(parsed.value.host, access.siteId)) {
+      return NextResponse.json(
+        { error: `Another site already answers on ${parsed.value.host}.` },
+        { status: 409 }
+      );
     }
 
-    await prisma.site.upsert({
-      where: { host },
-      update: parsed.value,
-      // The first row is the default one, so an unrecognised host has somewhere
-      // to land from the moment there is anything at all.
-      create: { ...parsed.value, isDefault: true },
-    });
+    await saveSite(access.siteId, parsed.value);
 
     return NextResponse.json(await resolveSite(parsed.value.host));
   } catch (error) {

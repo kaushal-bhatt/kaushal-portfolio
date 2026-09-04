@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { getTechSection } from '@/lib/posts';
-import { resolveSite } from '@/lib/site';
+import { getTopic } from '@/lib/content/topics';
+import { resolveSiteRecord } from '@/lib/site';
 
 /**
  * One title per topic.
@@ -18,12 +18,16 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const [section, site] = await Promise.all([getTechSection(params.slug), resolveSite()]);
+  const record = await resolveSiteRecord();
+  const section = record && (await getTopic(record.id, params.slug));
 
   // The page renders its own "Technology Not Found" state, so this only has to
-  // avoid putting "undefined" in a tab on the way there.
-  if (!section) return { title: 'Topic not found' };
+  // avoid putting "undefined" in a tab on the way there. A topic belonging to
+  // the other portfolio lands here too, which is right: it does not exist at
+  // this address.
+  if (!record || !section) return { title: 'Topic not found' };
 
+  const site = record.content;
   const title = `${section.name} Articles`;
   const description =
     section.description || `Articles about ${section.name} by ${site.fullName}.`;

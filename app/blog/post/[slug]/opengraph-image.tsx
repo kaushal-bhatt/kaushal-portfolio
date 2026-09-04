@@ -1,6 +1,8 @@
 import { ImageResponse } from 'next/og';
-import { getPublishedPost, getTechSection } from '@/lib/posts';
-import { resolveSite } from '@/lib/site';
+import { getPublishedPost } from '@/lib/content/posts';
+import { getTopic } from '@/lib/content/topics';
+import { resolveSiteRecord } from '@/lib/site';
+import { SITE_DEFAULTS } from '@/lib/site-content';
 
 /**
  * The card for one article.
@@ -38,7 +40,9 @@ function titleSize(title: string): number {
 }
 
 export default async function Image({ params }: { params: { slug: string } }) {
-  const [post, site] = await Promise.all([getPublishedPost(params.slug), resolveSite()]);
+  const record = await resolveSiteRecord();
+  const site = record?.content ?? SITE_DEFAULTS;
+  const post = record && (await getPublishedPost(record.id, params.slug));
 
   // The page 404s an unpublished post, so this should never be reached for one
   // — but a card rendering the word "undefined" is worse than a plain one.
@@ -49,7 +53,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
   // rather than "Spring Boot". The topic row carries the display name; falling
   // back to the slug covers a post filed under a topic that has since been
   // deleted.
-  const section = post ? await getTechSection(post.technology) : null;
+  const section = record && post ? await getTopic(record.id, post.technology) : null;
   const topic = section?.name ?? post?.technology ?? '';
 
   return new ImageResponse(
@@ -119,7 +123,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
               gap: 16,
             }}
           >
-            <span>{post?.authorName ?? site.fullName}</span>
+            <span>{post?.authorName || site.fullName}</span>
             {readTime ? <span>· {readTime} min read</span> : null}
             {site.host ? <span>· {site.host}</span> : null}
           </div>

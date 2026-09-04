@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { ResumeMeta } from '@/lib/resume';
+import type { ResumeMeta } from '@/lib/resume-content';
 
 /**
  * Every version of the CV, published or not.

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { BookingContent } from '@/lib/booking';
+import type { BookingContent } from '@/lib/booking-content';
 
 /**
  * The "book a call" section.

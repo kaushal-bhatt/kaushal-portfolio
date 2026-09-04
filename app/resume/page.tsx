@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
-import { getPrimaryPublishedSlug } from '@/lib/resume';
+import { getPrimaryPublishedSlug } from '@/lib/content/resume';
+import { currentSiteId } from '@/lib/site';
 
 /**
  * Reads the database, so it cannot be prerendered — `next build` runs in an
@@ -18,10 +19,12 @@ export const dynamic = 'force-dynamic';
  * Which one it lands on is decided by `order`, with `updatedAt` breaking ties.
  */
 export default async function ResumeIndex() {
-  const slug = await getPrimaryPublishedSlug();
+  const siteId = await currentSiteId();
+  const slug = siteId && (await getPrimaryPublishedSlug(siteId));
 
   // Nothing published: the résumé does not exist as far as the public site is
-  // concerned, and every link to it is hidden for the same reason.
+  // concerned, and every link to it is hidden for the same reason. A site with
+  // no CV of its own does not fall through to the other portfolio's.
   if (!slug) notFound();
 
   redirect(`/resume/${slug}`);

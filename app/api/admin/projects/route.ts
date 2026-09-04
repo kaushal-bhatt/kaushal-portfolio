@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import { stringToArray } from '@/lib/sqlite-helpers';
+import { writerSite } from '@/lib/access';
+import { createProject, listProjects } from '@/lib/content/projects';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    // The middleware ahead of this only chooses redirects - it verifies nothing.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Verified server-side: signature, issuer, audience, the required role and a
+    // grant on this site. The middleware ahead of this only chooses redirects -
+    // it verifies nothing.
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
-    const projects = await prisma.project.findMany({ orderBy: { order: 'asc' } });
-    return NextResponse.json(projects);
+    return NextResponse.json(await listProjects(writer.siteId));
   } catch (error) {
     console.error('Projects fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
@@ -23,9 +21,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const data = await request.json();
 
@@ -36,26 +33,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const project = await prisma.project.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        // The form submits comma-separated text; the column is String[].
-        technologies: stringToArray(data.technologies),
-        // Empty means "no demo" — stored as null so the page can hide the button
-        // rather than link to an empty string.
-        demoUrl: data.demoUrl?.trim() || null,
-        githubUrl: data.githubUrl,
-        status: data.status || 'Open Source',
-        category: data.category,
-        featured: data.featured || false,
-        completionDate: data.completionDate || '',
-        order: data.order || 0,
-      },
-    });
-
-    return NextResponse.json(project, { status: 201 });
+    return NextResponse.json(await createProject(writer.siteId, data), { status: 201 });
   } catch (error) {
+    // `title` is unique within a site, so the same project cannot be added
+    // twice by accident — and the other portfolio having one by that name is no
+    // longer a reason this one cannot.
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return NextResponse.json(
+        { error: 'A project with that title already exists' },
+        { status: 409 }
+      );
+    }
     console.error('Project creation error:', error);
     return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
   }

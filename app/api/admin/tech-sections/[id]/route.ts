@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
+import { writerSite } from '@/lib/access';
+import { countPostsUnder, deleteTopic, getTopicById, updateTopic } from '@/lib/content/topics';
 import { invalidTechVisual } from '@/lib/tech-visuals';
 
 export const dynamic = 'force-dynamic';
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const body = await request.json();
     const name = typeof body.name === 'string' ? body.name.trim() : '';
@@ -26,25 +25,20 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: invalid }, { status: 400 });
     }
 
-    // The slug is deliberately not regenerated from the name.
-    //
-    // It is what `BlogPost.technology` stores and what `/blog/technology/<slug>`
-    // resolves, so rebuilding it on a rename would orphan every post under the
-    // old value and break a published address — the same mistake the post
-    // editor used to make with its own slug.
-    const section = await prisma.techSection.update({
-      where: { id: params.id },
-      data: {
-        name,
-        description: typeof body.description === 'string' ? body.description.trim() : '',
-        icon: body.icon,
-        color: body.color,
-        order: Number.isFinite(body.order) ? Number(body.order) : 0,
-      },
-    });
+    // The slug is deliberately not regenerated from the name — see the note on
+    // `updateTopic`.
+    if (!(await updateTopic(writer.siteId, params.id, { ...body, name }))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
-    return NextResponse.json(section);
+    return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return NextResponse.json(
+        { error: 'A topic with that name already exists' },
+        { status: 409 }
+      );
+    }
     console.error('Topic update error:', error);
     return NextResponse.json({ error: 'Failed to save topic' }, { status: 500 });
   }
@@ -52,11 +46,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
-    const section = await prisma.techSection.findUnique({ where: { id: params.id } });
+    const section = await getTopicById(writer.siteId, params.id);
     if (!section) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
@@ -65,7 +58,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // foreign key behind it, so deleting one with posts still under it leaves
     // them filed under a value nothing resolves — they vanish from every filter
     // while still being published.
-    const inUse = await prisma.blogPost.count({ where: { technology: section.slug } });
+    const inUse = await countPostsUnder(writer.siteId, section);
     if (inUse > 0) {
       return NextResponse.json(
         {
@@ -75,7 +68,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       );
     }
 
-    await prisma.techSection.delete({ where: { id: params.id } });
+    await deleteTopic(writer.siteId, params.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Topic deletion error:', error);

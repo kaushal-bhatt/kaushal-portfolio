@@ -30,10 +30,24 @@ datasource db {
 // arrays. They were comma-joined strings under SQLite purely because SQLite has
 // no array type — a limitation there is no reason to carry over. Splitting on a
 // comma also quietly corrupted any value that contained one.
+//
+// Every content model below carries `siteId`. One deployment serves more than
+// one portfolio, so a row without an owner is a row that shows up on both — and
+// a forgotten filter does not throw, it returns the other person's writing.
+// Nothing in this file prevents that; `lib/content/` does, by making `siteId`
+// the first required argument of every read and write. This is only the shape
+// that makes the check possible.
+//
+// The uniques are all composite for the same reason. `slug @unique` across the
+// whole table would mean the second site could never publish a post called
+// "hello-world" because the first one already had — two people's URL spaces
+// colliding through a constraint neither of them can see.
 // ---------------------------------------------------------------------------
 
 model Portfolio {
   id           String   @id @default(cuid())
+  siteId       String
+  site         Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
   company      String
   role         String
   startDate    String
@@ -45,6 +59,8 @@ model Portfolio {
   order        Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@index([siteId])
 }
 
 /// Open-source projects — the /portfolio page.
@@ -55,7 +71,9 @@ model Portfolio {
 /// a flag on that one.
 model Project {
   id          String @id @default(cuid())
-  title       String @unique
+  siteId      String
+  site        Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  title       String
   description String @db.Text
 
   technologies String[] @default([])
@@ -79,12 +97,17 @@ model Project {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([siteId, title])
+  @@index([siteId])
 }
 
 model BlogPost {
   id         String  @id @default(cuid())
+  siteId     String
+  site       Site    @relation(fields: [siteId], references: [id], onDelete: Cascade)
   title      String
-  slug       String  @unique
+  slug       String
   excerpt    String  @db.Text
   content    String  @db.Text
   technology String
@@ -93,7 +116,13 @@ model BlogPost {
   // A byline, not a foreign key. There is no user table to point at, and on a
   // single-author blog the author was never really a relationship — it was a
   // label that happened to be stored somewhere else.
-  authorName String @default("Kaushal Bhatt")
+  //
+  // Empty is the normal case and it falls back to the site's `fullName`. It
+  // used to default to a person's name in this file, which was invisible with
+  // one tenant and wrong the moment there were two: every post on the second
+  // portfolio would have been bylined to the owner of the first. A default
+  // belongs to a site, not to a schema.
+  authorName String @default("")
 
   /// Overrides the generated Open Graph card for this one post.
   ///
@@ -108,12 +137,17 @@ model BlogPost {
   readTime  Int      @default(5)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([siteId, slug])
+  @@index([siteId])
 }
 
 model TechSection {
   id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
+  siteId      String
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
   description String   @db.Text
   icon        String
   order       Int      @default(0)
@@ -122,6 +156,10 @@ model TechSection {
   color       String   @default("blue")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([siteId, slug])
+  @@unique([siteId, name])
+  @@index([siteId])
 }
 
 // ---------------------------------------------------------------------------
@@ -132,10 +170,15 @@ model TechSection {
 // prose is a singleton while the other two are lists the admin adds to.
 // ---------------------------------------------------------------------------
 
-/// One row, always. `id` defaults to "main" and the admin route upserts on that
-/// rather than creating a second row every time the copy is edited.
+/// One row per site. It used to be one row full stop — `id` defaulted to the
+/// literal "main" and every route upserted on it, which is the singleton
+/// pattern working exactly as intended right up until there are two sites and
+/// they are both editing the same row. `siteId` is unique instead, so "one
+/// About section" is now a statement about a site rather than about the table.
 model AboutContent {
-  id String @id @default("main")
+  id     String @id @default(cuid())
+  siteId String @unique
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   /// The heading is split so the accent keeps its gradient: "About" + "Me".
   heading       String @default("About")
@@ -157,7 +200,9 @@ model AboutContent {
 /// A skill card: a heading, an icon, and the bullet list under it.
 model AboutSkill {
   id       String   @id @default(cuid())
-  category String   @unique
+  siteId   String
+  site     Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  category String
   /// A key into `lib/about-visuals.ts`, not a class name and not an import path.
   icon     String   @default("Code2")
   items    String[] @default([])
@@ -168,6 +213,9 @@ model AboutSkill {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([siteId, category])
+  @@index([siteId])
 }
 
 /// One of the four figures along the bottom ("7 Years", "57%", …).
@@ -176,13 +224,18 @@ model AboutSkill {
 /// something else entirely — the bullet points under a job.
 model AboutStat {
   id          String @id @default(cuid())
-  label       String @unique
+  siteId      String
+  site        Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  label       String
   description String
   icon        String @default("Award")
   order       Int    @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([siteId, label])
+  @@index([siteId])
 }
 
 // ---------------------------------------------------------------------------
@@ -207,8 +260,11 @@ model AboutStat {
 model Resume {
   id String @id @default(cuid())
 
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
   /// The URL: /resume/senior-backend-engineer.
-  slug String @unique
+  slug String
 
   /// Shown on the button that links to it, and in the admin list. It is what
   /// tells two versions apart, so it carries a date or an angle rather than
@@ -258,6 +314,9 @@ model Resume {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([siteId, slug])
+  @@index([siteId])
 }
 
 // ---------------------------------------------------------------------------
@@ -274,7 +333,9 @@ model Resume {
 // configured for the site to be correct.
 // ---------------------------------------------------------------------------
 model Booking {
-  id String @id @default("main")
+  id     String @id @default(cuid())
+  siteId String @unique
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   /// The full Calendly URL, e.g. https://calendly.com/kaushal/30min.
   /// Empty means the whole section is off.
@@ -383,6 +444,63 @@ model Site {
   /// vanish. Same reasoning as `lib/about-visuals.ts`.
   accent String @default("blue")
 
+  // --- what belongs to this site --------------------------------------------
+  // `onDelete: Cascade` on the far side of each of these. Deleting a site with
+  // content left behind would orphan rows that nothing can reach and nothing
+  // can clean up — there is no admin screen that lists content without a site.
+  users        SiteUser[]
+  experience   Portfolio[]
+  projects     Project[]
+  blogPosts    BlogPost[]
+  techSections TechSection[]
+  aboutContent AboutContent?
+  aboutSkills  AboutSkill[]
+  aboutStats   AboutStat[]
+  resumes      Resume[]
+  booking      Booking?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Who may edit which site.
+//
+// This is not a user table. It holds no name, no email, no credential and
+// nothing that could be signed in with — authentication is still entirely
+// auth-platform's, and this app still stores nothing that a database dump would
+// give away. It is a grant: "the person auth-platform calls <authSubject> may
+// edit this site".
+//
+// Two gates, and they answer different questions. The `portfolio-admin` role in
+// the JWT answers "is this a real admin, or someone who signed up on the open
+// demo?" — it is global and it stays. This table answers "which site?".
+// Neither is sufficient alone: a role with no row here can edit nothing, and a
+// row here with no role is never reached, because the role check runs first.
+//
+// Super-admin is deliberately NOT a column here. It is the
+// `portfolio-superadmin` role in the token, granted by SQL in auth-platform the
+// same way `portfolio-admin` is, because it is a claim about a person rather
+// than about a site — a flag per site would have to be added again for every
+// site that ever exists, and forgetting to is how someone locks themselves out
+// of a portfolio they own.
+// ---------------------------------------------------------------------------
+model SiteUser {
+  id     String @id @default(cuid())
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  /// The JWT `sub` — auth-platform's `app_user.id`. Stable across renames, and
+  /// the only identifier both services agree on. `lib/session.ts` surfaces it
+  /// as `userId`.
+  authSubject String
+
+  /// One value today ("owner"). A column rather than a boolean because the
+  /// question it will be asked next is "editor or owner", not "yes or no".
+  role String @default("owner")
+
+  createdAt DateTime @default(now())
+
+  @@unique([siteId, authSubject])
+  @@index([authSubject])
 }

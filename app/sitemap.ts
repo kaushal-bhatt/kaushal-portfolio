@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
-import { listPublishedPostRefs, listTechSectionRefs } from '@/lib/posts';
-import { getPublishedResumeLinks } from '@/lib/resume';
-import { resolveSite } from '@/lib/site';
+import { listPublishedPostRefs } from '@/lib/content/posts';
+import { getPublishedResumeLinks } from '@/lib/content/resume';
+import { listTopicRefs } from '@/lib/content/topics';
+import { resolveSiteRecord } from '@/lib/site';
 
 /**
  * Dynamic, not built once.
@@ -15,17 +16,21 @@ import { resolveSite } from '@/lib/site';
 export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const site = await resolveSite();
+  const site = await resolveSiteRecord();
 
   // Without a host there is no absolute URL to emit, and a sitemap of relative
   // paths is not a sitemap. Better empty than wrong.
-  if (!site.host) return [];
-  const base = `https://${site.host}`;
+  if (!site?.content.host) return [];
+  const base = `https://${site.content.host}`;
 
+  // Every list is scoped to this site, which is the whole point of the sitemap
+  // being dynamic: the second portfolio's sitemap must not list the first one's
+  // writing, and a crawler that finds it there would have every reason to treat
+  // both as one site.
   const [posts, topics, resumes] = await Promise.all([
-    listPublishedPostRefs(),
-    listTechSectionRefs(),
-    getPublishedResumeLinks(),
+    listPublishedPostRefs(site.id),
+    listTopicRefs(site.id),
+    getPublishedResumeLinks(site.id),
   ]);
 
   const now = new Date();

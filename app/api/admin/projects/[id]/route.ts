@@ -1,37 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
-import { stringToArray } from '@/lib/sqlite-helpers';
+import { writerSite } from '@/lib/access';
+import { deleteProject, updateProject } from '@/lib/content/projects';
 
 export const dynamic = 'force-dynamic';
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const data = await request.json();
 
-    const project = await prisma.project.update({
-      where: { id: params.id },
-      data: {
-        title: data.title,
-        description: data.description,
-        technologies: stringToArray(data.technologies),
-        demoUrl: data.demoUrl?.trim() || null,
-        githubUrl: data.githubUrl,
-        status: data.status || 'Open Source',
-        category: data.category,
-        featured: data.featured || false,
-        completionDate: data.completionDate || '',
-        order: data.order || 0,
-      },
-    });
+    if (!(await updateProject(writer.siteId, params.id, data))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
 
-    return NextResponse.json(project);
+    return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return NextResponse.json(
+        { error: 'A project with that title already exists' },
+        { status: 409 }
+      );
+    }
     console.error('Project update error:', error);
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
   }
@@ -39,11 +30,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
+
+    if (!(await deleteProject(writer.siteId, params.id))) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    await prisma.project.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Project deletion error:', error);

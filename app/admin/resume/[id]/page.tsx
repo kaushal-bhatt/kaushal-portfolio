@@ -13,7 +13,7 @@ import type {
   ResumeProject,
   ResumeRecord,
   ResumeSkillGroup,
-} from '@/lib/resume';
+} from '@/lib/resume-content';
 
 /**
  * One résumé.

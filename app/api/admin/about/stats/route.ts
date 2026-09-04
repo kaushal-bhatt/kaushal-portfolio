@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession } from '@/lib/session';
-import { prisma } from '@/lib/db';
+import { writerSite } from '@/lib/access';
+import { createStat } from '@/lib/content/about';
 import { invalidAboutVisual } from '@/lib/about-visuals';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verified server-side: signature, issuer, audience and the required role.
-    if (!(await getAdminSession())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Verified server-side: signature, issuer, audience, the required role and a
+    // grant on this site.
+    const writer = await writerSite();
+    if (!writer.ok) return writer.response;
 
     const data = await request.json();
 
@@ -21,16 +21,7 @@ export async function POST(request: NextRequest) {
     const bad = invalidAboutVisual(data);
     if (bad) return NextResponse.json({ error: bad }, { status: 400 });
 
-    const stat = await prisma.aboutStat.create({
-      data: {
-        label: data.label.trim(),
-        description: data.description.trim(),
-        icon: data.icon || 'Award',
-        order: data.order || 0,
-      },
-    });
-
-    return NextResponse.json(stat, { status: 201 });
+    return NextResponse.json(await createStat(writer.siteId, data), { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.message.includes('Unique constraint')) {
       return NextResponse.json({ error: 'A figure with that label already exists' }, { status: 409 });

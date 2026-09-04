@@ -6,8 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BlogShareButton } from '@/components/blog-share-button';
-import { getPublishedPost, getTechSection, metaDescription } from '@/lib/posts';
-import { resolveSite } from '@/lib/site';
+import { getPublishedPost, metaDescription } from '@/lib/content/posts';
+import { getTopic } from '@/lib/content/topics';
+import { resolveSiteRecord } from '@/lib/site';
 import { renderMarkdown } from '@/lib/markdown';
 import { safeTags } from '@/lib/safe-arrays';
 
@@ -36,11 +37,12 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  // The site row is not needed here any more: the image comes from the post or
-  // from this route's own opengraph-image.tsx, and the title template is the
-  // root layout's job.
-  const post = await getPublishedPost(params.slug);
-  if (!post) return { title: 'Article not found' };
+  // The site is read for its id and for the byline only. The image still comes
+  // from the post or from this route's own opengraph-image.tsx, and the title
+  // template is the root layout's job.
+  const site = await resolveSiteRecord();
+  const post = site && (await getPublishedPost(site.id, params.slug));
+  if (!site || !post) return { title: 'Article not found' };
 
   const canonical = `/blog/post/${post.slug}`;
   const description = metaDescription(post.excerpt);
@@ -70,7 +72,7 @@ export async function generateMetadata({
       url: canonical,
       publishedTime: post.createdAt.toISOString(),
       modifiedTime: post.updatedAt.toISOString(),
-      authors: [post.authorName],
+      authors: [post.authorName || site.content.fullName],
       tags: safeTags(post.tags),
       ...(images ? { images } : {}),
     },
@@ -84,15 +86,26 @@ export async function generateMetadata({
 }
 
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const [post, site] = await Promise.all([getPublishedPost(params.slug), resolveSite()]);
+  // The site first, because the post is looked up inside it: an article on the
+  // other portfolio is not at this address, and asking for it by slug alone is
+  // how it would be.
+  const record = await resolveSiteRecord();
+  const post = record && (await getPublishedPost(record.id, params.slug));
 
   // 404 for a draft as well as for a slug that never existed. A 403 would
   // confirm that unpublished writing sits at that address.
-  if (!post) notFound();
+  if (!record || !post) notFound();
+
+  const site = record.content;
 
   // Read after the guard, so a 404 does not pay for a query it will not use.
   // `cache()` means the OG image route reuses this rather than asking again.
-  const section = await getTechSection(post.technology);
+  const section = await getTopic(record.id, post.technology);
+
+  // Empty is the normal case: the byline belongs to the site, and only a guest
+  // post carries one of its own. The column used to default to a person's name
+  // in the schema, which was invisible with one portfolio and wrong with two.
+  const author = post.authorName || site.fullName;
 
   const tags = safeTags(post.tags);
   const published = post.createdAt.toISOString();
@@ -109,7 +122,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     description: post.excerpt,
     datePublished: published,
     dateModified: post.updatedAt.toISOString(),
-    author: { '@type': 'Person', name: post.authorName },
+    author: { '@type': 'Person', name: author },
     keywords: tags.join(', '),
     articleSection: post.technology,
     ...(site.host
@@ -171,7 +184,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           <div className="flex flex-wrap items-center gap-4 text-gray-300">
             <div className="flex items-center">
               <User className="w-4 h-4 mr-2" />
-              <span>by {post.authorName}</span>
+              <span>by {author}</span>
             </div>
             <div className="flex items-center">
               <Calendar className="w-4 h-4 mr-2" />

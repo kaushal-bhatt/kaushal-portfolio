@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   const authorize = new URL(`${authPlatformUrl()}/sso/authorize`);
   authorize.searchParams.set('client_id', ssoClientId());
-  authorize.searchParams.set('redirect_uri', callbackUrl());
+  authorize.searchParams.set('redirect_uri', await callbackUrl());
   authorize.searchParams.set('state', state);
 
   const response = NextResponse.redirect(authorize);

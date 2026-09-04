@@ -234,7 +234,7 @@ export default function BlogPage() {
                       <Calendar className="w-4 h-4 mr-1" />
                       {new Date(post.createdAt).toLocaleDateString()}
                       <span className="mx-2">•</span>
-                      <span>by {post.authorName}</span>
+                      <span>by {post.authorName || site.fullName}</span>
                     </div>
                   </CardHeader>
                   

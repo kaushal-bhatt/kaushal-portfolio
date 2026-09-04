@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   ACCESS_COOKIE, REFRESH_COOKIE, STATE_COOKIE,
-  cookieOptions, authPlatformInternalUrl, ssoClientId, ssoClientSecret, callbackUrl, siteUrl, safeNext,
+  cookieOptions, authPlatformInternalUrl, ssoClientId, ssoClientSecret, callbackUrl, siteOrigin, safeNext,
 } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
@@ -53,7 +53,10 @@ export async function GET(request: NextRequest) {
         code,
         // Sent again so the auth service can require it to match the URI the code was minted
         // for. It refuses otherwise.
-        redirect_uri: callbackUrl(),
+        // The same value /api/auth/login sent, which is this request's own
+        // host — so a sign-in started on the second portfolio is redeemed
+        // against the second portfolio's callback.
+        redirect_uri: await callbackUrl(),
       }),
       cache: 'no-store',
     });
@@ -67,7 +70,7 @@ export async function GET(request: NextRequest) {
     return fail('Sign-in did not complete. Please try again.');
   }
 
-  const response = NextResponse.redirect(new URL(next, siteUrl()));
+  const response = NextResponse.redirect(new URL(next, await siteOrigin()));
   response.cookies.set(ACCESS_COOKIE, tokens.accessToken, cookieOptions(tokens.expiresIn ?? 900));
   // Scoped to /api/auth so it is not attached to ordinary page requests. It is the
   // longer-lived of the two credentials and has no business travelling with every asset.
