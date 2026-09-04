@@ -184,7 +184,23 @@ export default function PortfolioPage() {
                         </div>
                       </div>
                       
-                      <div className="flex gap-4">
+                      {/*
+                        `flex-wrap` is load-bearing on a narrow phone.
+
+                        Both buttons are `whitespace-nowrap` (shadcn's default),
+                        so without wrapping this row has a hard minimum width:
+                        "Live Demo" 120px + "Source Code" 135px + a 16px gap =
+                        271px. That is exactly the card's content box, so the
+                        card could not shrink below 321px — and on a 320px
+                        screen the browser widened the layout viewport to 337 to
+                        fit it, shrinking the whole page. Measured before this:
+                        viewport 337 on a 320px screen.
+
+                        Same failure mode as the About section's animation on
+                        2 Sep: on a phone an over-wide element is not a
+                        scrollbar, it is a zoom.
+                      */}
+                      <div className="flex flex-wrap gap-4">
                         {project.demoUrl && (
                           <Button
                             variant="outline"
@@ -273,7 +289,8 @@ export default function PortfolioPage() {
                           </div>
                         </div>
                         
-                        <div className="flex gap-2">
+                        {/* Same reasoning as the featured cards above. */}
+                        <div className="flex flex-wrap gap-2">
                           {project.demoUrl && (
                             <Button
                               variant="outline"
