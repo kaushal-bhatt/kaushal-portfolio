@@ -59,6 +59,7 @@ type SeedData = {
     excerpt: string;
     content: string;
     technology: string;
+    ogImageUrl: string;
     published: boolean;
     tags: string[];
     readTime: number;

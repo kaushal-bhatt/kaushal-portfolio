@@ -31,6 +31,7 @@ interface BlogPost {
   excerpt: string;
   content: string;
   technology: string;
+  ogImageUrl: string;
   published: boolean;
   createdAt: string;
   updatedAt: string;
@@ -309,6 +310,23 @@ export default function EditPost() {
                     className="bg-slate-800 border-slate-600 text-white resize-none"
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="ogImageUrl" className="text-white">
+                    Preview image URL
+                  </Label>
+                  <Input
+                    id="ogImageUrl"
+                    value={post.ogImageUrl ?? ''}
+                    onChange={(e) => setPost({ ...post, ogImageUrl: e.target.value })}
+                    placeholder="Leave blank — one is generated from the title"
+                    className="bg-slate-800 border-slate-600 text-white font-mono text-sm"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Optional. Blank means the card is drawn from the title and topic
+                    automatically — see the note in the new-post editor.
+                  </p>
                 </div>
               </CardContent>
             </Card>

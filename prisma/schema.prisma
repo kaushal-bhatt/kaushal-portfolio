@@ -95,6 +95,15 @@ model BlogPost {
   // label that happened to be stored somewhere else.
   authorName String @default("Kaushal Bhatt")
 
+  /// Overrides the generated Open Graph card for this one post.
+  ///
+  /// Empty is the normal case: app/blog/post/[slug]/opengraph-image.tsx draws
+  /// a card from the title and topic, so every post has one without anyone
+  /// doing anything. This is for the occasional post where a diagram or a
+  /// screenshot says more than the title does. A URL, not an upload — there is
+  /// no file storage in this app.
+  ogImageUrl String @default("")
+
   tags      String[] @default([])
   readTime  Int      @default(5)
   createdAt DateTime @default(now())

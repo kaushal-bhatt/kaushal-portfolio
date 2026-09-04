@@ -24,6 +24,7 @@ interface BlogPostForm {
   excerpt: string;
   content: string;
   technology: string;
+  ogImageUrl: string;
   published: boolean;
 }
 
@@ -38,6 +39,7 @@ export default function NewPost() {
     excerpt: '',
     content: '',
     technology: '',
+    ogImageUrl: '',
     published: false
   });
 
@@ -259,6 +261,26 @@ export default function NewPost() {
                     className="bg-slate-800 border-slate-600 text-white resize-none"
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="ogImageUrl" className="text-white">
+                    Preview image URL
+                  </Label>
+                  <Input
+                    id="ogImageUrl"
+                    value={formData.ogImageUrl}
+                    onChange={(e) => setFormData({ ...formData, ogImageUrl: e.target.value })}
+                    placeholder="Leave blank — one is generated from the title"
+                    className="bg-slate-800 border-slate-600 text-white font-mono text-sm"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Optional. Leave it blank and the card people see when this link is pasted
+                    into LinkedIn or a message is drawn from the title and topic automatically.
+                    Fill it in only when a specific diagram or screenshot says more than the
+                    title does — it has to be a URL, since there is nowhere here to upload a
+                    file to.
+                  </p>
                 </div>
               </CardContent>
             </Card>

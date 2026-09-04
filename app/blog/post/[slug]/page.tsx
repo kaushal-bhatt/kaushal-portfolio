@@ -36,11 +36,26 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const [post, site] = await Promise.all([getPublishedPost(params.slug), resolveSite()]);
+  // The site row is not needed here any more: the image comes from the post or
+  // from this route's own opengraph-image.tsx, and the title template is the
+  // root layout's job.
+  const post = await getPublishedPost(params.slug);
   if (!post) return { title: 'Article not found' };
 
   const canonical = `/blog/post/${post.slug}`;
   const description = metaDescription(post.excerpt);
+
+  /**
+   * Three levels, and the order matters.
+   *
+   * A post's own `ogImageUrl` wins — that is the override, for the occasional
+   * article where a diagram says more than the title. Otherwise nothing is set
+   * here at all, and `opengraph-image.tsx` in this folder supplies a card drawn
+   * from the title and topic. Setting `images` unconditionally would suppress
+   * that file, which is why the site-wide URL is *not* used as a middle step:
+   * a generated card naming the article always beats a generic one.
+   */
+  const images = post.ogImageUrl ? [post.ogImageUrl] : undefined;
 
   return {
     title: post.title,
@@ -57,13 +72,13 @@ export async function generateMetadata({
       modifiedTime: post.updatedAt.toISOString(),
       authors: [post.authorName],
       tags: safeTags(post.tags),
-      ...(site.ogImageUrl ? { images: [site.ogImageUrl] } : {}),
+      ...(images ? { images } : {}),
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description,
-      ...(site.ogImageUrl ? { images: [site.ogImageUrl] } : {}),
+      ...(images ? { images } : {}),
     },
   };
 }

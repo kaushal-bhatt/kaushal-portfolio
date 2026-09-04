@@ -15,9 +15,34 @@ interface CreateBlogPostRequest {
   excerpt: string;
   content: string;
   technology: string;
+  ogImageUrl?: string;
   tags?: string[];
   readTime?: number;
   published?: boolean;
+}
+
+/**
+ * The optional per-post preview image.
+ *
+ * Empty is the normal case — `opengraph-image.tsx` draws a card from the title
+ * and topic, so a post always has one. This only has to reject a value that
+ * would produce a broken card, and it is checked rather than trusted because
+ * the URL is handed to LinkedIn and Slack to fetch: a `javascript:` or `data:`
+ * value there is not a link, it is whatever the crawler decides to do with it.
+ *
+ * Returns the reason, or null when there is nothing wrong.
+ */
+function invalidOgImage(value: string): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return 'The preview image must be an http(s) URL.';
+    }
+  } catch {
+    return 'The preview image is not a URL.';
+  }
+  return null;
 }
 
 export async function GET(request: NextRequest) {
@@ -107,11 +132,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Technology is required' }, { status: 400 });
     }
 
+    const ogImageUrl = typeof body.ogImageUrl === 'string' ? body.ogImageUrl.trim() : '';
+    const badImage = invalidOgImage(ogImageUrl);
+    if (badImage) {
+      return NextResponse.json({ error: badImage }, { status: 400 });
+    }
+
     const postData: CreateBlogPostRequest = {
       title: body.title,
       excerpt: body.excerpt,
       content: body.content,
       technology,
+      ogImageUrl,
       tags: body.tags || [],
       readTime: body.readTime || 5,
       published: body.published || false
@@ -135,6 +167,7 @@ export async function POST(request: NextRequest) {
         excerpt: postData.excerpt,
         content: postData.content,
         technology: postData.technology,
+        ogImageUrl: postData.ogImageUrl ?? '',
         tags: transformedData.tags,
         readTime: postData.readTime,
         published: postData.published,
@@ -186,6 +219,16 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'Technology is required' }, { status: 400 });
       }
       updateData.technology = technology;
+    }
+
+    // Guarded on presence, like the topic above: this handler also takes
+    // partial updates, and an absent field must not be read as "clear it".
+    if (typeof updateData.ogImageUrl === 'string') {
+      updateData.ogImageUrl = updateData.ogImageUrl.trim();
+      const badImage = invalidOgImage(updateData.ogImageUrl);
+      if (badImage) {
+        return NextResponse.json({ error: badImage }, { status: 400 });
+      }
     }
 
     // The slug is deliberately NOT regenerated here.
