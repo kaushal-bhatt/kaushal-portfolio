@@ -28,6 +28,22 @@ interface BlogPostForm {
   published: boolean;
 }
 
+/**
+ * What to say when a save comes back 401.
+ *
+ * Access tokens last about fifteen minutes and writing a post takes longer than
+ * that, so the likeliest moment for one to expire is with a finished draft in
+ * the textarea. The middleware that refreshes expired sessions only covers page
+ * navigations — an API call gets a status, and this route is not even in its
+ * matcher — so the save simply failed and said "Unauthorized", which reads like
+ * the post was rejected rather than like the session was.
+ *
+ * A new tab, deliberately: navigating this one away is how the draft is lost.
+ */
+const SESSION_EXPIRED =
+  'Your sign-in expired while you were writing. Open /api/auth/refresh in a new tab, ' +
+  'then press save again — nothing here has been lost.';
+
 export default function NewPost() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -54,8 +70,18 @@ export default function NewPost() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.content || !formData.technology) {
-      setError('Please fill in all required fields');
+    const missing = [
+      !formData.title && 'a title',
+      !formData.content && 'some content',
+      !formData.technology && 'a topic',
+      // Only to go live. It is the card text on the blog index and the
+      // description a search result shows, so publishing without one leaves a
+      // blank card — but a draft is allowed to be half-finished.
+      formData.published && !formData.excerpt && 'an excerpt',
+    ].filter(Boolean);
+
+    if (missing.length) {
+      setError(`This post still needs ${missing.join(', ')}.`);
       return;
     }
 
@@ -87,7 +113,9 @@ export default function NewPost() {
         }, 2000);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Failed to create post');
+        setError(
+          response.status === 401 ? SESSION_EXPIRED : errorData.error || 'Failed to create post'
+        );
       }
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -101,8 +129,23 @@ export default function NewPost() {
     const draftData = { ...formData, published: false };
     setFormData(draftData);
     
-    if (!draftData.title) {
-      setError('Please provide at least a title to save as draft');
+    /**
+     * The same three fields the API requires, named.
+     *
+     * This asked only for a title, so a draft with nothing else went to a
+     * handler that wanted four fields and came back "Required fields missing" —
+     * a refusal from a check the writer had just been told they had passed,
+     * naming none of them. The excerpt stays out of it: it is only required to
+     * publish, which is the whole point of a draft.
+     */
+    const missing = [
+      !draftData.title && 'a title',
+      !draftData.content && 'some content',
+      !draftData.technology && 'a topic',
+    ].filter(Boolean);
+
+    if (missing.length) {
+      setError(`A draft still needs ${missing.join(', ')}.`);
       return;
     }
 
@@ -128,7 +171,9 @@ export default function NewPost() {
         }, 1500);
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Failed to save draft');
+        setError(
+          response.status === 401 ? SESSION_EXPIRED : errorData.error || 'Failed to save draft'
+        );
       }
     } catch (error) {
       console.error('Failed to save draft:', error);
@@ -252,7 +297,9 @@ export default function NewPost() {
                 </div>
 
                 <div>
-                  <Label htmlFor="excerpt" className="text-white">Excerpt</Label>
+                  <Label htmlFor="excerpt" className="text-white">
+                    Excerpt {formData.published && '*'}
+                  </Label>
                   <Textarea
                     id="excerpt"
                     value={formData.excerpt}
@@ -261,6 +308,16 @@ export default function NewPost() {
                     className="bg-slate-800 border-slate-600 text-white resize-none"
                     rows={3}
                   />
+                  {/*
+                    Labelled optional, and the API refused a post without one —
+                    so "Required fields missing" came back for a field the form
+                    said was not required. It is optional for a draft and
+                    required to publish, which is what this now says.
+                  */}
+                  <p className="mt-1 text-xs text-slate-500">
+                    This is the card text on the blog index and the description a search
+                    result shows. Required to publish; a draft can wait.
+                  </p>
                 </div>
 
                 <div>

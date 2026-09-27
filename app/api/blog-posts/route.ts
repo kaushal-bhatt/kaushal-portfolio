@@ -11,6 +11,7 @@ import {
 } from '@/lib/content/posts';
 import { ensureTopic } from '@/lib/content/topics';
 import { currentSiteId } from '@/lib/site';
+import { urlSlug } from '@/lib/tech-visuals';
 import { transformBlogPostForAPI, transformBlogPostForDB } from '@/lib/sqlite-helpers';
 // Read live content, so this must never be evaluated at build time: the Docker
 // image is built with no database reachable, and a statically prerendered
@@ -41,6 +42,38 @@ function invalidOgImage(value: string): string | null {
   return null;
 }
 
+/**
+ * Refuses to put a post live with nothing in its excerpt.
+ *
+ * The excerpt is the whole of the card on /blog and on the home page, and it is
+ * the description a search result shows — a post published without one is a
+ * blank card and an empty `<meta name="description">`. Drafts may be saved
+ * without one, so the check belongs at the moment of publishing rather than on
+ * every write.
+ *
+ * Both update handlers take partial bodies, so an excerpt absent from the
+ * payload means "leave it alone" and has to be read from the row.
+ */
+async function blockedFromPublishing(
+  siteId: string,
+  id: string,
+  update: Record<string, unknown>
+): Promise<NextResponse | null> {
+  if (update.published !== true) return null;
+
+  const excerpt =
+    typeof update.excerpt === 'string'
+      ? update.excerpt
+      : ((await getPostById(siteId, id))?.excerpt ?? '');
+
+  if (excerpt.trim()) return null;
+
+  return NextResponse.json(
+    { error: 'An excerpt is required to publish — it is the card text and the search description.' },
+    { status: 400 }
+  );
+}
+
 export async function GET(request: NextRequest) {
   try {
     const siteId = await currentSiteId();
@@ -49,6 +82,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const technology = searchParams.get('technology');
     const id = searchParams.get('id');
+
+    // Bounded rather than trusted: the value is a query string, and `take: 1e9`
+    // is a way to ask this handler to read the whole table. Anything
+    // unparseable means "no limit", which is what every caller but the home
+    // page wants.
+    const requested = Number(searchParams.get('limit'));
+    const limit =
+      Number.isInteger(requested) && requested > 0 ? Math.min(requested, 100) : undefined;
 
     // Drafts are for the author only. Established once here because the `id`
     // branch below returns early — it used to hand back any post by id, to
@@ -71,7 +112,7 @@ export async function GET(request: NextRequest) {
     // The blog page filtered drafts out in the browser, which hid them from a
     // reader and from nobody else. The admin post list uses this same route, so
     // the filter lifts for a verified admin session rather than unconditionally.
-    const posts = await listPosts(siteId, { includeDrafts: isAdmin, technology });
+    const posts = await listPosts(siteId, { includeDrafts: isAdmin, technology, limit });
 
     return NextResponse.json(posts.map((post) => transformBlogPostForAPI(post)));
   } catch (error) {
@@ -93,12 +134,23 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // Validate required fields
-    if (!body.title || !body.excerpt || !body.content || !body.technology) {
-      return NextResponse.json(
-        { error: 'Required fields missing' },
-        { status: 400 }
-      );
+    /**
+     * Named, and the excerpt only when the post is going live.
+     *
+     * This demanded all four unconditionally and answered "Required fields
+     * missing" — which the Save Draft button then showed for a draft that was
+     * missing nothing the editor had marked as required. Its own check only
+     * looked at the title, and the excerpt field is labelled optional, so the
+     * writer was told something was wrong without being told what.
+     *
+     * An excerpt is genuinely required to publish: it is the card text on the
+     * blog index and the meta description a search result shows. It is not
+     * required to save a half-written draft.
+     */
+    const missing = ['title', 'content', 'technology'].filter((field) => !body[field]);
+    if (body.published && !body.excerpt) missing.push('excerpt');
+    if (missing.length) {
+      return NextResponse.json({ error: `Missing: ${missing.join(', ')}.` }, { status: 400 });
     }
 
     // Free text, not a fixed list. An unrecognised topic creates its row here
@@ -115,12 +167,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: badImage }, { status: 400 });
     }
 
-    const base = String(body.title)
-      .toLowerCase()
-      .replace(/[^a-z0-9 -]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim();
+    // `urlSlug`, not a fourth hand-rolled version of it.
+    //
+    // The one that was here removed every character outside [a-z0-9 -] and then
+    // turned runs of whitespace into hyphens — in that order, so a title
+    // beginning with an emoji ("🚀 Stop memorising…") lost the emoji, kept the
+    // space after it, and published at /blog/post/-stop-memorising. `.trim()`
+    // does not remove a hyphen. Two posts on the live site are at addresses
+    // that start with one.
+    const base = urlSlug(String(body.title));
 
     // Suffixed until free rather than written straight in. The slug is unique
     // per site, so two posts with the same title on one portfolio used to fail
@@ -130,7 +185,10 @@ export async function POST(request: NextRequest) {
 
     const post = await createPost(writer.siteId, slug, {
       title: body.title,
-      excerpt: body.excerpt,
+      // The column is NOT NULL with no default, and a draft is now allowed to
+      // arrive without one — so the empty string has to be supplied here rather
+      // than letting `undefined` reach the insert.
+      excerpt: body.excerpt || '',
       content: body.content,
       technology,
       ogImageUrl,
@@ -192,7 +250,25 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // The slug is deliberately NOT regenerated here.
+    /**
+     * A slug the editor sent is normalised and made unique, not written raw.
+     *
+     * It reaches Prisma as-is otherwise, so renaming a post to an address
+     * another post already holds failed on the composite unique and surfaced as
+     * "Failed to update blog post" — and a slug typed with spaces or capitals
+     * published at an address that does not match what the field said.
+     *
+     * `excludeId` is this post, so re-saving without changing the slug keeps it
+     * rather than suffixing itself to `-2` every time.
+     */
+    if (typeof updateData.slug === 'string') {
+      const base = urlSlug(updateData.slug);
+      updateData.slug = base
+        ? await uniquePostSlug(writer.siteId, base, id)
+        : await uniquePostSlug(writer.siteId, urlSlug(String(updateData.title ?? '')), id);
+    }
+
+    // The slug is deliberately NOT regenerated from the title here.
     //
     // This used to rebuild it from the title on every update. The comment said
     // "if title changed", but the condition only checked that a title was
@@ -205,6 +281,9 @@ export async function PUT(request: NextRequest) {
     // change it, not as a side effect of fixing a typo. The client already sends
     // the existing slug back, so it is carried through unchanged; sending a
     // different one is how you rename a post on purpose.
+
+    const blocked = await blockedFromPublishing(writer.siteId, id, updateData);
+    if (blocked) return blocked;
 
     const post = await updatePost(writer.siteId, id, updateData as Prisma.BlogPostUpdateInput);
     if (!post) {
@@ -241,6 +320,11 @@ export async function PATCH(request: NextRequest) {
       const transformedData = transformBlogPostForDB({ tags: updateData.tags });
       updateData.tags = transformedData.tags;
     }
+
+    // The list's Publish button sends only `{ id, published }`, so the excerpt
+    // it is being published with is the stored one.
+    const blocked = await blockedFromPublishing(writer.siteId, id, updateData);
+    if (blocked) return blocked;
 
     const post = await updatePost(writer.siteId, id, updateData as Prisma.BlogPostUpdateInput);
     if (!post) {

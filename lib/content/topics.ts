@@ -154,17 +154,28 @@ export async function ensureTopic(siteId: string, input: string): Promise<string
     orderBy: { order: 'desc' },
   });
 
-  const created = await prisma.techSection.create({
-    data: {
-      siteId,
-      name,
-      slug,
-      description: '',
-      icon: DEFAULT_TECH_ICON,
-      color: DEFAULT_TECH_COLOR,
-      order: (last?.order ?? -1) + 1,
-    },
-  });
-
-  return created.slug;
+  // The name is unique per site as well as the slug, and the two can disagree:
+  // renaming a topic deliberately leaves its slug alone, so a row named "Java"
+  // may sit at the slug `java-2026`. Typing "Java" then derives a free slug and
+  // a taken name, and the insert fails on a constraint the writer cannot see —
+  // reported to them as "Failed to create blog post" and nothing else. Falling
+  // back to the row that owns the name files the post where they meant.
+  try {
+    const created = await prisma.techSection.create({
+      data: {
+        siteId,
+        name,
+        slug,
+        description: '',
+        icon: DEFAULT_TECH_ICON,
+        color: DEFAULT_TECH_COLOR,
+        order: (last?.order ?? -1) + 1,
+      },
+    });
+    return created.slug;
+  } catch {
+    const byName = await prisma.techSection.findFirst({ where: { siteId, name } });
+    if (byName) return byName.slug;
+    throw new Error(`Could not file the post under "${name}".`);
+  }
 }

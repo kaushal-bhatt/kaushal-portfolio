@@ -39,7 +39,7 @@ export const listPublishedPostRefs = cache(async (siteId: string) => {
  */
 export async function listPosts(
   siteId: string,
-  options: { includeDrafts?: boolean; technology?: string | null } = {}
+  options: { includeDrafts?: boolean; technology?: string | null; limit?: number } = {}
 ) {
   const where: Prisma.BlogPostWhereInput = { siteId };
   if (!options.includeDrafts) where.published = true;
@@ -54,7 +54,15 @@ export async function listPosts(
     where.technology = { equals: options.technology, mode: 'insensitive' };
   }
 
-  return prisma.blogPost.findMany({ where, orderBy: { createdAt: 'desc' } });
+  return prisma.blogPost.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    // The home page's blog section asks for `?limit=6` and always got every
+    // post: the parameter was never read here or in the route. It renders
+    // whatever comes back, so "Recent Articles" was the entire archive — eleven
+    // cards today, and one more every time something is written.
+    ...(options.limit ? { take: options.limit } : {}),
+  });
 }
 
 /**
@@ -120,6 +128,13 @@ export async function updatePost(siteId: string, id: string, data: Prisma.BlogPo
   delete safe.siteId;
   delete safe.site;
   delete safe.id;
+  // The editor sends the whole post back, timestamps included. `createdAt` is
+  // not the client's to restate, and an explicit `updatedAt` is taken over the
+  // `@updatedAt` default — so every save wrote back the value the page had been
+  // holding since it loaded, and the post's "last modified" never moved. That
+  // is the date in the sitemap's `lastmod` and in the admin list's "Updated".
+  delete safe.createdAt;
+  delete safe.updatedAt;
 
   const { count } = await prisma.blogPost.updateMany({
     where: { id, siteId },

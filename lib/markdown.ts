@@ -13,8 +13,8 @@
  * of. This adds those and stops there — a real Markdown library is a large dependency for four
  * posts, and this repository just shed thirty-two of those.
  *
- * Supported: fenced code blocks, `#`/`##`/`###` headings, `- ` lists, `**bold**`, `` `code` ``,
- * [links](url), and blank-line-separated paragraphs.
+ * Supported: fenced code blocks, `#`/`##`/`###` headings, `- ` and `1. ` lists, `> ` quotes,
+ * `**bold**`, `` `code` ``, [links](url), and blank-line-separated paragraphs.
  */
 
 function escapeHtml(value: string): string {
@@ -50,12 +50,34 @@ function renderBlock(block: string): string {
     return `<h${level + 1} class="${sizes[level - 1]} font-semibold text-white mt-8 mb-3">${inline(heading[2])}</h${level + 1}>`;
   }
 
-  if (trimmed.split('\n').every((line) => /^[-*]\s+/.test(line.trim()))) {
-    const items = trimmed
-      .split('\n')
+  const lines = trimmed.split('\n');
+
+  if (lines.every((line) => /^[-*]\s+/.test(line.trim()))) {
+    const items = lines
       .map((line) => `<li>${inline(line.trim().replace(/^[-*]\s+/, ''))}</li>`)
       .join('');
     return `<ul class="list-disc list-inside space-y-1 my-4 text-gray-300">${items}</ul>`;
+  }
+
+  // Numbered lists. A post that walks through steps writes "1." and got a
+  // paragraph beginning with the characters `1.` — the numbering survived by
+  // accident, the list did not.
+  if (lines.every((line) => /^\d+[.)]\s+/.test(line.trim()))) {
+    const items = lines
+      .map((line) => `<li>${inline(line.trim().replace(/^\d+[.)]\s+/, ''))}</li>`)
+      .join('');
+    return `<ol class="list-decimal list-inside space-y-1 my-4 text-gray-300">${items}</ol>`;
+  }
+
+  // Blockquotes. Matched against `&gt;` because `escapeHtml` has already run —
+  // which is also why the marker came out as a literal "> " at the start of the
+  // line instead of a quote. There is one on a published post now.
+  if (lines.every((line) => /^&gt;/.test(line.trim()))) {
+    const body = lines
+      .map((line) => line.trim().replace(/^&gt;\s?/, ''))
+      .join(' ')
+      .trim();
+    return `<blockquote class="my-5 border-l-4 border-blue-600/50 pl-4 italic text-gray-400">${inline(body)}</blockquote>`;
   }
 
   // A single newline inside a paragraph is a soft wrap in the source, not a

@@ -76,14 +76,23 @@ export function invalidTechVisual(data: { icon?: string; color?: string }): stri
 }
 
 /**
- * A URL-safe slug. Shared with the résumé's version rather than a fourth copy.
+ * A URL-safe slug. Shared with the résumé's version rather than a fourth copy,
+ * and with blog post slugs — see `uniquePostSlug`.
+ *
+ * The trailing `replace` runs AFTER the slice as well as before: cutting at 60
+ * characters can land on a separator, and a slug ending in a hyphen is the same
+ * kind of address as one beginning with one.
  */
-export function topicSlug(value: string): string {
+export function urlSlug(value: string): string {
   return value
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 60);
+    .slice(0, 60)
+    .replace(/-+$/, '');
 }
+
+/** The topic form of the same function. Kept as a name because that is what the topic code reads as. */
+export const topicSlug = urlSlug;

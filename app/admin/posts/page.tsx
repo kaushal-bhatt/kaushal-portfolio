@@ -30,6 +30,7 @@ interface BlogPost {
 export default function ManagePosts() {
   const router = useRouter();
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [topics, setTopics] = useState<{ name: string; slug: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
@@ -38,6 +39,18 @@ export default function ManagePosts() {
 
     fetchPosts();
   }, [router]);
+
+  // For the badge below: `post.technology` is a slug, and this list read
+  // "spring-boot" while the post itself says "Spring Boot".
+  useEffect(() => {
+    fetch('/api/tech-sections')
+      .then((res) => (res.ok ? res.json() : []))
+      .then(setTopics)
+      .catch(() => setTopics([]));
+  }, []);
+
+  const topicName = (slug: string) =>
+    topics.find((topic) => topic.slug === slug)?.name ?? slug;
 
   const fetchPosts = async () => {
     try {
@@ -231,7 +244,7 @@ export default function ManagePosts() {
                         {post.published ? 'Published' : 'Draft'}
                       </Badge>
                       <Badge variant="outline" className="border-blue-600/30 text-blue-400">
-                        {post.technology}
+                        {topicName(post.technology)}
                       </Badge>
                     </div>
                     

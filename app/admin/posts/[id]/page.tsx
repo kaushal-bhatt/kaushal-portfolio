@@ -37,6 +37,11 @@ interface BlogPost {
   updatedAt: string;
 }
 
+/** See the note on the same constant in app/admin/posts/new/page.tsx. */
+const SESSION_EXPIRED =
+  'Your sign-in expired while you were writing. Open /api/auth/refresh in a new tab, ' +
+  'then press save again — nothing here has been lost.';
+
 export default function EditPost() {
   const router = useRouter();
   const params = useParams();
@@ -88,8 +93,18 @@ export default function EditPost() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!post || !post.title || !post.content || !post.technology) {
-      setError('Please fill in all required fields');
+    if (!post) return;
+
+    const missing = [
+      !post.title && 'a title',
+      !post.content && 'some content',
+      !post.technology && 'a topic',
+      // Only to go live — see the note in app/admin/posts/new/page.tsx.
+      post.published && !post.excerpt && 'an excerpt',
+    ].filter(Boolean);
+
+    if (missing.length) {
+      setError(`This post still needs ${missing.join(', ')}.`);
       return;
     }
 
@@ -112,7 +127,9 @@ export default function EditPost() {
         setSuccess('Post updated successfully!');
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Failed to update post');
+        setError(
+          response.status === 401 ? SESSION_EXPIRED : errorData.error || 'Failed to update post'
+        );
       }
     } catch (error) {
       console.error('Failed to update post:', error);
@@ -301,7 +318,37 @@ export default function EditPost() {
                 </div>
 
                 <div>
-                  <Label htmlFor="excerpt" className="text-white">Excerpt</Label>
+                  {/*
+                    The address, editable.
+
+                    It was carried through every save but never shown, so a post
+                    that landed at a bad slug — the generator used to leave a
+                    leading hyphen on any title starting with an emoji — could
+                    not be moved without going into the database. Changing it
+                    breaks existing links to the post, which is why it is a field
+                    someone decides to touch rather than something recomputed
+                    from the title.
+                  */}
+                  <Label htmlFor="slug" className="text-white">URL</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500">/blog/post/</span>
+                    <Input
+                      id="slug"
+                      value={post.slug}
+                      onChange={(e) => setPost({ ...post, slug: e.target.value })}
+                      className="bg-slate-800 border-slate-600 text-white font-mono text-sm"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Tidied on save. Changing it breaks every link that already points at
+                    this post, so leave it alone unless that is what you mean to do.
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="excerpt" className="text-white">
+                    Excerpt {post.published && '*'}
+                  </Label>
                   <Textarea
                     id="excerpt"
                     value={post.excerpt}

@@ -7,9 +7,11 @@ import { BookOpen, Clock, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { techIcon } from '@/lib/tech-visuals';
 import { useSite } from '@/hooks/use-site';
+import { safeTags } from '@/lib/safe-arrays';
 
 interface TechSection {
   id: string;
@@ -74,6 +76,19 @@ export function BlogSection() {
     fetchData();
   }, []);
 
+  /**
+   * Slug to display name — see the same note on the blog index.
+   *
+   * These badges read "spring-boot" and "postgresql" on the live home page,
+   * while the article they link to says "Spring Boot". `BlogPost.technology`
+   * stores the slug; the topic row carries the name, and it is already fetched.
+   */
+  const topicName = (slug: string) =>
+    techSections.find((section) => section.slug === slug)?.name ?? slug;
+
+  /** "1 article", not "1 articles". */
+  const articleCount = (n: number) => `${n} article${n === 1 ? '' : 's'}`;
+
   if (loading) {
     return (
       <section id="blog" className="py-20 bg-slate-800/50">
@@ -121,22 +136,31 @@ export function BlogSection() {
                 key={tech.id}
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
-                className="cursor-pointer"
-                onClick={() => window.open(`/blog/technology/${tech.slug}`, '_blank')}
               >
+                {/*
+                  A link, not `window.open` on a div. There was not one anchor
+                  in this whole section, so nothing here could be followed by a
+                  crawler, opened in a new tab on purpose, or reached from the
+                  keyboard — and every click was forced into a new tab whether
+                  the reader wanted one or not.
+                */}
+                <Link href={`/blog/technology/${tech.slug}`} className="block">
                 <Card className="glass-effect border-slate-700 hover:border-blue-600/50 transition-all duration-300">
                   <CardContent className="p-3 sm:p-6 text-center">
                     <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">{techIcon(tech.icon)}</div>
                     <h4 className="text-sm sm:text-lg font-semibold text-white mb-1 sm:mb-2">{tech.name}</h4>
-                    <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{tech.description}</p>
-                    <Badge 
-                      variant="secondary" 
+                    {tech.description && (
+                      <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">{tech.description}</p>
+                    )}
+                    <Badge
+                      variant="secondary"
                       className="bg-blue-600/20 text-blue-400 border-blue-600/30 text-xs"
                     >
-                      {tech._count?.blogPosts || 0} articles
+                      {articleCount(tech._count?.blogPosts || 0)}
                     </Badge>
                   </CardContent>
                 </Card>
+                </Link>
               </motion.div>
             ))}
           </div>
@@ -152,20 +176,16 @@ export function BlogSection() {
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8 text-center px-4">Recent Articles</h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {recentPosts.map((post) => (
-                <motion.div
-                  key={post.id}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  className="cursor-pointer"
-                  onClick={() => window.open(`/blog/post/${post.slug}`, '_blank')}
-                >
+                <motion.div key={post.id} whileHover={{ scale: 1.02, y: -5 }}>
+                  <Link href={`/blog/post/${post.slug}`} className="block h-full">
                   <Card className="glass-effect border-slate-700 hover:border-blue-600/50 transition-all duration-300 h-full">
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className="border-blue-600/30 text-blue-400"
                         >
-                          {post.technology}
+                          {topicName(post.technology)}
                         </Badge>
                         <div className="flex items-center text-gray-400 text-sm">
                           <Clock className="w-4 h-4 mr-1" />
@@ -184,33 +204,41 @@ export function BlogSection() {
                       
                       <div className="flex items-center justify-between">
                         <div className="flex flex-wrap gap-1">
-                          {post.tags?.slice(0, 2).map((tag) => (
-                            <Badge 
-                              key={tag} 
-                              variant="secondary" 
+                          {/*
+                            `safeTags`, like everywhere else that reads them.
+                            `post.tags?.slice(0, 2)` on a string returns a
+                            string, and `.map` on one throws — the column is a
+                            real array now, but this was the last reader still
+                            assuming it.
+                          */}
+                          {safeTags(post.tags).slice(0, 2).map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
                               className="text-xs bg-slate-700 text-gray-300"
                             >
                               {tag}
                             </Badge>
                           ))}
-                          {post.tags?.length > 2 && (
+                          {safeTags(post.tags).length > 2 && (
                             <Badge variant="secondary" className="text-xs bg-slate-700 text-gray-300">
-                              +{post.tags.length - 2}
+                              +{safeTags(post.tags).length - 2}
                             </Badge>
                           )}
                         </div>
-                        
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(`/blog/post/${post.slug}`, '_blank')}
-                          className="text-blue-400 hover:text-blue-300 p-0 h-auto"
-                        >
+
+                        {/*
+                          A span, not a Button. The whole card is an anchor now,
+                          and a <button> inside an <a> is invalid markup that
+                          browsers resolve however they like.
+                        */}
+                        <span className="inline-flex items-center text-sm text-blue-400">
                           Read <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
+                  </Link>
                 </motion.div>
               ))}
             </div>
@@ -223,15 +251,16 @@ export function BlogSection() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-center mt-12"
         >
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => window.open('/blog', '_blank')}
-            className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300"
-          >
-            <BookOpen className="w-5 h-5 mr-2" />
-            View All Articles
-          </Button>
+          <Link href="/blog">
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300"
+            >
+              <BookOpen className="w-5 h-5 mr-2" />
+              View All Articles
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </section>

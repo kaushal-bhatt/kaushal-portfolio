@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { techIcon } from '@/lib/tech-visuals';
@@ -38,7 +37,6 @@ interface TechSection {
 }
 
 export default function BlogPage() {
-  const router = useRouter();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [techSections, setTechSections] = useState<TechSection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +44,21 @@ export default function BlogPage() {
   const site = useSite();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTech, setSelectedTech] = useState('All');
+
+  /**
+   * Every tag on a post links here as `/blog?search=<tag>` and nothing read it,
+   * so clicking one arrived at the unfiltered index — the same page, minus any
+   * sign that the click had done something.
+   *
+   * Read from `window.location` rather than `useSearchParams`: this page is a
+   * client component with no server segment above it, and that hook forces the
+   * whole route into a Suspense boundary at build time. The search box is
+   * client state anyway, so the query string only has to seed it once.
+   */
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get('search');
+    if (initial) setSearchTerm(initial);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -90,6 +103,22 @@ export default function BlogPage() {
 
     return matchesSearch && matchesTech && post.published;
   });
+
+  /**
+   * Slug to display name.
+   *
+   * `BlogPost.technology` stores the slug, so these badges read "spring-boot"
+   * and "postgresql" — which is what is on the live site now. The post page
+   * already resolves the name; the index and the home page did not, so the same
+   * post is labelled two different ways depending on where you see it. The
+   * topics are already fetched, so this costs nothing. Falls back to the raw
+   * value for a post filed under a topic that has since been deleted.
+   */
+  const topicName = (slug: string) =>
+    techSections.find((section) => section.slug === slug)?.name ?? slug;
+
+  /** "1 article", not "1 articles". */
+  const articleCount = (n: number) => `${n} article${n === 1 ? '' : 's'}`;
 
 
   if (loading) {
@@ -208,17 +237,24 @@ export default function BlogPage() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="cursor-pointer"
-                onClick={() => router.push(`/blog/post/${post.slug}`)}
               >
+                {/*
+                  A real link, not a div with an onClick.
+
+                  There was not one anchor in this list, so the only route a
+                  crawler had to any article was the sitemap, and a reader could
+                  not middle-click a card, open it in a new tab, or copy its
+                  address. Keyboard users could not reach it at all.
+                */}
+                <Link href={`/blog/post/${post.slug}`} className="block h-full">
                 <Card className="bg-slate-800 border-slate-700 hover:border-blue-600/50 transition-all duration-300 h-full group">
                   <CardHeader>
                     <div className="flex justify-between items-start mb-4">
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className="border-blue-600/30 text-blue-400"
                       >
-                        {post.technology}
+                        {topicName(post.technology)}
                       </Badge>
                       <div className="flex items-center text-gray-400 text-sm">
                         <Clock className="w-4 h-4 mr-1" />
@@ -232,7 +268,18 @@ export default function BlogPage() {
                     
                     <div className="flex items-center text-gray-400 text-sm">
                       <Calendar className="w-4 h-4 mr-1" />
-                      {new Date(post.createdAt).toLocaleDateString()}
+                      {/*
+                        An explicit locale. `toLocaleDateString()` with no
+                        argument follows whatever the reader's browser is set
+                        to, so the same post was dated "05/09/2026" here and
+                        "5 September 2026" on the article itself — and for a US
+                        visitor the first of those reads as a different day.
+                      */}
+                      {new Date(post.createdAt).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
                       <span className="mx-2">•</span>
                       <span>by {post.authorName || site.fullName}</span>
                     </div>
@@ -265,6 +312,7 @@ export default function BlogPage() {
                     </div>
                   </CardContent>
                 </Card>
+                </Link>
               </motion.div>
             ))}
           </div>
@@ -281,25 +329,24 @@ export default function BlogPage() {
             <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore by Technology</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {techSections.map((tech) => (
-                <motion.div
-                  key={tech.id}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  className="cursor-pointer"
-                  onClick={() => router.push(`/blog/technology/${tech.slug}`)}
-                >
+                <motion.div key={tech.id} whileHover={{ scale: 1.05, y: -5 }}>
+                  <Link href={`/blog/technology/${tech.slug}`} className="block">
                   <Card className="bg-slate-800 border-slate-700 hover:border-blue-600/50 transition-all duration-300 text-center">
                     <CardContent className="p-6">
                       <div className="text-3xl mb-3">{techIcon(tech.icon)}</div>
                       <h3 className="text-lg font-semibold text-white mb-2">{tech.name}</h3>
-                      <p className="text-gray-400 text-sm mb-3">{tech.description}</p>
-                      <Badge 
-                        variant="secondary" 
+                      {tech.description && (
+                        <p className="text-gray-400 text-sm mb-3">{tech.description}</p>
+                      )}
+                      <Badge
+                        variant="secondary"
                         className="bg-blue-600/20 text-blue-400 border-blue-600/30"
                       >
-                        {tech._count?.blogPosts || 0} articles
+                        {articleCount(tech._count?.blogPosts || 0)}
                       </Badge>
                     </CardContent>
                   </Card>
+                  </Link>
                 </motion.div>
               ))}
             </div>
