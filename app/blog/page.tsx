@@ -1,358 +1,194 @@
-
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Calendar, Tag, Search, Filter } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { techIcon } from '@/lib/tech-visuals';
+import { useEffect, useMemo, useState } from 'react';
 import { useSite } from '@/hooks/use-site';
 import { safeTags } from '@/lib/safe-arrays';
+import { PostIndex, type IndexPost } from '@/components/editorial/post-index';
 
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  technology: string;
+/**
+ * The archive.
+ *
+ * Search and topic filtering happen in the browser over the full list — there
+ * are tens of essays, not thousands, and a round trip per keystroke would be
+ * slower than filtering what is already here.
+ *
+ * The frame (paper, bar, colophon) comes from app/blog/layout.tsx.
+ */
+
+interface Post extends IndexPost {
   published: boolean;
   tags: string[];
-  readTime: number;
-  createdAt: string;
-  authorName: string;
 }
 
-interface TechSection {
+interface Topic {
   id: string;
   name: string;
   slug: string;
-  description: string;
-  icon: string;
-  color: string;
   _count?: { blogPosts: number };
 }
 
 export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [techSections, setTechSections] = useState<TechSection[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const site = useSite();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTech, setSelectedTech] = useState('All');
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [query, setQuery] = useState('');
+  const [topic, setTopic] = useState<string | null>(null);
 
-  /**
-   * Every tag on a post links here as `/blog?search=<tag>` and nothing read it,
-   * so clicking one arrived at the unfiltered index — the same page, minus any
-   * sign that the click had done something.
-   *
-   * Read from `window.location` rather than `useSearchParams`: this page is a
-   * client component with no server segment above it, and that hook forces the
-   * whole route into a Suspense boundary at build time. The search box is
-   * client state anyway, so the query string only has to seed it once.
-   */
+  /*
+    Every tag on an essay links here as `/blog?search=<tag>`. Read from
+    window.location rather than useSearchParams, which would force this
+    client-only route into a Suspense boundary at build time; the search box is
+    client state anyway, so the query string only has to seed it once.
+  */
   useEffect(() => {
     const initial = new URLSearchParams(window.location.search).get('search');
-    if (initial) setSearchTerm(initial);
+    if (initial) setQuery(initial);
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [postsResponse, techResponse] = await Promise.all([
-          fetch('/api/blog-posts'),
-          fetch('/api/tech-sections')
-        ]);
-
-        if (postsResponse.ok) {
-          const postsData = await postsResponse.json();
-          setPosts(postsData);
-        }
-
-        if (techResponse.ok) {
-          const techData = await techResponse.json();
-          setTechSections(techData);
-        }
-      } catch (error) {
-        console.error('Failed to fetch blog data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    Promise.all([
+      fetch('/api/blog-posts').then((r) => (r.ok ? r.json() : [])),
+      fetch('/api/tech-sections').then((r) => (r.ok ? r.json() : [])),
+    ])
+      .then(([p, t]) => {
+        // An admin's session sees drafts on this route; the public archive does not.
+        setPosts((p as Post[]).filter((post) => post.published));
+        setTopics(t);
+      })
+      .catch((error) => console.error('Failed to fetch the archive:', error))
+      .finally(() => setLoaded(true));
   }, []);
 
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         safeTags(post.tags).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    // Compared against the section's SLUG, which is what BlogPost.technology
-    // actually stores ("spring-boot"). This used to compare against the display
-    // name ("Spring Boot"), so no post ever matched: the badge said "1 articles"
-    // and clicking it produced "No articles found". Case-insensitive because
-    // nothing enforces the casing of `technology` on the way in.
-    const matchesTech =
-      selectedTech === 'All' ||
-      post.technology.toLowerCase() === selectedTech.toLowerCase();
+  const topicName = (slug: string) => topics.find((t) => t.slug === slug)?.name ?? slug;
 
-    return matchesSearch && matchesTech && post.published;
-  });
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return posts.filter((post) => {
+      if (topic && post.technology.toLowerCase() !== topic.toLowerCase()) return false;
+      if (!q) return true;
+      return (
+        post.title.toLowerCase().includes(q) ||
+        post.excerpt.toLowerCase().includes(q) ||
+        safeTags(post.tags).some((tag) => tag.toLowerCase().includes(q))
+      );
+    });
+  }, [posts, query, topic]);
 
-  /**
-   * Slug to display name.
-   *
-   * `BlogPost.technology` stores the slug, so these badges read "spring-boot"
-   * and "postgresql" — which is what is on the live site now. The post page
-   * already resolves the name; the index and the home page did not, so the same
-   * post is labelled two different ways depending on where you see it. The
-   * topics are already fetched, so this costs nothing. Falls back to the raw
-   * value for a post filed under a topic that has since been deleted.
-   */
-  const topicName = (slug: string) =>
-    techSections.find((section) => section.slug === slug)?.name ?? slug;
-
-  /** "1 article", not "1 articles". */
-  const articleCount = (n: number) => `${n} article${n === 1 ? '' : 's'}`;
-
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading blog posts...</p>
-        </div>
-      </div>
-    );
-  }
+  const withPosts = topics.filter((t) => (t._count?.blogPosts ?? 0) > 0);
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="mb-6">
-            <Link href="/">
-              <Button
-                variant="ghost"
-                className="text-white hover:bg-slate-800 mb-4"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
+    <>
+      {/* --- masthead ------------------------------------------------------ */}
+      <header className="pt-16">
+        <div className="ed-grid pt-6 sm:pt-10">
+          <div className="col-all flex items-baseline justify-between pb-4">
+            <span className="ed-label ed-label-ink">
+              <span style={{ color: 'var(--signal-ink)' }}>§</span>
+              <span className="mx-3" aria-hidden="true">—</span>
+              Writing
+            </span>
+            <span className="ed-label ed-mono">
+              {loaded ? `${posts.length} ${posts.length === 1 ? 'essay' : 'essays'}` : ' '}
+            </span>
           </div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              {site.blogPageHeading}{' '}
-              <span className="gradient-text">{site.blogPageHeadingAccent}</span>
-            </h1>
-            {site.blogPageSubtitle && (
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">{site.blogPageSubtitle}</p>
-            )}
-          </motion.div>
+        </div>
+        <hr className="ed-rule" />
+
+        <div className="ed-grid pb-[clamp(3rem,6vw,5rem)] pt-[clamp(2.5rem,6vw,5rem)]">
+          <h1 className="ed-masthead col-all ed-enter">
+            {site.blogPageHeading}
+            {site.blogPageHeading && site.blogPageHeadingAccent && ' '}
+            {site.blogPageHeadingAccent && <em className="ed-italic">{site.blogPageHeadingAccent}</em>}
+          </h1>
+          {site.blogPageSubtitle && (
+            <p className="ed-lead col-5-12 ed-enter ed-enter-2 mt-10 text-[var(--ink-60)]">
+              {site.blogPageSubtitle}
+            </p>
+          )}
+        </div>
+      </header>
+
+      {/* --- toolbar ------------------------------------------------------- */}
+      <div className="ed-grid pb-[clamp(2.5rem,5vw,4rem)]">
+        <div className="col-all grid gap-8 lg:grid-cols-12 lg:gap-x-[clamp(1rem,2vw,2rem)]">
+          <label className="block lg:col-span-4">
+            <span className="ed-label mb-3 block">Search</span>
+            {/* An underline, not a box — the input reads as a line you write
+                on rather than a widget. */}
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Title, topic or tag"
+              className="w-full bg-transparent pb-2 text-[var(--t-lead)] outline-none placeholder:text-[var(--ink-60)] focus-visible:outline-none"
+              style={{ borderBottom: '1px solid var(--ink)', borderRadius: 0 }}
+            />
+          </label>
+
+          {withPosts.length > 0 && (
+            <div className="lg:col-span-8">
+              <span className="ed-label mb-3 block">Topic</span>
+              <ul className="flex flex-wrap gap-2" aria-label="Filter by topic">
+                <li>
+                  <button
+                    type="button"
+                    className="ed-tag"
+                    aria-pressed={topic === null}
+                    onClick={() => setTopic(null)}
+                  >
+                    All
+                  </button>
+                </li>
+                {withPosts.map((t) => {
+                  const on = topic === t.slug;
+                  return (
+                    <li key={t.id}>
+                      <button
+                        type="button"
+                        className="ed-tag"
+                        aria-pressed={on}
+                        onClick={() => setTopic(on ? null : t.slug)}
+                      >
+                        {t.name}
+                        <span className="ml-2">{t._count?.blogPosts ?? 0}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Search and Filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-12"
-        >
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search articles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-slate-800 border-slate-700 text-white placeholder-gray-400"
-              />
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                variant={selectedTech === 'All' ? "default" : "outline"}
-                onClick={() => setSelectedTech('All')}
-                className={`${
-                  selectedTech === 'All'
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "border-slate-600 text-slate-300 hover:bg-slate-800"
-                }`}
+      {/* --- the list ------------------------------------------------------ */}
+      <section aria-label="Essays" className="pb-[clamp(5rem,10vw,9rem)]">
+        {!loaded ? (
+          <div style={{ minHeight: '60vh' }} aria-hidden="true" />
+        ) : shown.length === 0 ? (
+          <div className="ed-grid">
+            <hr className="ed-rule col-all" style={{ borderTopColor: 'var(--ink)' }} />
+            <div className="col-all py-16">
+              <p className="ed-h2">
+                Nothing <em className="ed-italic">matches.</em>
+              </p>
+              <button
+                type="button"
+                className="ed-btn ed-btn-ghost mt-8"
+                onClick={() => {
+                  setQuery('');
+                  setTopic(null);
+                }}
               >
-                All ({posts.filter(p => p.published).length})
-              </Button>
-              {techSections.map((tech) => (
-                <Button
-                  key={tech.id}
-                  variant={selectedTech === tech.slug ? "default" : "outline"}
-                  onClick={() => setSelectedTech(tech.slug)}
-                  className={`${
-                    selectedTech === tech.slug
-                      ? "bg-blue-600 hover:bg-blue-700"
-                      : "border-slate-600 text-slate-300 hover:bg-slate-800"
-                  }`}
-                >
-                  {techIcon(tech.icon)} {tech.name} ({tech._count?.blogPosts || 0})
-                </Button>
-              ))}
+                Clear the filters
+              </button>
             </div>
           </div>
-        </motion.div>
-
-        {/* Blog Posts */}
-        {filteredPosts.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center py-12"
-          >
-            <div className="text-gray-400 mb-4">
-              <Filter className="w-12 h-12 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold">No articles found</h3>
-              <p>Try adjusting your search or filter criteria</p>
-            </div>
-          </motion.div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.map((post, index) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                {/*
-                  A real link, not a div with an onClick.
-
-                  There was not one anchor in this list, so the only route a
-                  crawler had to any article was the sitemap, and a reader could
-                  not middle-click a card, open it in a new tab, or copy its
-                  address. Keyboard users could not reach it at all.
-                */}
-                <Link href={`/blog/post/${post.slug}`} className="block h-full">
-                <Card className="bg-slate-800 border-slate-700 hover:border-blue-600/50 transition-all duration-300 h-full group">
-                  <CardHeader>
-                    <div className="flex justify-between items-start mb-4">
-                      <Badge
-                        variant="outline"
-                        className="border-blue-600/30 text-blue-400"
-                      >
-                        {topicName(post.technology)}
-                      </Badge>
-                      <div className="flex items-center text-gray-400 text-sm">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {post.readTime} min read
-                      </div>
-                    </div>
-                    
-                    <CardTitle className="text-white text-xl leading-tight group-hover:text-blue-400 transition-colors">
-                      {post.title}
-                    </CardTitle>
-                    
-                    <div className="flex items-center text-gray-400 text-sm">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {/*
-                        An explicit locale. `toLocaleDateString()` with no
-                        argument follows whatever the reader's browser is set
-                        to, so the same post was dated "05/09/2026" here and
-                        "5 September 2026" on the article itself — and for a US
-                        visitor the first of those reads as a different day.
-                      */}
-                      {new Date(post.createdAt).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                      <span className="mx-2">•</span>
-                      <span>by {post.authorName || site.fullName}</span>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <p className="text-gray-300 mb-6 leading-relaxed">
-                      {post.excerpt}
-                    </p>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {safeTags(post.tags)?.slice(0, 3).map((tag) => (
-                        <Badge 
-                          key={tag}
-                          variant="secondary"
-                          className="bg-slate-700 text-gray-300 text-xs"
-                        >
-                          <Tag className="w-3 h-3 mr-1" />
-                          {tag}
-                        </Badge>
-                      ))}
-                      {safeTags(post.tags)?.length > 3 && (
-                        <Badge 
-                          variant="secondary"
-                          className="bg-slate-700 text-gray-300 text-xs"
-                        >
-                          +{safeTags(post.tags).length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+          <PostIndex posts={shown} topicName={topicName} numbered={false} />
         )}
-
-        {/* Technology Sections */}
-        {techSections.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-16 pt-12 border-t border-slate-700"
-          >
-            <h2 className="text-2xl font-bold text-white mb-8 text-center">Explore by Technology</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {techSections.map((tech) => (
-                <motion.div key={tech.id} whileHover={{ scale: 1.05, y: -5 }}>
-                  <Link href={`/blog/technology/${tech.slug}`} className="block">
-                  <Card className="bg-slate-800 border-slate-700 hover:border-blue-600/50 transition-all duration-300 text-center">
-                    <CardContent className="p-6">
-                      <div className="text-3xl mb-3">{techIcon(tech.icon)}</div>
-                      <h3 className="text-lg font-semibold text-white mb-2">{tech.name}</h3>
-                      {tech.description && (
-                        <p className="text-gray-400 text-sm mb-3">{tech.description}</p>
-                      )}
-                      <Badge
-                        variant="secondary"
-                        className="bg-blue-600/20 text-blue-400 border-blue-600/30"
-                      >
-                        {articleCount(tech._count?.blogPosts || 0)}
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </div>
-    </div>
+      </section>
+    </>
   );
 }

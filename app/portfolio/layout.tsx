@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { resolveSite } from '@/lib/site';
+import { EditorialShell } from '@/components/editorial/editorial-shell';
 
 /**
  * This layout exists only to give /portfolio its own title.
@@ -32,6 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/** The paper, the bar and the colophon — see components/editorial/editorial-shell.tsx. */
 export default function PortfolioLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <EditorialShell>{children}</EditorialShell>;
 }

@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { resolveSite } from '@/lib/site';
+import { OG, ogSignal } from '@/lib/og-palette';
 
 /**
  * The card people actually see.
@@ -28,7 +29,13 @@ export const contentType = 'image/png';
 
 export default async function Image() {
   const site = await resolveSite();
+  const signal = ogSignal(site.accent);
+  const words = (site.fullName || 'Portfolio').trim().split(/\s+/);
 
+  // The masthead, at card scale: paper, the name set large and left, the last
+  // word closed with a full stop in the signal colour, and a folio line above a
+  // hairline. The same composition as the top of the home page, so a link
+  // pasted into LinkedIn opens onto the thing it previewed.
   return new ImageResponse(
     (
       <div
@@ -37,55 +44,62 @@ export default async function Image() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '80px',
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #0f172a 100%)',
-          color: 'white',
-          fontFamily: 'sans-serif',
+          background: OG.paper,
+          color: OG.ink,
+          padding: '56px 72px',
+          fontFamily: 'serif',
         }}
       >
         <div
           style={{
             display: 'flex',
-            fontSize: 76,
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            lineHeight: 1.1,
+            justifyContent: 'space-between',
+            fontFamily: 'monospace',
+            fontSize: 20,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            color: OG.ink60,
+            paddingBottom: 18,
+            borderBottom: `2px solid ${OG.rule}`,
           }}
         >
-          {site.fullName || 'Portfolio'}
+          <span>{site.host || 'Portfolio'}</span>
+          <span>{new Date().getFullYear()}</span>
         </div>
 
-        {site.headline && (
-          <div style={{ display: 'flex', marginTop: 24, fontSize: 36, color: '#93c5fd' }}>
-            {site.headline}
-          </div>
-        )}
-
-        {site.locationLine && (
-          <div style={{ display: 'flex', marginTop: 16, fontSize: 26, color: '#94a3b8' }}>
-            {site.locationLine}
-          </div>
-        )}
-
-        {/* A rule rather than a logo — there is no mark, and inventing one for a
-            card would be inventing a brand. */}
         <div
           style={{
             display: 'flex',
-            marginTop: 48,
-            width: 260,
-            height: 8,
-            borderRadius: 4,
-            background: 'linear-gradient(90deg, #60a5fa 0%, #a855f7 50%, #2563eb 100%)',
+            flexDirection: 'column',
+            marginTop: 44,
+            fontSize: words.join(' ').length > 18 ? 118 : 148,
+            lineHeight: 0.88,
+            letterSpacing: '-0.035em',
           }}
-        />
+        >
+          {words.map((word, i) => (
+            <span key={i} style={{ display: 'flex' }}>
+              {word}
+              {i === words.length - 1 && <span style={{ color: signal }}>.</span>}
+            </span>
+          ))}
+        </div>
 
-        {site.host && (
-          <div style={{ display: 'flex', marginTop: 40, fontSize: 24, color: '#64748b' }}>
-            {site.host}
-          </div>
-        )}
+        <div
+          style={{
+            display: 'flex',
+            marginTop: 'auto',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            fontFamily: 'monospace',
+            fontSize: 22,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span style={{ color: OG.ink }}>{site.headline}</span>
+          <span style={{ color: OG.ink60 }}>{site.locationLine}</span>
+        </div>
       </div>
     ),
     size

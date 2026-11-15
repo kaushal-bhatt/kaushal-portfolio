@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { resolveSite } from '@/lib/site';
+import { EditorialShell } from '@/components/editorial/editorial-shell';
 
 /**
  * Metadata for /blog. Same reason as the portfolio layout: the page searches
@@ -29,6 +30,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/**
+ * The frame for all three blog routes — the index, a topic and an essay — so
+ * none of them can forget the paper, the bar or the colophon.
+ */
 export default function BlogLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <EditorialShell>{children}</EditorialShell>;
 }

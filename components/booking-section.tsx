@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { CalendarDays } from 'lucide-react';
 import { useBooking } from '@/hooks/use-booking';
+import { SectionHead } from '@/components/editorial/section-head';
 
 /**
  * Calendly, embedded inline.
@@ -91,41 +90,35 @@ export function BookingSection() {
   if (!booking.calendlyUrl) return null;
 
   return (
-    // `overflow-x-clip` for the same reason the About section has it: the
-    // heading below animates in, and the embed declares a 320px minimum width.
-    // Neither is allowed to widen the document, because on a phone that is not
-    // a scrollbar — it is the browser zooming the whole page out to fit.
-    <section id="booking" ref={ref} className="py-20 bg-slate-900 overflow-x-clip">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-10"
-        >
-          <div className="mb-5 inline-flex items-center justify-center rounded-lg bg-blue-500/15 p-3">
-            <CalendarDays className="h-6 w-6 text-blue-300" />
-          </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-            {booking.heading} <span className="gradient-text">{booking.headingAccent}</span>
-          </h2>
-          {booking.subtitle && (
-            <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto px-4">
-              {booking.subtitle}
-            </p>
-          )}
-        </motion.div>
+    // `overflow-x-clip`: the embed declares a 320px minimum width, and it is not
+    // allowed to widen the document — on a phone that is not a scrollbar, it is
+    // the browser zooming the whole page out to fit.
+    <section
+      id="booking"
+      ref={ref}
+      aria-labelledby="booking-title"
+      className="ed-section overflow-x-clip"
+    >
+      <SectionHead
+        number="04"
+        label="Contact"
+        id="booking-title"
+        heading={booking.heading}
+        accent={booking.headingAccent}
+        lead={booking.subtitle}
+      />
 
+      <div className="ed-grid pt-[clamp(3rem,6vw,5rem)]">
         {failed ? (
           // Calendly blocked, offline, or refusing to load. A dead white box
           // teaches the visitor nothing; a link still gets them there.
-          <p className="text-center text-gray-400">
+          <p className="col-4-12 ed-lead">
             The scheduler could not load.{' '}
             <a
               href={booking.calendlyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-400 hover:underline"
+              className="ed-link-static"
             >
               Open it on Calendly instead
             </a>
@@ -133,24 +126,18 @@ export function BookingSection() {
           </p>
         ) : (
           /*
-            A white card on a dark page, on purpose. Calendly's embed renders
-            light unless the account's plan supports colour customisation, and a
-            light calendar bleeding into a dark section reads as broken. Framed
-            deliberately, it reads as a document — the same trick the résumé
-            page uses.
+            Calendly renders on white whatever the page is, so it is framed as a
+            sheet laid on the paper — a hairline and nothing else — rather than
+            left to bleed into the background and look like a rendering fault.
           */
-          <div className="overflow-hidden rounded-xl bg-white shadow-2xl">
+          <div className="col-all" style={{ border: '1px solid var(--rule)', background: '#fff' }}>
             {/*
               `h-`, not `min-h-`. Calendly injects an iframe styled
               `height: 100%`, and a percentage height resolves against the
               parent's HEIGHT — a parent with only a min-height gives it nothing
               to resolve against, so the iframe fell back to the CSS default of
-              150px. That renders as a cramped strip with its own scrollbar at
-              the top of an otherwise empty white card, which is what this
-              looked like before: not a failure to load, a failure to size.
-
-              Taller on a phone because the calendar and the time list stack
-              there; 700px is Calendly's own figure for the side-by-side layout.
+              150px. Taller on a phone because the calendar and the time list
+              stack there; 700px is Calendly's own figure for side-by-side.
             */}
             <div
               ref={container}

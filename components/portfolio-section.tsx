@@ -1,23 +1,29 @@
-
 'use client';
 
-import { motion } from 'framer-motion';
-import { useInView } from 'react-intersection-observer';
-import { Calendar, MapPin, ExternalLink, Award, Briefcase } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { useSite } from '@/hooks/use-site';
 import { safeTechnologies, safeAchievements } from '@/lib/safe-arrays';
+import { SectionHead } from '@/components/editorial/section-head';
 
-/** What /api/portfolio actually returns: the list fields may arrive either way. */
-type RawPortfolioEntry = Omit<PortfolioEntry, 'technologies' | 'achievements'> & {
+/**
+ * Experience — the `Portfolio` table, which despite its name holds jobs.
+ *
+ * Set as a numbered register rather than a stack of cards. Each entry is three
+ * columns: the folio, the company in the display face, and the detail. The
+ * company name is large because it is the thing a recruiter scans for; the dates
+ * and the role sit beside it in the apparatus face because they are the thing
+ * they check second.
+ *
+ * The section id is `experience` now, not `portfolio` — it never held the
+ * portfolio, and /portfolio is a separate page that does.
+ */
+
+type RawEntry = Omit<Entry, 'technologies' | 'achievements'> & {
   technologies: string | string[] | null;
   achievements: string | string[] | null;
 };
 
-interface PortfolioEntry {
+interface Entry {
   id: string;
   company: string;
   role: string;
@@ -27,181 +33,124 @@ interface PortfolioEntry {
   description: string;
   technologies: string[];
   achievements: string[];
-  order: number;
 }
 
 export function PortfolioSection() {
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1
-  });
-
-  const [portfolio, setPortfolio] = useState<PortfolioEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const site = useSite();
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const fetchPortfolio = async () => {
-      try {
-        const response = await fetch('/api/portfolio');
-        if (response.ok) {
-          const data = await response.json();
-          // Process the data to match expected format
-          const formattedData = data.map((item: RawPortfolioEntry) => ({
+    fetch('/api/portfolio')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: RawEntry[]) =>
+        setEntries(
+          data.map((item) => ({
             ...item,
             technologies: safeTechnologies(item.technologies),
-            achievements: safeAchievements(item.achievements)
-          }));
-          setPortfolio(formattedData);
-        }
-      } catch (error) {
-        console.error('Failed to fetch portfolio data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPortfolio();
+            achievements: safeAchievements(item.achievements),
+          }))
+        )
+      )
+      .catch((error) => console.error('Failed to fetch experience:', error))
+      .finally(() => setLoaded(true));
   }, []);
 
-  if (loading) {
-    return (
-      <section id="portfolio" className="py-20 bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-pulse">
-              <div className="h-8 bg-slate-700 rounded w-64 mx-auto mb-4"></div>
-              <div className="h-4 bg-slate-700 rounded w-96 mx-auto"></div>
+  return (
+    <section id="experience" aria-labelledby="experience-title" className="ed-section ed-sunk">
+      <SectionHead
+        number="02"
+        label="Experience"
+        id="experience-title"
+        heading={site.experienceHeading}
+        accent={site.experienceHeadingAccent}
+        lead={site.experienceSubtitle}
+      />
+
+      {!loaded && <div style={{ minHeight: '60vh' }} aria-hidden="true" />}
+
+      <ol className="pt-[clamp(3.5rem,7vw,6rem)]">
+        {entries.map((job, i) => (
+          <li key={job.id} className="ed-grid">
+            <hr
+              className={`ed-rule col-all ${i === 0 ? '' : 'ed-rule-soft'}`}
+              style={i === 0 ? { borderTopColor: 'var(--ink)' } : undefined}
+            />
+
+            <div className="col-all grid gap-y-6 py-[clamp(2.25rem,4.5vw,3.75rem)] lg:grid-cols-12 lg:gap-x-[clamp(1rem,2vw,2rem)]">
+              {/* folio */}
+              <span className="ed-folio lg:col-span-1">{String(i + 1).padStart(2, '0')}</span>
+
+              {/* who and when */}
+              <div className="ed-rise lg:col-span-4">
+                <h3 className="ed-h2">{job.company}</h3>
+                <p className="ed-label ed-label-ink mt-4">{job.role}</p>
+                <p className="ed-label ed-mono mt-2 flex items-center gap-2">
+                  {job.startDate} — {job.current ? 'Present' : job.endDate}
+                  {/* The current role gets the signal: the one place in this list
+                      the accent says "here, now". */}
+                  {job.current && (
+                    <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--signal-ink)' }}>
+                      <span
+                        aria-hidden="true"
+                        className="inline-block h-1.5 w-1.5 rounded-full"
+                        style={{ background: 'var(--signal)' }}
+                      />
+                      Now
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              {/* what */}
+              <div className="ed-rise lg:col-span-7">
+                {job.description && <p className="ed-body text-[var(--ink-80)]">{job.description}</p>}
+
+                {job.achievements.length > 0 && (
+                  <ul className="mt-6 space-y-3" style={{ maxWidth: 'var(--measure)' }}>
+                    {job.achievements.map((a, k) => (
+                      <li key={k} className="grid grid-cols-[1.25rem_1fr] text-[var(--ink-80)]">
+                        <span aria-hidden="true" style={{ color: 'var(--signal)' }}>
+                          –
+                        </span>
+                        <span>{a}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {job.technologies.length > 0 && (
+                  <ul className="mt-8 flex flex-wrap gap-2" aria-label="Technologies">
+                    {job.technologies.map((t) => (
+                      <li key={t} className="ed-tag">
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
+          </li>
+        ))}
+      </ol>
+
+      {entries.length > 0 && site.email && (
+        <div className="ed-grid">
+          <hr className="ed-rule col-all" />
+          <div className="col-all flex flex-col items-start justify-between gap-6 pt-12 sm:flex-row sm:items-end">
+            {/* The same words the old button carried, just given room. */}
+            <p className="ed-h2 max-w-[18ch]">
+              Let&apos;s work <em className="ed-italic">together.</em>
+            </p>
+            <a
+              href={`mailto:${site.email}?subject=${encodeURIComponent("Let's talk")}`}
+              className="ed-btn"
+            >
+              Get in touch <span aria-hidden="true">→</span>
+            </a>
           </div>
         </div>
-      </section>
-    );
-  }
-
-  return (
-    <section id="portfolio" ref={ref} className="py-20 bg-slate-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            {site.experienceHeading}{' '}
-            <span className="gradient-text">{site.experienceHeadingAccent}</span>
-          </h2>
-          {site.experienceSubtitle && (
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">{site.experienceSubtitle}</p>
-          )}
-        </motion.div>
-
-        <div className="space-y-8">
-          {portfolio.map((item, index) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 50 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: index * 0.2 }}
-            >
-              <Card className="glass-effect border-slate-700 overflow-hidden hover:shadow-2xl transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-blue-600/20 rounded-lg flex-shrink-0">
-                        <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="text-lg sm:text-xl font-bold text-white">{item.role}</h3>
-                        <div className="flex items-center space-x-2 text-gray-300">
-                          <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                          <span className="text-sm sm:text-base">{item.company}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 text-gray-400">
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="text-sm sm:text-base">
-                          {item.startDate} - {item.current ? 'Present' : item.endDate}
-                        </span>
-                      </div>
-                      {item.current && (
-                        <Badge variant="secondary" className="bg-green-600/20 text-green-400 border-green-600/30 mt-2 sm:mt-0 w-fit">
-                          Current
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <p className="text-gray-300 mb-6 leading-relaxed text-sm sm:text-base">
-                    {item.description}
-                  </p>
-
-                  {/* Technologies */}
-                  <div className="mb-6">
-                    <h4 className="text-xs sm:text-sm font-semibold text-gray-400 mb-3">Technologies Used</h4>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {item.technologies.map((tech) => (
-                        <Badge 
-                          key={tech} 
-                          variant="outline" 
-                          className="border-blue-600/30 text-blue-400 hover:bg-blue-600/10 text-xs sm:text-sm px-2 py-1"
-                        >
-                          {tech}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Achievements */}
-                  {item.achievements.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-400 mb-3 flex items-center">
-                        <Award className="w-4 h-4 mr-2" />
-                        Key Achievements
-                      </h4>
-                      <ul className="space-y-2">
-                        {item.achievements.map((achievement, idx) => (
-                          <li key={idx} className="text-gray-300 text-sm flex items-start">
-                            <span className="text-blue-400 mr-2">•</span>
-                            {achievement}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="text-center mt-12"
-        >
-          {site.email && (
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() =>
-                window.open(`mailto:${site.email}?subject=Let's Discuss Opportunities`)
-              }
-              className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white transition-all duration-300"
-            >
-              <ExternalLink className="w-5 h-5 mr-2" />
-              Let&apos;s Work Together
-            </Button>
-          )}
-        </motion.div>
-      </div>
+      )}
     </section>
   );
 }

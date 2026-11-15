@@ -1,10 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock, Tag, User } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { BlogShareButton } from '@/components/blog-share-button';
 import { getPublishedPost, metaDescription } from '@/lib/content/posts';
 import { getTopic } from '@/lib/content/topics';
@@ -137,140 +133,127 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   };
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <article className="pt-16">
       {/*
-        The JSON-LD is a data block, not markup: it is serialised with
-        JSON.stringify and the closing-tag sequence is escaped, because a post
-        title containing `</script>` would otherwise end this element early.
+        The JSON-LD is a data block, not markup: serialised with JSON.stringify
+        and the closing-tag sequence escaped, because a title containing
+        `</script>` would otherwise end this element early.
       */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
-        }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\u003c') }}
       />
 
-      {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="mb-6">
-            <Link href="/blog">
-              <Button variant="ghost" className="text-white hover:bg-slate-800 mb-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Blog
-              </Button>
-            </Link>
-          </div>
-
-          <div className="mb-4">
-            {/*
-              The topic's display name, not the slug. `BlogPost.technology`
-              stores "spring-boot", so this badge read "spring-boot" — the same
-              slug-versus-name confusion that once made the blog's filters match
-              nothing. Falls back to the slug for a post filed under a topic
-              that has since been deleted.
-            */}
-            <Link href={`/blog/technology/${post.technology}`}>
-              <Badge variant="outline" className="border-blue-600/30 text-blue-400 mb-4">
-                {section?.name ?? post.technology}
-              </Badge>
-            </Link>
-          </div>
-
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">
-            {post.title}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-4 text-gray-300">
-            <div className="flex items-center">
-              <User className="w-4 h-4 mr-2" />
-              <span>by {author}</span>
-            </div>
-            <div className="flex items-center">
-              <Calendar className="w-4 h-4 mr-2" />
-              {/*
-                An explicit locale and a <time> element. `toLocaleDateString()`
-                with no argument formats differently on the server and in the
-                browser, which React reports as a hydration mismatch — and the
-                machine-readable dateTime is what a crawler reads.
-              */}
-              <time dateTime={published}>
-                {post.createdAt.toLocaleDateString('en-GB', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </time>
-            </div>
-            <div className="flex items-center">
-              <Clock className="w-4 h-4 mr-2" />
-              <span>{post.readTime} min read</span>
-            </div>
-            <BlogShareButton title={post.title} text={post.excerpt} />
-          </div>
+      {/* --- running head -------------------------------------------------- */}
+      <div className="ed-grid pt-6 sm:pt-10">
+        <div className="col-all flex flex-wrap items-baseline justify-between gap-4 pb-4">
+          <Link href="/blog" className="ed-label ed-label-ink ed-link">
+            <span aria-hidden="true">← </span>Writing
+          </Link>
+          {/*
+            The topic's display name, not the slug — `BlogPost.technology`
+            stores "spring-boot". Falls back to the slug for a post filed under a
+            topic that has since been deleted.
+          */}
+          <Link href={`/blog/technology/${post.technology}`} className="ed-label ed-label-signal ed-link">
+            {section?.name ?? post.technology}
+          </Link>
         </div>
       </div>
+      <hr className="ed-rule" />
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Card className="bg-slate-800 border-slate-700">
-          <CardContent className="p-8 md:p-12">
+      {/* --- title and standfirst ------------------------------------------ */}
+      <header className="ed-grid pb-[clamp(2.5rem,5vw,4rem)] pt-[clamp(2.5rem,6vw,5rem)]">
+        <h1 className="ed-display col-1-9 ed-enter">{post.title}</h1>
+
+        {post.excerpt && (
+          <p className="ed-italic col-4-12 ed-enter ed-enter-2 mt-10 text-[clamp(1.25rem,2vw,1.75rem)] leading-[1.35] text-[var(--ink-60)]">
+            {post.excerpt}
+          </p>
+        )}
+      </header>
+
+      <hr className="ed-rule" />
+
+      {/* --- byline ------------------------------------------------------- */}
+      <div className="ed-grid">
+        <div className="col-all flex flex-wrap items-center justify-between gap-4 py-4">
+          <p className="ed-label ed-label-ink flex flex-wrap gap-x-6 gap-y-1">
+            <span>By {author}</span>
             {/*
-              No `prose` classes here: @tailwindcss/typography is not installed,
-              so they generated nothing and only suggested that typography
-              styling was in play. renderMarkdown emits its own.
-
-              Still dangerouslySetInnerHTML, but renderMarkdown escapes the
-              content before it formats anything — so a post body cannot inject
-              markup.
+              An explicit locale and a <time> element. toLocaleDateString() with
+              no argument formats differently on the server and in the browser,
+              and the machine-readable dateTime is what a crawler reads.
             */}
-            <div
-              className="text-gray-300 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
-            />
+            <time dateTime={published} className="ed-mono">
+              {post.createdAt.toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </time>
+            <span className="ed-mono">{post.readTime} min read</span>
+          </p>
+          <BlogShareButton title={post.title} text={post.excerpt} />
+        </div>
+      </div>
+      <hr className="ed-rule ed-rule-soft" />
 
-            {tags.length > 0 && (
-              <div className="mt-12 pt-8 border-t border-slate-700">
-                <h2 className="text-white font-semibold mb-4">Tags</h2>
-                <div className="flex flex-wrap gap-2">
-                  {/*
-                    Real links, not click handlers. They were badges with an
-                    onClick calling router.push, which meant this list needed
-                    the browser and a crawler saw nothing to follow.
-                  */}
-                  {tags.map((tag) => (
-                    <Link key={tag} href={`/blog?search=${encodeURIComponent(tag)}`}>
-                      <Badge
-                        variant="secondary"
-                        className="bg-slate-700 text-gray-300 hover:bg-slate-600"
-                      >
-                        <Tag className="w-3 h-3 mr-1" />
-                        {tag}
-                      </Badge>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* --- the essay -----------------------------------------------------
+          The body starts at column four, so its left edge does not line up with
+          the title's — and the empty columns beside it are what make a 68ch
+          measure look intended rather than squeezed. */}
+      <div className="ed-grid pb-[clamp(4rem,8vw,7rem)] pt-[clamp(3rem,6vw,5rem)]">
+        {/*
+          Still dangerouslySetInnerHTML, but renderMarkdown escapes the content
+          before it formats anything — a post body cannot inject markup. The
+          paper-mode type for every element it emits is `.ed-prose`, in
+          app/editorial.css.
+        */}
+        <div
+          className="col-4-12 ed-prose"
+          dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+        />
 
-        <div className="mt-12 text-center">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/blog">
-              <Button
-                variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-800"
-              >
-                View All Articles
-              </Button>
+        {tags.length > 0 && (
+          <div className="col-4-12 mt-16">
+            <hr className="ed-rule mb-6" />
+            <p className="ed-label mb-4">Tagged</p>
+            {/* Real links: each one runs the archive's search for that tag. */}
+            <ul className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <li key={tag}>
+                  <Link href={`/blog?search=${encodeURIComponent(tag)}`} className="ed-tag">
+                    {tag}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* --- end matter --------------------------------------------------- */}
+      <div className="ed-sunk">
+        <hr className="ed-rule" />
+        <div className="ed-grid py-[clamp(3.5rem,7vw,6rem)]">
+          <p className="ed-label col-1-5 mb-6 lg:mb-0">Continue</p>
+          <div className="col-6-12 flex flex-col gap-6">
+            <Link href="/blog" className="ed-h2 ed-link self-start">
+              Every essay <span aria-hidden="true">→</span>
             </Link>
-            <Link href="/">
-              <Button className="bg-blue-600 hover:bg-blue-700">Back to Portfolio</Button>
+            <Link href="/" className="ed-h2 ed-link self-start">
+              {site.fullName ? (
+                <>
+                  About <em className="ed-italic">{site.fullName}</em>
+                </>
+              ) : (
+                'Home'
+              )}
             </Link>
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

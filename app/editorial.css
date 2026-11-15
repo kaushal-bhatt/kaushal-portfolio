@@ -1,0 +1,831 @@
+/* ===========================================================================
+   The Masthead — the public site's design system.
+
+   Deliberately a separate file from globals.css, and deliberately its own set
+   of custom properties rather than a change to the shadcn ones.
+
+   The admin panel lives under the same root layout and is styled with explicit
+   slate utilities on top of shadcn's dark tokens. Flipping `--background` to
+   paper would have re-coloured every Input, Card and Button in there as a side
+   effect of redesigning the public site. These tokens sit alongside those ones
+   and nothing in /admin reads them, so the CMS renders exactly as it did.
+
+   The concept: this site is a publication. One person, eleven essays, a CV and
+   a record of systems shipped. So it is set like one — a masthead, hairline
+   rules, columns of unequal width, folios, and numerals large enough to read
+   across a room. There is no photography anywhere on it, which is the reason
+   the typography has to carry the whole thing.
+   =========================================================================== */
+
+:root {
+  /* --- Paper ------------------------------------------------------------
+     Never pure white. A warm off-white reads as stock rather than as screen,
+     and it stops the near-black type from vibrating the way it does at
+     maximum contrast. `oklch` so the three steps are perceptually even —
+     in sRGB the mid tone drifts yellow.
+  */
+  --paper: oklch(97.6% 0.008 85);
+  --paper-sunk: oklch(95.4% 0.011 83);
+  --paper-ink: oklch(21% 0.014 65);
+
+  /* --- Ink --------------------------------------------------------------
+     Five steps, all the same hue. A gray that drifts blue against warm paper
+     looks like a rendering fault rather than a choice.
+
+     Measured, not eyeballed (WCAG 2.x, on paper / on paper-sunk):
+       ink 17.3 / 16.2   ink-80 9.5 / 9.1   ink-60 4.7 / 4.6
+       ink-45 3.0 / 2.9  ink-30 2.0 / 1.9
+     So ink-60 is the lightest step any TEXT may use — labels are 11–12px, and
+     small text needs 4.5:1. ink-45 and ink-30 are for rules, dots and other
+     marks only; using them for a date or a caption is how this design first
+     failed its own contrast check.
+  */
+  --ink: oklch(19% 0.013 62);
+  --ink-80: oklch(19% 0.013 62 / 0.80);
+  --ink-60: oklch(19% 0.013 62 / 0.60);
+  --ink-45: oklch(19% 0.013 62 / 0.45);
+  --ink-30: oklch(19% 0.013 62 / 0.30);
+
+  /* Hairlines. Anything heavier than this reads as a box, and boxes are what
+     this redesign exists to remove. */
+  --rule: oklch(19% 0.013 62 / 0.16);
+  --rule-soft: oklch(19% 0.013 62 / 0.09);
+
+  /* --- Signal -----------------------------------------------------------
+     One colour, and it means something: a live link, the current role, the
+     thing to click. Never decoration.
+
+     Vermillion is the default rather than a hard-coded value, so a site whose
+     `accent` column holds something this file does not know still gets a
+     usable signal instead of a transparent one. The named accents below
+     override it.
+  */
+  --signal: oklch(57% 0.188 36);
+  --signal-ink: oklch(49% 0.168 36);
+  --signal-wash: oklch(57% 0.188 36 / 0.10);
+
+  /* --- Measure & rhythm -------------------------------------------------
+     `--gutter` is the page margin, and it is deliberately generous at desktop
+     widths: the white space down the sides is what makes a text page look
+     composed rather than poured in.
+  */
+  --gutter: clamp(1.25rem, 5vw, 7rem);
+  --measure: 68ch;
+  --measure-tight: 54ch;
+
+  /* --- Easing -----------------------------------------------------------
+     power4.out for anything arriving, power4.inOut for anything that moves
+     across the screen. One pair, used everywhere, so the whole site decelerates
+     in the same handwriting.
+  */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+
+  /* --- Type scale -------------------------------------------------------
+     Fluid, so there is no breakpoint at which a headline suddenly jumps a
+     size. The hero deliberately runs past what a `rem` ceiling would allow:
+     at 1600px it is ~190px, which is the point.
+  */
+  --t-masthead: clamp(3.25rem, 13vw, 12rem);
+  --t-display: clamp(2.5rem, 7.5vw, 6.5rem);
+  --t-h2: clamp(1.9rem, 4vw, 3.5rem);
+  --t-h3: clamp(1.25rem, 2vw + 0.5rem, 1.9rem);
+  --t-lead: clamp(1.125rem, 1vw + 0.75rem, 1.5rem);
+  --t-body: clamp(1rem, 0.4vw + 0.9rem, 1.125rem);
+  --t-small: clamp(0.875rem, 0.2vw + 0.8rem, 0.9375rem);
+  --t-label: clamp(0.6875rem, 0.15vw + 0.65rem, 0.78rem);
+}
+
+/* --- Per-site signal ----------------------------------------------------
+   The `accent` column already existed and already put one of these classes on
+   <body>. It used to swap a three-stop gradient on `.gradient-text`; here it
+   sets one colour, which is the whole of this design's colour decision.
+
+   Keeping the same five key names means the existing rows, the admin picker
+   and `ACCENTS` in lib/site-content.ts all keep working untouched — the two
+   portfolios can read differently without a second stylesheet.
+*/
+/* Explicit, though it matches :root — so picking it in the admin is visibly
+   a choice rather than an absence of one. */
+.accent-vermillion {
+  --signal: oklch(57% 0.188 36);
+  --signal-ink: oklch(49% 0.168 36);
+  --signal-wash: oklch(57% 0.188 36 / 0.10);
+}
+.accent-blue {
+  --signal: oklch(50% 0.17 255);
+  --signal-ink: oklch(43% 0.15 255);
+  --signal-wash: oklch(50% 0.17 255 / 0.10);
+}
+.accent-emerald {
+  --signal: oklch(52% 0.13 165);
+  --signal-ink: oklch(45% 0.115 165);
+  --signal-wash: oklch(52% 0.13 165 / 0.10);
+}
+.accent-violet {
+  --signal: oklch(50% 0.21 295);
+  --signal-ink: oklch(43% 0.19 295);
+  --signal-wash: oklch(50% 0.21 295 / 0.10);
+}
+.accent-amber {
+  /* L 54 rather than 58: at 58 a paper label on an amber button hovered
+     at 4.1:1, under the 4.5 small text needs. */
+  --signal: oklch(54% 0.14 62);
+  --signal-ink: oklch(48% 0.13 62);
+  --signal-wash: oklch(54% 0.14 62 / 0.10);
+}
+.accent-rose {
+  --signal: oklch(55% 0.19 15);
+  --signal-ink: oklch(47% 0.17 15);
+  --signal-wash: oklch(55% 0.19 15 / 0.10);
+}
+
+/* ---------------------------------------------------------------------------
+   The page
+   --------------------------------------------------------------------------- */
+
+.editorial {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--t-body);
+  line-height: 1.6;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* The page's own scrollbar. globals.css styles it slate for the admin panel,
+   which on paper reads as a stray strip of the old design down the right edge.
+   `scrollbar-color` is the standard property and, where supported, takes
+   precedence over the ::-webkit-scrollbar rules. */
+html:has(.editorial) {
+  scrollbar-color: oklch(19% 0.013 62 / 0.28) var(--paper);
+}
+
+/* Selection in the signal colour. A detail nobody asks for and everybody
+   notices once it is there. */
+.editorial ::selection {
+  background: var(--signal);
+  color: var(--paper);
+}
+
+/* ---------------------------------------------------------------------------
+   Grid
+
+   Twelve columns with a real gutter, and the page margin as its own track on
+   either side so a full-bleed rule can run edge to edge while the text it
+   belongs to stays in the measure.
+   --------------------------------------------------------------------------- */
+
+/*
+  The margin tracks are the gutter MINUS the gap. column-gap applies between
+  every pair of tracks, including margin-to-first-column — so a margin track of
+  the full gutter put content one gap further in than the masthead bar, whose
+  padding is the plain gutter. Measured: bar at 40px, content at 56px.
+*/
+.ed-grid {
+  --col-gap: clamp(1rem, 2vw, 2rem);
+  display: grid;
+  grid-template-columns:
+    [full-start] minmax(0, calc(var(--gutter) - var(--col-gap)))
+    [content-start] repeat(12, minmax(0, 1fr))
+    [content-end] minmax(0, calc(var(--gutter) - var(--col-gap)))
+    [full-end];
+  column-gap: var(--col-gap);
+}
+
+/* Zero specificity via :where(), so any column class — named here or a Tailwind
+   arbitrary one — overrides this default without a fight over source order. */
+:where(.ed-grid) > * {
+  grid-column: content;
+}
+
+/* Named spans, used to hang each block off a different column so the page has
+   an edge that moves. Uniform centring at one max-width is the single clearest
+   tell of a template. */
+/* Content column N starts at grid line N + 1: line 1 is the outer edge of the
+   left margin track, so `1 / span 5` put a block IN the margin, flush against
+   the window. The class names count content columns; the values count lines. */
+.col-full { grid-column: full; }
+.col-all { grid-column: content; }
+.col-1-7 { grid-column: 2 / span 7; }
+.col-1-8 { grid-column: 2 / span 8; }
+.col-1-9 { grid-column: 2 / span 9; }
+.col-2-9 { grid-column: 3 / span 8; }
+.col-4-12 { grid-column: 5 / span 9; }
+.col-5-12 { grid-column: 6 / span 8; }
+.col-6-12 { grid-column: 7 / span 7; }
+.col-8-12 { grid-column: 9 / span 5; }
+.col-1-5 { grid-column: 2 / span 5; }
+.col-1-6 { grid-column: 2 / span 6; }
+.col-7-12 { grid-column: 8 / span 6; }
+.col-1-1 { grid-column: 2 / span 1; }
+.col-2-5 { grid-column: 3 / span 4; }
+
+/* Everything collapses to one column on a phone. A twelve-column asymmetry at
+   375px is not asymmetry, it is a mess. */
+@media (max-width: 860px) {
+  .col-1-7, .col-1-8, .col-1-9, .col-2-9,
+  .col-4-12, .col-5-12, .col-6-12, .col-8-12,
+  .col-1-5, .col-1-6, .col-7-12, .col-1-1, .col-2-5 {
+    grid-column: content;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Type
+   --------------------------------------------------------------------------- */
+
+.ed-masthead {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: var(--t-masthead);
+  line-height: 0.86;
+  letter-spacing: -0.035em;
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+/* The hero name only. It is one or two short words set one per line, so it can
+   run far larger than the shared masthead size — which also has to hold
+   "PostgreSQL." on a topic page, and at this size would not fit a phone. */
+.ed-masthead-name {
+  font-size: clamp(3.75rem, 21vw, 15rem);
+  line-height: 0.82;
+}
+
+/* --- The hero layout -------------------------------------------------------
+   Three widths, three arrangements of the same two blocks:
+
+     phone        name, then facts, then intro — one column
+     861–1199     name across the top; facts and intro side by side below it
+     1200+        name on the left; facts and intro in the column beside it,
+                  bottom-aligned to the name, so the first screen holds both
+
+   The side block is its own 12-column grid in the middle range so the intro
+   still starts at page column 6, exactly where it did before this change. */
+.ed-hero-name { grid-column: content; }
+
+.ed-hero-side {
+  grid-column: content;
+  margin-top: clamp(2.5rem, 5vw, 4.5rem);
+  display: grid;
+  row-gap: 2.5rem;
+}
+
+@media (min-width: 861px) {
+  .ed-hero-side {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--col-gap);
+  }
+  .ed-hero-facts { grid-column: 1 / span 5; }
+  .ed-hero-intro { grid-column: 6 / span 7; }
+}
+
+@media (min-width: 1200px) {
+  .ed-hero { align-items: end; }
+  .ed-hero-name { grid-column: 2 / span 7; }
+  /* The name now shares the row, so it scales with its seven columns rather
+     than running to the viewport cap. At the cap, 1200px wide left 35px
+     between "Kaushal" and the intro beside it — measured, not judged. */
+  .ed-hero .ed-masthead-name { font-size: clamp(3.75rem, 17.5vw, 15rem); }
+  .ed-hero-side {
+    grid-column: 9 / span 5;
+    margin-top: 0;
+    display: block;
+    /* Sits the last line of the buttons on the name's baseline, not on the
+       bottom of its descender space. */
+    padding-bottom: 0.4rem;
+  }
+  .ed-hero-facts { margin-bottom: 2rem; }
+  /* The column is narrower than the old one, so the lead steps down a size
+     to keep a readable line length rather than a tall narrow block. */
+  .ed-hero-intro .ed-lead { font-size: clamp(1.05rem, 0.6vw + 0.8rem, 1.3rem); }
+}
+
+/* A single long word in a heading (a topic name, a title with an identifier
+   in it) breaks with a hyphen rather than pushing the page wider than the
+   screen. On a phone an overflowing element is not a scrollbar — the browser
+   zooms the whole page out to fit it. */
+.ed-masthead,
+.ed-display,
+.ed-h2 {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.ed-display {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: var(--t-display);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+.ed-h2 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: var(--t-h2);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+.ed-h3 {
+  font-size: var(--t-h3);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+.ed-lead {
+  font-size: var(--t-lead);
+  line-height: 1.45;
+  letter-spacing: -0.015em;
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+.ed-body {
+  font-size: var(--t-body);
+  line-height: 1.65;
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+/* The overline. Mono, tracked wide, small — it is the thing that says
+   "publication" more than any other single element here. */
+.ed-label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--t-label);
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-60);
+}
+
+.ed-label-ink { color: var(--ink-80); }
+.ed-label-signal { color: var(--signal-ink); }
+
+/* The folio number down the side of each entry. Tabular so a column of them
+   lines up on the digit rather than on the glyph width. */
+.ed-folio {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-label);
+  letter-spacing: 0.1em;
+  color: var(--ink-60);
+}
+
+/* Metrics. The whole point of the stats band is that the numerals are large
+   enough to read before the words under them. */
+.ed-numeral {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(2.75rem, 5.5vw, 5rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.ed-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Italic display, for the one or two places a line needs to lean. */
+.ed-italic {
+  font-family: var(--font-display), Georgia, serif;
+  font-style: italic;
+}
+
+/* ---------------------------------------------------------------------------
+   Rules & rhythm
+
+   Section padding is deliberately NOT uniform. Identical vertical rhythm on
+   every band is the other clearest tell of a template — the page should breathe
+   differently where the content changes character.
+   --------------------------------------------------------------------------- */
+
+.ed-rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+
+.ed-rule-soft { border-top-color: var(--rule-soft); }
+
+.ed-section { padding-block: clamp(4.5rem, 9vw, 9rem); }
+.ed-section-tight { padding-block: clamp(3rem, 6vw, 6rem); }
+.ed-section-loose { padding-block: clamp(6rem, 13vw, 13rem); }
+
+.ed-sunk { background: var(--paper-sunk); }
+
+/* ---------------------------------------------------------------------------
+   Links
+
+   An underline that grows from the left on hover, drawn with a gradient rather
+   than `text-decoration` so its thickness and colour are controllable and it
+   sits off the baseline instead of cutting through descenders.
+   --------------------------------------------------------------------------- */
+
+.ed-link {
+  color: inherit;
+  text-decoration: none;
+  background-image: linear-gradient(var(--signal), var(--signal));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 0.4s var(--ease-out), color 0.3s var(--ease-out);
+  padding-bottom: 0.08em;
+}
+
+.ed-link:hover,
+.ed-link:focus-visible {
+  background-size: 100% 1px;
+  color: var(--signal-ink);
+}
+
+/* Already-underlined variant, for links in body copy where discoverability
+   beats restraint. */
+.ed-link-static {
+  color: var(--signal-ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--signal), var(--signal));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 1px;
+  transition: background-size 0.3s var(--ease-out);
+  padding-bottom: 0.08em;
+}
+
+.ed-link-static:hover { background-size: 0% 1px; }
+
+/* ---------------------------------------------------------------------------
+   Index rows — the contents-page treatment used for essays and projects.
+
+   The whole row is the link. On hover the title takes the signal colour and
+   indents by a few pixels, and a wash slides in behind — enough to say "this
+   is the one under the pointer" without the row jumping. Only on devices that
+   actually hover, so a tap on a phone does not leave a row stuck lit.
+   --------------------------------------------------------------------------- */
+
+.ed-row {
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  isolation: isolate;
+}
+
+.ed-row::before {
+  content: '';
+  position: absolute;
+  inset: 0 calc(var(--gutter) * -0.35);
+  background: var(--signal-wash);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.5s var(--ease-out);
+  z-index: -1;
+}
+
+.ed-row-title {
+  transition: color 0.35s var(--ease-out), transform 0.5s var(--ease-out);
+}
+
+.ed-row-arrow {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.35s var(--ease-out), transform 0.5s var(--ease-out);
+  color: var(--signal-ink);
+}
+
+@media (hover: hover) {
+  .ed-row:hover::before { transform: scaleY(1); }
+  .ed-row:hover .ed-row-title { color: var(--signal-ink); transform: translateX(6px); }
+  .ed-row:hover .ed-row-arrow { opacity: 1; transform: none; }
+}
+
+.ed-row:focus-visible .ed-row-title { color: var(--signal-ink); }
+
+/* ---------------------------------------------------------------------------
+   Buttons — a rule and a label, not a pill.
+   --------------------------------------------------------------------------- */
+
+.ed-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.5rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--t-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background 0.35s var(--ease-out), color 0.35s var(--ease-out),
+    border-color 0.35s var(--ease-out), transform 0.35s var(--ease-out);
+}
+
+.ed-btn:hover,
+.ed-btn:focus-visible {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--paper);
+}
+
+.ed-btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule);
+}
+
+.ed-btn-ghost:hover,
+.ed-btn-ghost:focus-visible {
+  background: transparent;
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* For an ink ground — the résumé band. A class rather than inline colours, so
+   the hover state can still win over the resting one. */
+.ed-btn-paper {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+}
+
+.ed-btn-paper:hover,
+.ed-btn-paper:focus-visible {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: var(--paper);
+}
+
+/* A tag, for topics and stack items. Flat, hairline, square. */
+.ed-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--t-label);
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--rule);
+  color: var(--ink-60);
+  white-space: nowrap;
+  transition: border-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+}
+
+a.ed-tag:hover,
+button.ed-tag:hover { border-color: var(--signal); color: var(--signal-ink); }
+
+button.ed-tag { cursor: pointer; background: transparent; }
+
+/* A filter that is on. Styled from aria-pressed rather than a separate class,
+   so what a screen reader announces and what the eye sees cannot disagree. */
+.ed-tag[aria-pressed='true'],
+.ed-tag[aria-pressed='true']:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+/* ---------------------------------------------------------------------------
+   Focus
+
+   Visible, in the signal colour, and never removed. The keyboard path through
+   this site is a first-class one.
+   --------------------------------------------------------------------------- */
+
+.editorial :focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Motion — scroll-driven, in CSS.
+
+   No animation library runs on the public pages. `animation-timeline: view()`
+   is driven by the compositor rather than by a scroll listener, so these never
+   contend with the main thread, and in a browser that does not support it the
+   `@supports` guard means the content is simply there — which is the correct
+   failure.
+   --------------------------------------------------------------------------- */
+
+@keyframes ed-rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ed-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ed-wipe {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ed-rise {
+      animation: ed-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 42%;
+    }
+
+    .ed-fade {
+      animation: ed-fade linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+
+    /* Rules draw themselves in as they arrive. Cheap, and it is what makes the
+       page feel typeset rather than assembled. */
+    .ed-wipe {
+      transform-origin: left;
+      animation: ed-wipe linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+/* Lenis's own requirements. globals.css sets `scroll-behavior: smooth` on the
+   body, and two smoothers on one scroll fight — each wheel tick is eased twice
+   and the page lurches. Lenis puts these classes on <html> only while it is
+   running, so a reduced-motion or touch visitor keeps the native behaviour. */
+html.lenis,
+html.lenis body { height: auto; }
+.lenis.lenis-smooth,
+.lenis.lenis-smooth body { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* The reading-progress hairline. Driven by the document's own scroll timeline,
+   so it costs nothing per frame. */
+.ed-progress {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 2px;
+  background: var(--signal);
+  transform-origin: left;
+  transform: scaleX(0);
+  z-index: 100;
+  pointer-events: none;
+}
+
+@supports (animation-timeline: scroll(root)) {
+  .ed-progress {
+    animation: ed-wipe linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+/* The load-in. Only the masthead gets one — a page where everything arrives
+   separately takes longer to read than it takes to animate. */
+@media (prefers-reduced-motion: no-preference) {
+  .ed-enter {
+    animation: ed-rise 0.9s var(--ease-out) both;
+  }
+  .ed-enter-2 { animation-delay: 0.08s; }
+  .ed-enter-3 { animation-delay: 0.16s; }
+  .ed-enter-4 { animation-delay: 0.24s; }
+}
+
+/* A line that masks itself in from below. The wrapper clips, the span moves. */
+.ed-reveal-line { overflow: hidden; display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ed-reveal-line > span {
+    display: block;
+    animation: ed-line-up 1s var(--ease-out) both;
+  }
+  @keyframes ed-line-up {
+    from { transform: translateY(105%); }
+    to { transform: none; }
+  }
+}
+
+/* Everything off. Not a degraded experience — an equal one. */
+@media (prefers-reduced-motion: reduce) {
+  .editorial *,
+  .editorial *::before,
+  .editorial *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Prose — the body of an essay.
+
+   lib/markdown.ts emits its own classes; these are the paper-mode overrides,
+   scoped so the renderer can stay one function serving both the public page and
+   the admin preview.
+   --------------------------------------------------------------------------- */
+
+/* Markdown that is not an essay — the hero intro, a one-paragraph standfirst.
+   renderMarkdown stamps its own dark-mode classes on each element, so the
+   paragraph would otherwise come out pale gray on paper. Element selectors
+   inside a class out-rank those single-class utilities. */
+.ed-inline-md p { margin: 0; color: inherit; font-size: inherit; line-height: inherit; }
+.ed-inline-md p + p { margin-top: 1em; }
+.ed-inline-md strong { color: var(--ink); font-weight: 600; }
+.ed-inline-md a { color: var(--signal-ink); text-decoration: underline; text-underline-offset: 0.18em; }
+.ed-inline-md code { font-family: var(--font-mono), monospace; font-size: 0.88em; background: var(--signal-wash); color: var(--signal-ink); padding: 0.1em 0.3em; }
+
+.ed-prose { max-width: var(--measure); }
+
+.ed-prose > p {
+  font-size: var(--t-body);
+  line-height: 1.7;
+  margin-block: 1.35em;
+  color: var(--ink-80);
+  text-wrap: pretty;
+}
+
+.ed-prose > p:first-child { margin-block-start: 0; }
+
+.ed-prose h2,
+.ed-prose h3,
+.ed-prose h4 {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-block: 2.2em 0.7em;
+  line-height: 1.1;
+}
+
+.ed-prose h2 { font-size: clamp(1.6rem, 2.6vw, 2.25rem); }
+.ed-prose h3 { font-size: clamp(1.35rem, 2vw, 1.7rem); }
+.ed-prose h4 { font-size: clamp(1.15rem, 1.5vw, 1.35rem); }
+
+.ed-prose ul,
+.ed-prose ol {
+  margin-block: 1.35em;
+  padding-inline-start: 1.3em;
+  color: var(--ink-80);
+  /* The renderer emits `list-inside`; outside hangs the markers in the margin,
+     which is how a typeset list is set. */
+  list-style-position: outside;
+}
+
+.ed-prose li { margin-block: 0.45em; line-height: 1.65; }
+.ed-prose li::marker { color: var(--signal); }
+
+.ed-prose strong { color: var(--ink); font-weight: 600; }
+
+.ed-prose a {
+  color: var(--signal-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+.ed-prose code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.875em;
+  background: var(--signal-wash);
+  color: var(--signal-ink);
+  padding: 0.12em 0.36em;
+  border-radius: 2px;
+}
+
+.ed-prose pre {
+  margin-block: 1.8em;
+  padding: 1.25rem 1.4rem;
+  background: var(--paper-ink);
+  border-radius: 2px;
+  overflow-x: auto;
+}
+
+.ed-prose pre code {
+  background: none;
+  color: oklch(92% 0.01 85);
+  padding: 0;
+  font-size: 0.86em;
+  line-height: 1.6;
+}
+
+.ed-prose blockquote {
+  margin-block: 1.8em;
+  padding-inline-start: 1.4rem;
+  border-inline-start: 2px solid var(--signal);
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+  line-height: 1.4;
+  font-style: italic;
+  color: var(--ink);
+}

@@ -63,6 +63,10 @@
 
   `blue` needs no block: it is what `.gradient-text` already is.
 */
+.accent-vermillion .gradient-text {
+  @apply from-orange-500 via-red-500 to-orange-600;
+}
+
 .accent-emerald .gradient-text {
   @apply from-emerald-400 via-teal-500 to-emerald-600;
 }
@@ -234,7 +238,11 @@
      default, so text would print near-black on white anyway — but only by
      accident, and "print backgrounds" is a checkbox the reader may have on. */
   html,
-  body {
+  body,
+  /* The résumé page sets its paper ground inline, which out-ranks a
+     `print:bg-white` class — so a PDF saved with "print backgrounds" ticked
+     came out on beige. */
+  .editorial {
     background: #fff !important;
     color: #000 !important;
   }

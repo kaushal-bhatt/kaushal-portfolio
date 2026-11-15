@@ -183,7 +183,10 @@ export default function SiteManagement() {
             />
           </Field>
 
-          <Field label="Accent" hint="The gradient on every heading accent and the nav brand.">
+          <Field
+            label="Accent"
+            hint="The site's one signal colour — links, the current role, the active nav item."
+          >
             <Select value={site.accent} onValueChange={(value) => patch({ accent: value })}>
               <SelectTrigger className="border-slate-600 bg-slate-800 text-white">
                 <SelectValue />

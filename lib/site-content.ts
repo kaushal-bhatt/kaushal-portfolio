@@ -20,6 +20,9 @@
  * Same reasoning as `lib/about-visuals.ts`, which exists for exactly this bug.
  */
 export const ACCENTS: Record<string, string> = {
+  // The editorial design's own signal. Added rather than made the default, so
+  // no existing site changes colour until someone picks it in /admin/site.
+  vermillion: 'accent-vermillion',
   blue: 'accent-blue',
   emerald: 'accent-emerald',
   violet: 'accent-violet',

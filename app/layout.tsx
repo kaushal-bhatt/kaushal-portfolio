@@ -1,10 +1,36 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import './editorial.css';
 import { Providers } from '@/components/providers';
+import { SiteProvider } from '@/components/site-provider';
 import { accentClass, resolveSite } from '@/lib/site';
 
-const inter = Inter({ subsets: ['latin'] });
+/**
+ * Three families, each with one job.
+ *
+ * Instrument Serif is the voice — the name, the section heads, the numerals.
+ * Inter is everything you read for longer than a line. JetBrains Mono is the
+ * apparatus: dates, labels, folios, the stack. Exposed as CSS variables rather
+ * than classes so `app/editorial.css` can reach them, and self-hosted by
+ * next/font so there is no request to Google and no layout shift on load.
+ */
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+
+const display = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-display',
+  display: 'swap',
+});
+
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+  display: 'swap',
+});
 
 /**
  * Reads the database through `resolveSite()`, so the whole app is rendered on
@@ -46,14 +72,29 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const site = await resolveSite();
 
   return (
+    // `dark` stays on <html>, and alone. It is what the admin panel's shadcn
+    // components read, and next-themes removes and re-adds it before React
+    // hydrates — with anything else in the attribute that reorders the class
+    // list, and the server and client HTML disagree. The public pages opt into
+    // paper with `.editorial` on their own wrapper, so the CMS look is untouched.
     <html lang="en" className="dark">
       {/*
-        The accent class sits on <body> so one attribute re-colours every
-        `.gradient-text` on the page — the nav brand, the hero name and every
-        section heading's second half.
+        The font variables and the accent class sit on <body>: custom properties
+        inherit to every element below it, and one attribute here sets the
+        signal colour for the whole page — see `.accent-*` in app/editorial.css.
       */}
-      <body className={`${inter.className} ${accentClass(site.accent)}`}>
-        <Providers>{children}</Providers>
+      <body
+        className={`${inter.className} ${inter.variable} ${display.variable} ${mono.variable} ${accentClass(site.accent)}`}
+      >
+        {/*
+          The site resolved above, for this request's host, handed to every
+          client component — so the name, the nav brand and the headings are in
+          the server HTML rather than filled in after a client fetch. See
+          components/site-provider.tsx.
+        */}
+        <SiteProvider value={site}>
+          <Providers>{children}</Providers>
+        </SiteProvider>
       </body>
     </html>
   );

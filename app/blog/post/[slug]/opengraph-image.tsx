@@ -3,6 +3,7 @@ import { getPublishedPost } from '@/lib/content/posts';
 import { getTopic } from '@/lib/content/topics';
 import { resolveSiteRecord } from '@/lib/site';
 import { SITE_DEFAULTS } from '@/lib/site-content';
+import { OG, ogSignal } from '@/lib/og-palette';
 
 /**
  * The card for one article.
@@ -56,6 +57,11 @@ export default async function Image({ params }: { params: { slug: string } }) {
   const section = record && post ? await getTopic(record.id, post.technology) : null;
   const topic = section?.name ?? post?.technology ?? '';
 
+  const signal = ogSignal(site.accent);
+
+  // The essay's own card, in the same composition as the essay page: running
+  // head with the topic in the signal colour, the title large in the display
+  // face, and the byline in the apparatus face along the bottom.
   return new ImageResponse(
     (
       <div
@@ -64,69 +70,56 @@ export default async function Image({ params }: { params: { slug: string } }) {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '72px 80px',
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #0f172a 100%)',
-          color: 'white',
-          fontFamily: 'sans-serif',
+          background: OG.paper,
+          color: OG.ink,
+          padding: '56px 72px',
+          fontFamily: 'serif',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {topic && (
-            <div
-              style={{
-                display: 'flex',
-                alignSelf: 'flex-start',
-                padding: '10px 22px',
-                borderRadius: 999,
-                border: '2px solid rgba(96,165,250,0.45)',
-                color: '#93c5fd',
-                fontSize: 26,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              {topic}
-            </div>
-          )}
-
-          <div
-            style={{
-              display: 'flex',
-              marginTop: 36,
-              fontSize: titleSize(title),
-              fontWeight: 700,
-              lineHeight: 1.15,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {title}
-          </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontFamily: 'monospace',
+            fontSize: 20,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            paddingBottom: 18,
+            borderBottom: `2px solid ${OG.ink}`,
+          }}
+        >
+          <span style={{ color: OG.ink60 }}>Writing</span>
+          {topic ? <span style={{ color: signal }}>{topic}</span> : <span />}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div
-            style={{
-              display: 'flex',
-              width: 260,
-              height: 8,
-              borderRadius: 4,
-              background: 'linear-gradient(90deg, #60a5fa 0%, #a855f7 50%, #2563eb 100%)',
-            }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              marginTop: 32,
-              fontSize: 26,
-              color: '#94a3b8',
-              gap: 16,
-            }}
-          >
-            <span>{post?.authorName || site.fullName}</span>
-            {readTime ? <span>· {readTime} min read</span> : null}
-            {site.host ? <span>· {site.host}</span> : null}
-          </div>
+        <div
+          style={{
+            display: 'flex',
+            marginTop: 48,
+            fontSize: titleSize(title) + 6,
+            lineHeight: 1.0,
+            letterSpacing: '-0.03em',
+          }}
+        >
+          {title}
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            marginTop: 'auto',
+            justifyContent: 'space-between',
+            fontFamily: 'monospace',
+            fontSize: 21,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: OG.ink60,
+          }}
+        >
+          <span style={{ color: OG.ink }}>{post?.authorName || site.fullName}</span>
+          <span>
+            {[readTime ? `${readTime} min read` : '', site.host].filter(Boolean).join(' · ')}
+          </span>
         </div>
       </div>
     ),

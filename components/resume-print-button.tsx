@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 /**
  * "Download PDF" is `window.print()` and nothing else.
@@ -36,9 +34,8 @@ export function ResumePrintButton({ filename, title }: { filename: string; title
   };
 
   return (
-    <Button onClick={print} className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg" size="sm">
-      <Download className="w-4 h-4 mr-2" />
-      Download PDF
-    </Button>
+    <button type="button" onClick={print} className="ed-btn">
+      Download PDF <span aria-hidden="true">↓</span>
+    </button>
   );
 }

@@ -1,15 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, Share2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 /**
- * The only interactive thing on a blog post, and therefore the only part of
- * that page that ships JavaScript.
- *
- * The page around it is a server component now — everything else there is text,
- * and rendering text in the browser is what left Google with an empty shell.
+ * The one interactive element in the body of an essay. The page around it is a
+ * server component — the text is in the HTML a crawler receives — and only the
+ * frame (the bar, smooth scrolling) and this button run in the browser.
  *
  * `navigator.share` is the phone path (it opens the real share sheet, which is
  * where a link actually gets sent from); the clipboard is the desktop
@@ -43,14 +39,9 @@ export function BlogShareButton({ title, text }: { title: string; text: string }
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={share}
-      className="text-gray-300 hover:text-white hover:bg-slate-800"
-    >
-      {copied ? <Check className="w-4 h-4 mr-2" /> : <Share2 className="w-4 h-4 mr-2" />}
+    <button type="button" onClick={share} className="ed-label ed-label-ink ed-link" aria-live="polite">
       {copied ? 'Link copied' : 'Share'}
-    </Button>
+      <span aria-hidden="true">{copied ? ' ✓' : ' ↗'}</span>
+    </button>
   );
 }

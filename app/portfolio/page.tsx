@@ -1,14 +1,21 @@
-
 'use client';
 
-import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Github, Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSite } from '@/hooks/use-site';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
+
+/**
+ * Projects — the `Project` table.
+ *
+ * Two treatments, on purpose. Featured work gets a spread each: a large title,
+ * the argument set as a standfirst, and the links as buttons. Everything else
+ * is an index — one line per project — because giving every project a card of
+ * the same size is how a portfolio tells the reader nothing about which ones
+ * matter.
+ *
+ * Every link is an anchor with an href. The previous version opened them with
+ * `window.open` from a button, so they could not be middle-clicked, copied or
+ * seen in the status bar before clicking.
+ */
 
 interface Project {
   id: string;
@@ -21,328 +28,223 @@ interface Project {
   category: string;
   featured: boolean;
   completionDate: string;
-  order: number;
 }
 
-
 export default function PortfolioPage() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const site = useSite();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [category, setCategory] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/projects')
-      .then((res) => (res.ok ? res.json() : []))
+      .then((r) => (r.ok ? r.json() : []))
       .then((data: Project[]) => setProjects(data))
       .catch(() => setProjects([]))
-      .finally(() => setLoading(false));
+      .finally(() => setLoaded(true));
   }, []);
 
-  // Derived from the projects themselves rather than a fixed list. A hardcoded
-  // one goes stale the moment a project is added under a new category — the
-  // filter button simply would not exist, and the project would be reachable
-  // only under "All".
-  const categories = ["All", ...Array.from(new Set(projects.map((p) => p.category)))];
-
-  const filteredProjects = selectedCategory === "All" 
-    ? projects 
-    : projects.filter(project => project.category === selectedCategory);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed': return 'bg-green-600/20 text-green-400 border-green-600/30';
-      case 'Open Source': return 'bg-blue-600/20 text-blue-400 border-blue-600/30';
-      case 'In Development': return 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30';
-      default: return 'bg-gray-600/20 text-gray-400 border-gray-600/30';
-    }
-  };
-
-  // Without this the page renders its headings over an empty grid for the length
-  // of the fetch, which reads as "he has no projects" rather than "still loading".
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // Derived from the projects, not a fixed list — a new category gets its
+  // filter the moment a project is filed under it.
+  const categories = Array.from(new Set(projects.map((p) => p.category))).filter(Boolean);
+  const shown = category ? projects.filter((p) => p.category === category) : projects;
+  const featured = shown.filter((p) => p.featured);
+  const others = shown.filter((p) => !p.featured);
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="mb-6">
-            <Link href="/">
-              <Button
-                variant="ghost"
-                className="text-white hover:bg-slate-800 mb-4"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
+    <>
+      {/* --- masthead ------------------------------------------------------ */}
+      <header className="pt-16">
+        <div className="ed-grid pt-6 sm:pt-10">
+          <div className="col-all flex items-baseline justify-between pb-4">
+            <span className="ed-label ed-label-ink">
+              <span style={{ color: 'var(--signal-ink)' }}>§</span>
+              <span className="mx-3" aria-hidden="true">—</span>
+              Projects
+            </span>
+            <span className="ed-label ed-mono">
+              {loaded ? `${projects.length} ${projects.length === 1 ? 'project' : 'projects'}` : ' '}
+            </span>
           </div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              {site.projectsHeading}{' '}
-              <span className="gradient-text">{site.projectsHeadingAccent}</span>
-            </h1>
-            {site.projectsSubtitle && (
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">{site.projectsSubtitle}</p>
-            )}
-          </motion.div>
         </div>
-      </div>
+        <hr className="ed-rule" />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Category Filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-12"
-        >
-          <div className="flex flex-wrap justify-center gap-4">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                onClick={() => setSelectedCategory(category)}
-                className={`${
-                  selectedCategory === category
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "border-slate-600 text-slate-300 hover:bg-slate-800"
-                }`}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-        </motion.div>
+        <div className="ed-grid pb-[clamp(3rem,6vw,5rem)] pt-[clamp(2.5rem,6vw,5rem)]">
+          <h1 className="ed-masthead col-all ed-enter">
+            {site.projectsHeading}
+            {site.projectsHeading && site.projectsHeadingAccent && ' '}
+            {site.projectsHeadingAccent && <em className="ed-italic">{site.projectsHeadingAccent}</em>}
+          </h1>
+          {site.projectsSubtitle && (
+            <p className="ed-lead col-5-12 ed-enter ed-enter-2 mt-10 text-[var(--ink-60)]">
+              {site.projectsSubtitle}
+            </p>
+          )}
+        </div>
+      </header>
 
-        {/* Projects Grid */}
-        <div className="space-y-8">
-          {/* Featured Projects */}
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-6">Featured Projects</h2>
-            <div className="grid lg:grid-cols-2 gap-8 mb-12">
-              {filteredProjects
-                .filter(project => project.featured)
-                .map((project, index) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+      {!loaded && <div style={{ minHeight: '60vh' }} aria-hidden="true" />}
+
+      {loaded && projects.length === 0 && (
+        <div className="ed-grid pb-[clamp(5rem,10vw,9rem)]">
+          <hr className="ed-rule col-all" style={{ borderTopColor: 'var(--ink)' }} />
+          <p className="ed-lead col-all py-16 text-[var(--ink-60)]">Projects will be listed here.</p>
+        </div>
+      )}
+
+      {/* --- filter -------------------------------------------------------- */}
+      {categories.length > 1 && (
+        <div className="ed-grid pb-[clamp(2.5rem,5vw,4rem)]">
+          <div className="col-all">
+            <span className="ed-label mb-3 block">Category</span>
+            <ul className="flex flex-wrap gap-2" aria-label="Filter by category">
+              <li>
+                <button
+                  type="button"
+                  className="ed-tag"
+                  aria-pressed={category === null}
+                  onClick={() => setCategory(null)}
                 >
-                  <Card className="bg-slate-800 border-slate-700 hover:border-blue-600/50 transition-all duration-300 h-full">
-                    <CardHeader>
-                      <div className="flex justify-between items-start mb-4">
-                        <Badge className={`${getStatusColor(project.status)}`}>
-                          {project.status}
-                        </Badge>
-                        <div className="flex items-center text-gray-400 text-sm">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          {project.completionDate}
-                        </div>
-                      </div>
-                      <CardTitle className="text-white text-xl mb-2">
-                        {project.title}
-                      </CardTitle>
-                      <Badge variant="outline" className="border-blue-600/30 text-blue-400 w-fit">
-                        {project.category}
-                      </Badge>
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <p className="text-gray-300 mb-6 leading-relaxed">
-                        {project.description}
-                      </p>
-                      
-                      <div className="mb-6">
-                        <h4 className="text-white font-semibold mb-3">Technologies Used:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {project.technologies.map((tech) => (
-                            <Badge 
-                              key={tech}
-                              variant="secondary"
-                              className="bg-slate-700 text-gray-300 hover:bg-slate-600"
-                            >
-                              {tech}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/*
-                        `flex-wrap` is load-bearing on a narrow phone.
-
-                        Both buttons are `whitespace-nowrap` (shadcn's default),
-                        so without wrapping this row has a hard minimum width:
-                        "Live Demo" 120px + "Source Code" 135px + a 16px gap =
-                        271px. That is exactly the card's content box, so the
-                        card could not shrink below 321px — and on a 320px
-                        screen the browser widened the layout viewport to 337 to
-                        fit it, shrinking the whole page. Measured before this:
-                        viewport 337 on a 320px screen.
-
-                        Same failure mode as the About section's animation on
-                        2 Sep: on a phone an over-wide element is not a
-                        scrollbar, it is a zoom.
-                      */}
-                      <div className="flex flex-wrap gap-4">
-                        {project.demoUrl && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(project.demoUrl!, '_blank', 'noopener,noreferrer')}
-                            className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white"
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Live Demo
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(project.githubUrl, '_blank', 'noopener,noreferrer')}
-                          className="text-gray-400 hover:text-white hover:bg-slate-700"
-                        >
-                          <Github className="w-4 h-4 mr-2" />
-                          Source Code
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Other Projects */}
-          {filteredProjects.filter(project => !project.featured).length > 0 && (
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-6">Other Projects</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects
-                  .filter(project => !project.featured)
-                  .map((project, index) => (
-                  <motion.div
-                    key={project.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                  All
+                </button>
+              </li>
+              {categories.map((c) => (
+                <li key={c}>
+                  <button
+                    type="button"
+                    className="ed-tag"
+                    aria-pressed={category === c}
+                    onClick={() => setCategory(category === c ? null : c)}
                   >
-                    <Card className="bg-slate-800 border-slate-700 hover:border-blue-600/50 transition-all duration-300 h-full">
-                      <CardHeader>
-                        <div className="flex justify-between items-start mb-2">
-                          <Badge className={`${getStatusColor(project.status)} text-xs`}>
-                            {project.status}
-                          </Badge>
-                          <div className="flex items-center text-gray-400 text-xs">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            {project.completionDate}
-                          </div>
-                        </div>
-                        <CardTitle className="text-white text-lg mb-2">
-                          {project.title}
-                        </CardTitle>
-                        <Badge variant="outline" className="border-blue-600/30 text-blue-400 w-fit text-xs">
-                          {project.category}
-                        </Badge>
-                      </CardHeader>
-                      
-                      <CardContent>
-                        <p className="text-gray-300 mb-4 text-sm leading-relaxed">
-                          {project.description}
-                        </p>
-                        
-                        <div className="mb-4">
-                          <div className="flex flex-wrap gap-1">
-                            {project.technologies.slice(0, 3).map((tech) => (
-                              <Badge 
-                                key={tech}
-                                variant="secondary"
-                                className="bg-slate-700 text-gray-300 text-xs"
-                              >
-                                {tech}
-                              </Badge>
-                            ))}
-                            {project.technologies.length > 3 && (
-                              <Badge 
-                                variant="secondary"
-                                className="bg-slate-700 text-gray-300 text-xs"
-                              >
-                                +{project.technologies.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Same reasoning as the featured cards above. */}
-                        <div className="flex flex-wrap gap-2">
-                          {project.demoUrl && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => window.open(project.demoUrl!, '_blank', 'noopener,noreferrer')}
-                              className="border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white text-xs h-8"
-                            >
-                              <ExternalLink className="w-3 h-3 mr-1" />
-                              Demo
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(project.githubUrl, '_blank', 'noopener,noreferrer')}
-                            className="text-gray-400 hover:text-white hover:bg-slate-700 text-xs h-8"
-                          >
-                            <Github className="w-3 h-3 mr-1" />
-                            Code
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                    {c}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* --- features ------------------------------------------------------ */}
+      {featured.map((project, i) => (
+        <section key={project.id} aria-labelledby={`p-${project.id}`} className={i % 2 ? 'ed-sunk' : ''}>
+          <hr className="ed-rule" style={i === 0 ? { borderTopColor: 'var(--ink)' } : undefined} />
+          <div className="ed-grid py-[clamp(3.5rem,8vw,7rem)]">
+            <div className="col-all mb-8 flex flex-wrap items-baseline justify-between gap-4">
+              <span className="ed-folio">{String(i + 1).padStart(2, '0')} / Featured</span>
+              <span className="ed-label ed-mono">
+                {[project.category, project.status, project.completionDate].filter(Boolean).join(' · ')}
+              </span>
+            </div>
+
+            <h2 id={`p-${project.id}`} className="ed-display col-1-9 ed-rise">
+              {project.title}
+            </h2>
+
+            <div className="col-4-12 ed-rise mt-10">
+              <p className="ed-lead text-[var(--ink-80)]">{project.description}</p>
+
+              {project.technologies.length > 0 && (
+                <ul className="mt-8 flex flex-wrap gap-2" aria-label="Technologies">
+                  {project.technologies.map((t) => (
+                    <li key={t} className="ed-tag">
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="mt-10 flex flex-wrap gap-3">
+                {project.demoUrl && (
+                  <a href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="ed-btn">
+                    Live <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+                {project.githubUrl && (
+                  <a
+                    href={project.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ed-btn ed-btn-ghost"
+                  >
+                    Source <span aria-hidden="true">↗</span>
+                  </a>
+                )}
               </div>
             </div>
+          </div>
+        </section>
+      ))}
+
+      {/* --- index --------------------------------------------------------- */}
+      {others.length > 0 && (
+        <section aria-labelledby="more-projects" className="pt-[clamp(3.5rem,7vw,6rem)]">
+          <div className="ed-grid">
+            <h2 id="more-projects" className="ed-label col-all mb-6">
+              {featured.length > 0 ? 'Also built' : 'Index'}
+            </h2>
+          </div>
+          <ul className="ed-grid">
+            {others.map((project, i) => (
+              <li
+                key={project.id}
+                className="col-all grid gap-y-3 py-7 lg:grid-cols-12 lg:gap-x-[clamp(1rem,2vw,2rem)]"
+                style={{ borderTop: i === 0 ? '1px solid var(--ink)' : '1px solid var(--rule)' }}
+              >
+                <div className="lg:col-span-6">
+                  <h3 className="ed-h2 text-[clamp(1.4rem,2.2vw,2rem)]">{project.title}</h3>
+                  <p className="mt-3 max-w-[60ch] text-[var(--ink-60)]">{project.description}</p>
+                </div>
+                <p className="ed-label ed-mono lg:col-span-3">
+                  {[project.category, project.completionDate].filter(Boolean).join(' · ')}
+                </p>
+                <div className="flex flex-wrap items-start gap-x-6 gap-y-2 lg:col-span-3 lg:justify-end">
+                  {project.demoUrl && (
+                    <a
+                      href={project.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ed-label ed-label-ink ed-link"
+                    >
+                      Live ↗
+                    </a>
+                  )}
+                  {project.githubUrl && (
+                    <a
+                      href={project.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ed-label ed-label-ink ed-link"
+                    >
+                      Source ↗
+                    </a>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* --- contact ------------------------------------------------------- */}
+      {loaded && (site.contactHeading || site.email) && (
+        <div className="ed-grid pb-[clamp(5rem,10vw,9rem)] pt-[clamp(4.5rem,9vw,8rem)]">
+          <hr className="ed-rule col-all mb-12" />
+          <div className="col-1-7">
+            {site.contactHeading && <h2 className="ed-h2">{site.contactHeading}</h2>}
+            {site.contactSubtitle && (
+              <p className="ed-lead mt-6 text-[var(--ink-60)]">{site.contactSubtitle}</p>
+            )}
+          </div>
+          {site.email && (
+            <div className="col-8-12 mt-8 flex items-end lg:mt-0 lg:justify-end">
+              <a href={`mailto:${site.email}`} className="ed-btn">
+                Get in touch <span aria-hidden="true">→</span>
+              </a>
+            </div>
           )}
         </div>
-
-        {/* Contact Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="text-center mt-16 py-12 border-t border-slate-700"
-        >
-          {site.contactHeading && (
-            <h2 className="text-2xl font-bold text-white mb-4">{site.contactHeading}</h2>
-          )}
-          {site.contactSubtitle && <p className="text-gray-300 mb-6">{site.contactSubtitle}</p>}
-          {site.email && (
-            <Button
-              size="lg"
-              onClick={() => window.open(`mailto:${site.email}`, '_blank')}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Get In Touch
-            </Button>
-          )}
-        </motion.div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

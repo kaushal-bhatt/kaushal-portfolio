@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 import { getPublishedResume } from '@/lib/content/resume';
 import { pdfFilename } from '@/lib/resume-content';
 import { currentSiteId } from '@/lib/site';
@@ -34,19 +33,22 @@ export default async function ResumePage({ params }: { params: { slug: string } 
   if (!resume) notFound();
 
   return (
-    <main className="min-h-screen bg-slate-900 py-6 print:bg-white print:py-0">
+    // Paper, a shade deeper than the sheet, so the white A4 page reads as a
+    // document laid on a desk. `.editorial` for the type and the signal; the
+    // full site frame is deliberately absent — this page exists to be printed,
+    // and a navigation bar has no business on paper.
+    <main
+      className="editorial min-h-screen py-6 print:bg-white print:py-0"
+      style={{ background: 'var(--paper-sunk)' }}
+    >
       {/*
         Chrome. `no-print` rather than `print:hidden` because the same class is
         used from globals.css, where the @page rules live — one name for one
         idea, whichever side sets it.
       */}
       <div className="no-print mx-auto mb-6 flex w-full max-w-[210mm] items-center justify-between gap-4 px-4">
-        <Link
-          href="/"
-          className="inline-flex items-center text-sm text-gray-400 transition-colors hover:text-white"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to the site
+        <Link href="/" className="ed-label ed-label-ink ed-link">
+          <span aria-hidden="true">← </span>Back to the site
         </Link>
         <ResumePrintButton filename={pdfFilename(resume)} title={`${resume.fullName} — Résumé`} />
       </div>
@@ -55,10 +57,9 @@ export default async function ResumePage({ params }: { params: { slug: string } 
         <ResumeDocument resume={resume} />
       </div>
 
-      <p className="no-print mx-auto mt-6 max-w-[210mm] px-4 text-center text-xs text-gray-500">
-        &ldquo;Download PDF&rdquo; opens your browser&rsquo;s print dialog — choose{' '}
-        <span className="text-gray-400">Save as PDF</span> as the destination. The result is a
-        real text PDF, not an image, so it parses.
+      <p className="no-print ed-label mx-auto mt-6 max-w-[210mm] px-4 text-center normal-case tracking-normal">
+        &ldquo;Download PDF&rdquo; opens your browser&rsquo;s print dialog — choose Save as PDF as
+        the destination. The result is a real text PDF, not an image, so it parses.
       </p>
     </main>
   );

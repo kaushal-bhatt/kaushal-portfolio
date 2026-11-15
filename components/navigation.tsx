@@ -1,178 +1,215 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Menu, X, Home, User, Briefcase, BookOpen, FileText, CalendarDays } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { usePublishedResumes } from '@/hooks/use-published-resumes';
 import { useBooking } from '@/hooks/use-booking';
 import { useSite } from '@/hooks/use-site';
 
-const baseNavItems = [
-  { name: 'Home', href: '#hero', icon: Home, isScroll: true },
-  { name: 'About', href: '#about', icon: User, isScroll: true },
-  { name: 'Portfolio', href: '/portfolio', icon: Briefcase, isScroll: false },
-  { name: 'Blog', href: '/blog', icon: BookOpen, isScroll: false },
-];
+/**
+ * The masthead bar.
+ *
+ * Every entry is a real link. The previous version sent anything that was not
+ * an in-page anchor through `window.open(href, '_blank')`, so the site's own
+ * navigation opened Blog, Portfolio and Résumé in new tabs — three tabs deep
+ * after a minute of browsing, with no way to middle-click by choice because
+ * there was no href to middle-click.
+ *
+ * Entries that point at something optional are present only when it exists:
+ * the résumé while one is published, the booking anchor while a Calendly URL is
+ * set. A link that leads to a 404 or scrolls nowhere is worse than no link.
+ */
 
-const RESUME_ITEM = { name: 'Resume', href: '/resume', icon: FileText, isScroll: false };
+interface Item {
+  label: string;
+  /** In-page section id on the home page; ignored when `path` is set. */
+  anchor?: string;
+  /** A separate route. */
+  path?: string;
+}
 
-const BOOKING_ITEM = { name: 'Book a Call', href: '#booking', icon: CalendarDays, isScroll: true };
+const SECTIONS = ['about', 'experience', 'writing', 'booking'];
 
-export function Navigation() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('hero');
-
-  /*
-    One entry regardless of how many résumés are published — a bare /resume
-    redirects to whichever has the lowest order, and a navigation bar carrying
-    three CV links is a navigation bar nobody reads. The About band is where
-    they are listed individually.
-
-    Gone entirely when nothing is published: /resume 404s in that case, and a
-    nav item that leads to a 404 is worse than no nav item.
-  */
+export function Navigation({ home = false }: { home?: boolean }) {
+  const site = useSite();
   const resumes = usePublishedResumes();
   const booking = useBooking();
-  const site = useSite();
+  const pathname = usePathname() ?? '/';
 
-  /*
-    Both entries are conditional on the thing they point at existing. The
-    booking one scrolls to a section that is not rendered until a Calendly URL
-    is set, and a nav item that scrolls nowhere is worse than no nav item.
-  */
-  const navItems = [
-    ...baseNavItems,
-    ...(resumes.length > 0 ? [RESUME_ITEM] : []),
-    ...(booking.calendlyUrl ? [BOOKING_ITEM] : []),
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState<string | null>(null);
+
+  const items: Item[] = [
+    { label: 'About', anchor: 'about' },
+    { label: 'Experience', anchor: 'experience' },
+    { label: 'Projects', path: '/portfolio' },
+    { label: 'Writing', path: '/blog' },
+    ...(resumes.length > 0 ? [{ label: 'Résumé', path: '/resume' }] : []),
+    ...(booking.calendlyUrl ? [{ label: 'Book a call', anchor: 'booking' }] : []),
   ];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-      
-      // Update active section based on scroll position
-      const sections = ['hero', 'about', 'portfolio', 'blog', 'booking'];
-      const scrollPosition = window.scrollY + 100;
-      
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveSection(section);
-            break;
-          }
-        }
-      }
-    };
+  /** On the home page an anchor is `#about`; anywhere else it has to lead back. */
+  const hrefOf = (item: Item) => item.path ?? (home ? `#${item.anchor}` : `/#${item.anchor}`);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+  // The hairline under the bar appears once the masthead has scrolled away. A
+  // passive listener reading one number — not a layout query per frame.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const handleNavigation = (item: { href: string; isScroll?: boolean }) => {
-    if (item.isScroll) {
-      const element = document.querySelector(item.href);
-      element?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      window.open(item.href, '_blank');
-    }
-    setIsOpen(false);
-  };
+  /*
+    The current section, from an IntersectionObserver. The previous version
+    read offsetTop and offsetHeight of five elements on every scroll event,
+    which forces layout each time; this asks the browser to tell us instead.
+  */
+  useEffect(() => {
+    if (!home) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        }
+      },
+      // A band across the upper middle of the screen: a section is "current"
+      // while it is the thing being read, not merely while an edge is visible.
+      { rootMargin: '-35% 0px -55% 0px' }
+    );
+    const observed = SECTIONS.map((id) => document.getElementById(id)).filter(
+      (el): el is HTMLElement => el !== null
+    );
+    observed.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+    // Re-run once the optional sections have had a chance to mount.
+  }, [home, booking.calendlyUrl]);
+
+  // Lock the page behind the open menu, and let Escape close it.
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const brand = site.navBrand || site.fullName;
 
   return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-slate-900/95 backdrop-blur-md shadow-xl' : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="flex-shrink-0"
-          >
-            <button
-              onClick={() => handleNavigation({ href: '#hero', isScroll: true })}
-              className="text-xl font-bold gradient-text cursor-pointer"
-            >
-              {site.navBrand || site.fullName}
-            </button>
-          </motion.div>
+    <>
+      <a
+        href="#main"
+        className="ed-label sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[110] focus:bg-[var(--ink)] focus:px-4 focus:py-3 focus:text-[var(--paper)]"
+      >
+        Skip to content
+      </a>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = item.isScroll ? activeSection === item.href.slice(1) : false;
-                return (
-                  <motion.button
-                    key={item.name}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleNavigation(item)}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
-                      isActive
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'text-gray-300 hover:text-white hover:bg-slate-800'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.name}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-300"
-            >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        <motion.div
-          initial={false}
-          animate={isOpen ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
-          className="md:hidden overflow-hidden"
+      <header
+        className="fixed inset-x-0 top-0 z-50 transition-[background-color,border-color] duration-500"
+        style={{
+          backgroundColor: scrolled || open ? 'var(--paper)' : 'transparent',
+          borderBottom: `1px solid ${scrolled && !open ? 'var(--rule)' : 'transparent'}`,
+          transitionTimingFunction: 'var(--ease-out)',
+        }}
+      >
+        <nav
+          aria-label="Primary"
+          className="flex h-16 items-center justify-between"
+          style={{ paddingInline: 'var(--gutter)' }}
         >
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-slate-800/95 backdrop-blur-md rounded-lg mt-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = item.isScroll ? activeSection === item.href.slice(1) : false;
+          <Link
+            href={home ? '#top' : '/'}
+            className="ed-italic text-[1.35rem] leading-none tracking-[-0.01em] text-[var(--ink)]"
+            onClick={() => setOpen(false)}
+          >
+            {brand}
+          </Link>
+
+          <ul className="hidden items-center gap-7 lg:flex">
+            {items.map((item) => {
+              // A section on the home page, or the route you are on anywhere else —
+              // so "Writing" is marked while reading an essay, not only on /.
+              const onRoute = item.path !== undefined && pathname.startsWith(item.path);
+              const isActive = onRoute || (item.anchor !== undefined && active === item.anchor);
               return (
-                <button
-                  key={item.name}
-                  onClick={() => handleNavigation(item)}
-                  className={`w-full text-left px-3 py-2 rounded-md text-base font-medium transition-all duration-200 flex items-center space-x-3 ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:text-white hover:bg-slate-700'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.name}</span>
-                </button>
+                <li key={item.label}>
+                  <Link
+                    href={hrefOf(item)}
+                    aria-current={onRoute ? 'page' : isActive ? 'true' : undefined}
+                    className="ed-label ed-link relative transition-colors"
+                    style={{ color: isActive ? 'var(--ink)' : undefined }}
+                  >
+                    {/* The current section gets a dot in the signal colour —
+                        the one place in the bar the accent appears. */}
+                    {isActive && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute -left-3 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full"
+                        style={{ background: 'var(--signal)' }}
+                      />
+                    )}
+                    {item.label}
+                  </Link>
+                </li>
               );
             })}
-          </div>
-        </motion.div>
+          </ul>
+
+          <button
+            type="button"
+            className="ed-label lg:hidden"
+            style={{ color: 'var(--ink)' }}
+            aria-expanded={open}
+            aria-controls="ed-menu"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? 'Close' : 'Menu'}
+          </button>
+        </nav>
+      </header>
+
+      {/*
+        The phone menu is a page, not a dropdown: the entries set large in the
+        display face, one per line, in the thumb's half of the screen.
+
+        Rendered only while open. It was `hidden={!open}` with `flex` in the
+        class list — and the `flex` utility's `display: flex` out-ranks the
+        browser's own `[hidden] { display: none }`, so the menu sat open over
+        the masthead on every page load. `lg:hidden` as well, so widening the
+        window with it open cannot leave it covering a desktop layout.
+      */}
+      {open && (
+      <div
+        id="ed-menu"
+        // Lenis must not swallow the wheel while the menu is over the page.
+        data-lenis-prevent
+        className="fixed inset-0 z-40 flex flex-col justify-end lg:hidden"
+        style={{ background: 'var(--paper)', paddingInline: 'var(--gutter)', paddingBottom: '3rem' }}
+      >
+        <p className="ed-label mb-6">Menu</p>
+        <ul className="border-t" style={{ borderColor: 'var(--rule)' }}>
+          {items.map((item, i) => (
+            <li key={item.label} className="border-b" style={{ borderColor: 'var(--rule)' }}>
+              <Link
+                href={hrefOf(item)}
+                onClick={() => setOpen(false)}
+                className="flex items-baseline justify-between py-4"
+              >
+                <span className="ed-h2">{item.label}</span>
+                <span className="ed-folio">{String(i + 1).padStart(2, '0')}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
-    </motion.nav>
+      )}
+    </>
   );
 }
